@@ -29,7 +29,7 @@ RUN apt remove -y libnode72
 RUN update-ca-certificates
 
 # NPM Install 
-npm install npm@6.14.16
+RUN npm install npm@6.14.16
 # install node 16
 RUN touch install_node.sh
 RUN curl -fsSL https://deb.nodesource.com/setup_8.x -o install_node.sh
