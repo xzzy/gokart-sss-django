@@ -28,6 +28,8 @@ RUN apt remove -y libnode72
 # Install nodejs
 RUN update-ca-certificates
 
+WORKDIR /app
+
 # NPM Install 
 RUN apt-get install --no-install-recommends -y npm
 RUN npm install npm@6.14.16
@@ -63,7 +65,7 @@ RUN chmod 0644 /etc/cron.d/dockercron && \
 RUN chmod 755 /pre_startup.sh 
 # Install Python libs from requirements.txt.
 FROM builder_base_govapp as python_libs_govapp
-WORKDIR /app
+
 USER oim
 RUN PATH=/app/.local/bin:$PATH
 COPY --chown=oim:oim requirements.txt ./
