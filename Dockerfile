@@ -22,8 +22,8 @@ RUN apt-get install --no-install-recommends -y libpq-dev patch libreoffice
 RUN apt-get install --no-install-recommends -y postgresql-client mtr htop vim  sudo
 RUN apt-get install --no-install-recommends -y bzip2
 RUN ln -s /usr/bin/python3 /usr/bin/python 
-RUN apt remove -y libnode-dev
-RUN apt remove -y libnode72
+#RUN apt remove -y libnode-dev
+#RUN apt remove -y libnode72
 
 # Install nodejs
 RUN update-ca-certificates
