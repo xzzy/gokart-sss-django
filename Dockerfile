@@ -88,8 +88,8 @@ RUN chmod 777 /app/tmp/
 # IPYTHONDIR - Will allow shell_plus (in Docker) to remember history between sessions
 # 1. will create dir, if it does not already exist
 # 2. will create profile, if it does not already exist
-RUN mkdir /app/logs/.ipython
-RUN export IPYTHONDIR=/app/logs/.ipython/
+#RUN mkdir /app/logs/.ipython
+#RUN export IPYTHONDIR=/app/logs/.ipython/
 
 EXPOSE 8080
 HEALTHCHECK --interval=1m --timeout=5s --start-period=10s --retries=3 CMD ["wget", "-q", "-O", "-", "http://localhost:8080/"]
