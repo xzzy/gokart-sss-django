@@ -45,6 +45,7 @@ RUN apt-get install -y nodejs
 COPY cron /etc/cron.d/dockercron
 COPY startup.sh pre_startup.sh /
 COPY ./timezone /etc/timezone
+COPY sss sss
 RUN chmod 0644 /etc/cron.d/dockercron && \
     crontab /etc/cron.d/dockercron && \
     touch /var/log/cron.log && \
