@@ -56,8 +56,7 @@ RUN chmod 0644 /etc/cron.d/dockercron && \
     groupadd -g 5000 oim && \
     useradd -g 5000 -u 5000 oim -s /bin/bash -d /app && \
     usermod -a -G sudo oim && \
-    echo "oim  ALL=(ALL)  NOPASSWD: /startup.sh" > /etc/sudoers.d/oim && \
-    mkdir /app && \
+    echo "oim  ALL=(ALL)  NOPASSWD: /startup.sh" > /etc/sudoers.d/oim && \    
     chown -R oim.oim /app && \
     mkdir /container-config/ && \
     chown -R oim.oim /container-config/ && \
