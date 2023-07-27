@@ -20,7 +20,7 @@ RUN apt-get upgrade -y
 RUN apt-get install --no-install-recommends -y curl wget git libmagic-dev gcc binutils libproj-dev gdal-bin python3 python3-setuptools python3-dev python3-pip tzdata cron rsyslog gunicorn
 RUN apt-get install --no-install-recommends -y libpq-dev patch libreoffice
 RUN apt-get install --no-install-recommends -y postgresql-client mtr htop vim  sudo
-RUN apt-get install --no-install-recommends -y bzip2
+RUN apt-get install --no-install-recommends -y bzip2 uglifyjs node-brfs
 RUN ln -s /usr/bin/python3 /usr/bin/python 
 #RUN apt remove -y libnode-dev
 #RUN apt remove -y libnode72
@@ -33,10 +33,12 @@ WORKDIR /app
 # NPM Install 
 RUN apt-get install --no-install-recommends -y npm
 RUN npm install npm@6.14.16
+#RUN npm install uglify-js
+#RUN npm install browserify
 
 # install node 16
 RUN touch install_node.sh
-RUN curl -fsSL https://deb.nodesource.com/setup_8.x -o install_node.sh
+RUN curl -fsSL https://deb.nodesource.com/setup_10.x -o install_node.sh
 RUN chmod +x install_node.sh && ./install_node.sh
 RUN apt-get install -y nodejs
 # Install nodejs
