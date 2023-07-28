@@ -8,3 +8,6 @@ whitenoise==6.5.0
 dj-database-url==2.0.0
 python-decouple==3.8
 pytz==2023.3
+django-proxy==1.2.2
+git+https://github.com/xzzy/django-proxy#egg=proxy
+django-cors-headers==4.2.0

@@ -568,7 +568,7 @@ if (result) {
           var sssTools = [
             {
               name: 'Fire Boundary',
-              icon: 'dist/static/images/iD-sprite.svg#icon-area',
+              icon: '/static/dist/static/images/iD-sprite.svg#icon-area',
               style: self.annotations.getVectorStyleFunc(self.tints),
               selectedFillColour:[0, 0, 0, 0.25],
               fillColour:[0, 0, 0, 0.25],
@@ -591,7 +591,7 @@ if (result) {
             self.annotations.ui.defaultText,
             {
               name: 'Division',
-              icon: 'dist/static/symbols/fire/division.svg',
+              icon: '/static/dist/static/symbols/fire/division.svg',
               tints: self.tints,
               perpendicular: true,
               interactions: [self.annotations.pointDrawFactory(), self.annotations.snapToLineFactory()],
@@ -610,7 +610,7 @@ if (result) {
               ]
             }, {
               name: 'Sector',
-              icon: 'dist/static/symbols/fire/sector.svg',
+              icon: '/static/dist/static/symbols/fire/sector.svg',
               tints: self.tints,
               perpendicular: true,
               interactions: [self.annotations.pointDrawFactory(), self.annotations.snapToLineFactory()],
@@ -635,7 +635,7 @@ if (result) {
               showName: true
             }, {*/
               name: 'Origin Point',
-              icon: 'dist/static/symbols/fire/origin.svg',
+              icon: '/static/dist/static/symbols/fire/origin.svg',
               tints: self.tints,
               interactions: [self.annotations.pointDrawFactory()],
               style: self.annotations.getIconStyleFunction(self.tints),
@@ -653,7 +653,7 @@ if (result) {
               ]
             }, {
               name: 'Spot Fire',
-              icon: 'dist/static/symbols/fire/spotfire.svg',
+              icon: '/static/dist/static/symbols/fire/spotfire.svg',
               tints: self.tints,
               interactions: [self.annotations.pointDrawFactory()],
               style: self.annotations.getIconStyleFunction(self.tints),
@@ -671,7 +671,7 @@ if (result) {
               ]
             }, {
               name: 'Road Closure',
-              icon: 'dist/static/symbols/fire/road_closure_point.svg',
+              icon: '/static/dist/static/symbols/fire/road_closure_point.svg',
               tints: self.tints,
               interactions: [self.annotations.pointDrawFactory()],
               style: self.annotations.getIconStyleFunction(self.tints),
@@ -690,10 +690,10 @@ if (result) {
               ]
             }, {
               name: 'Control Line',
-              icon: 'dist/static/symbols/fire/controlline.svg',
+              icon: '/static/dist/static/symbols/fire/controlline.svg',
               interactions: [self.annotations.linestringDrawFactory()],
               size: 1,
-              typeIcon: 'dist/static/symbols/fire/plus.svg',
+              typeIcon: '/static/dist/static/symbols/fire/plus.svg',
               typeIconSelectedTint: 'selectedPlusIcon',
               typeIconDims: [20,20],
               colour: 'rgba(0, 0, 0, 0.1)',
