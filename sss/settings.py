@@ -52,6 +52,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -142,3 +143,11 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+KMI_URL=decouple.config("KMI_URL", default="https://kmi.dbca.wa.gov.au")
+CATALOGUE_URL=decouple.config("CATALOGUE_URL", default="https://csw-uat.dbca.wa.gov.au")
+BFRS_URL=decouple.config("BFRS_URL", default="https://bfrs-uat.dbca.wa.gov.au")
+AUTH2_BASIC_AUTH_USER=decouple.config("AUTH2_BASIC_AUTH_USER", default="admin")
+AUTH2_BASIC_AUTH_PASSWORD=decouple.config("AUTH2_BASIC_AUTH_PASSWORD", default="nopassword")
+
+CORS_ALLOW_ALL_ORIGINS = True

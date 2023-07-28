@@ -16,6 +16,7 @@ def variables(request):
 #        "app_build_url": conf.settings.DEV_APP_BUILD_URL,
         "GIT_COMMIT_HASH": conf.settings.GIT_COMMIT_HASH,
         "DJANGO_SETTINGS": conf.settings,
-        "settings": conf.settings
+        "settings": conf.settings,
+        "kmi_url": conf.settings.KMI_URL
 
     }
