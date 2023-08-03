@@ -36,6 +36,7 @@ RUN apt-get install --no-install-recommends -y npm
 #RUN npm install uglify-js
 #RUN npm install browserify
 RUN npm install -g browserify
+RUN npm install -g closure-util
 
 # install node 16
 RUN touch install_node.sh
