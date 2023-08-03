@@ -37,8 +37,8 @@ WORKDIR /app
 #RUN npm install uglify-js
 #RUN npm install browserify
 
-RUN npm install -g browserify
-RUN npm install -g closure-util
+
+
 
 # install node 16
 RUN touch install_node.sh
@@ -52,6 +52,8 @@ RUN pip install npm
 #RUN apt-get install -y npm
 RUN npm install -g browserify
 RUN npm install -g npm-run-all
+RUN npm install -g closure-util
+
 # Install nodejs
 COPY cron /etc/cron.d/dockercron
 COPY startup.sh pre_startup.sh /
