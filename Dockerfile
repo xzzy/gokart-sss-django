@@ -37,6 +37,9 @@ WORKDIR /app
 #RUN npm install uglify-js
 #RUN npm install browserify
 
+RUN npm install -g browserify
+RUN npm install -g closure-util
+
 # install node 16
 RUN touch install_node.sh
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x -o install_node.sh
