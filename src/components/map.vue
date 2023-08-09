@@ -657,8 +657,9 @@
       },
       // get the DMS representation of some EPSG:4326 coordinates
       getDMS: function(coords) {
+
         return ol.coordinate.degreesToStringHDMS_(coords[0], 'EW', 1) + ', ' +
-               ol.coordinate.degreesToStringHDMS_(coords[1], 'NS', 1)
+              ol.coordinate.degreesToStringHDMS_(coords[1], 'NS', 1)
       },
       // get the MGA representation of some EPSG:4326 coordinates
       getMGA: function(coords) {
