@@ -10,3 +10,5 @@ python-decouple==3.8
 pytz==2023.3
 #git+https://github.com/xzzy/django-proxy#egg=django-proxy
 django-cors-headers==4.2.0
+#GDAL==3.6.3 <-- install from whl file
+affine==2.1.0
