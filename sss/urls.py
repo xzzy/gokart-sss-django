@@ -27,6 +27,8 @@ urlpatterns = [
     path('api/brfs-region.json', api.api_bfrs_region, name='api_bfrs_region_api'),
     path('admin/', admin.site.urls),
     path("", views.HomePage.as_view(), name="home"),
-    #re_path('kmi-proxy/(?P<path>.*)', api.kmiProxyView),
-    #re_path('kb-proxy/(?P<path>.*)', api.kbProxyView),
+    re_path('kmi-proxy/(?P<path>.*)', api.kmiProxyView),
+    re_path('kb-proxy/(?P<path>.*)', api.kbProxyView),
+
+    path("sso/profile", api.sso_profile)
 ]

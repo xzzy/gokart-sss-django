@@ -88,8 +88,8 @@
     "tether-shepherd": "~1.8.1",
     "turf": "~3.0.14",
     "vue": "~1.0.28",
-    "vue-stash": "~1.0.0",
-    "openlayers": "4.3.0"
+    "vue-stash": "~1.0.0"
+
 
   },
   "devDependencies": {

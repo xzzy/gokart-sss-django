@@ -149,5 +149,20 @@ CATALOGUE_URL=decouple.config("CATALOGUE_URL", default="https://csw-uat.dbca.wa.
 BFRS_URL=decouple.config("BFRS_URL", default="https://bfrs-uat.dbca.wa.gov.au")
 AUTH2_BASIC_AUTH_USER=decouple.config("AUTH2_BASIC_AUTH_USER", default="admin")
 AUTH2_BASIC_AUTH_PASSWORD=decouple.config("AUTH2_BASIC_AUTH_PASSWORD", default="nopassword")
+KMI_AUTH2_BASIC_AUTH_USER=decouple.config("KMI_AUTH2_BASIC_AUTH_USER", default="admin")
+KMI_AUTH2_BASIC_AUTH_PASSWORD=decouple.config("KMI_AUTH2_BASIC_AUTH_PASSWORD", default="nopassword")
+KB_AUTH2_BASIC_AUTH_USER=decouple.config("KB_AUTH2_BASIC_AUTH_USER", default="admin")
+KB_AUTH2_BASIC_AUTH_PASSWORD=decouple.config("KB_AUTH2_BASIC_AUTH_PASSWORD", default="nopassword")
+
+
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': os.path.join(BASE_DIR, 'sss', 'cache'),
+        "OPTIONS": {"MAX_ENTRIES": 10000},
+    }
+}

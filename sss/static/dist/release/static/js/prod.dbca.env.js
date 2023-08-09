@@ -5,10 +5,11 @@ var env = {
 
     // cswService:"https://csw-uat.dbca.wa.gov.au/catalogue/api2/application/records",
     cswService: "/api/catalogue.json",
-    catalogueAdminService:"https://csw.dbca.wa.gov.au",
+    catalogueAdminService:"https://csw-uat.dbca.wa.gov.au",
 
-    kmiService:"https://kmi.dbca.wa.gov.au/geoserver",
-    //kmiService:"/kmi-proxy/geoserver",
+    //kmiService:"https://kmi.dbca.wa.gov.au/geoserver",
+    kmiService:"/kmi-proxy/geoserver",
+
 
     legendSrc:"https://kmi.dbca.wa.gov.au/geoserver/gwc/service/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&legend_options=fontName:Times%20New%20Roman;fontAntiAliasing:true;fontSize:14;bgColor:0xFFFFEE;dpi:120;labelMargin:10&LAYER=",
 
@@ -16,7 +17,8 @@ var env = {
 
     gokartService:"https://sss.dbca.wa.gov.au",
     resourceTrackingService:"https://resourcetracking.dbca.wa.gov.au",
-    bfrsService:"https://bfrs.dbca.wa.gov.au",
+    bfrsService:"https://bfrs-uat.dbca.wa.gov.au",
+    bfrsService:"",
     staticService:"https://static.dbca.wa.gov.au",
 
     s3Service:"http://gokart.dpaw.io/",

@@ -28,8 +28,11 @@
     <!-- main global styles down here to load after all packaged styles -->
     <link rel="stylesheet" property="stylesheet" type="text/css" href="/static/dist/static/css/style.css?version={{ settings.GIT_COMMIT_HASH }}" />
     <app v-ref:app></app>
+    
+    <script src="/static/dist/release/static/js/ol-debug-3.21.0.js?version={{settings.GIT_COMMIT_HASH}}"></script>
     <script src="/static/dist/release/static/js/prod.dbca.env.js?version={{settings.GIT_COMMIT_HASH}}"></script>
     <script src="/static/dist/release/vendor.js?version={{ settings.GIT_COMMIT_HASH }}"></script>
     <script src="/static/dist/release/sss.js?version={{ settings.GIT_COMMIT_HASH }}"></script>
+    
   </body>
 </html>
