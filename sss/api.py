@@ -44,11 +44,14 @@ def kmiProxyView(request, path):
    
     proxy_response = None
     proxy_cache = cache.get(remoteurl+'?'+request.META['QUERY_STRING'])
-    #proxy_cache= None
+    proxy_cache= None
     proxy_response_content = None
     base64_json = {}
     if proxy_cache is None:
         proxy_response = proxy_view(request, remoteurl, basic_auth={"user": conf.settings.KMI_AUTH2_BASIC_AUTH_USER, 'password' : conf.settings.KMI_AUTH2_BASIC_AUTH_PASSWORD}, cookies={})    
+        print ("NOTCACHED")
+        print (remoteurl+'?'+request.META['QUERY_STRING'])        
+        print (proxy_response.status_code)
         proxy_response_content_encoded = base64.b64encode(proxy_response.content)
         base64_json = {"content_type": proxy_response.headers['content-type'], "content" : proxy_response_content_encoded.decode('utf-8')}
         cache.set(remoteurl+'?'+request.META['QUERY_STRING'], json.dumps(base64_json), 86400)
