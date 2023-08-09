@@ -156,10 +156,18 @@ KMI_AUTH2_BASIC_AUTH_PASSWORD=decouple.config("KMI_AUTH2_BASIC_AUTH_PASSWORD", d
 KB_AUTH2_BASIC_AUTH_USER=decouple.config("KB_AUTH2_BASIC_AUTH_USER", default="admin")
 KB_AUTH2_BASIC_AUTH_PASSWORD=decouple.config("KB_AUTH2_BASIC_AUTH_PASSWORD", default="nopassword")
 
+CSW_SERVICE_URL=decouple.config("CSW_SERVICE_URL", default="/api/catalogue.json")
+KMI_SERVICE_URL=decouple.config("KMI_SERVICE_URL", default="/kmi-proxy/geoserver")
+HOTSPOT_SERVICE_URL=decouple.config("HOTSPOT_SERVICE_URL", default="https://hotspots.dbca.wa.gov.au/geoserver/hotspots/ows")
+SSS_SERVICE_URL=decouple.config("SSS_SERVICE_URL", default="https://sss-uat.dbca.wa.gov.au")
+RESOURCE_TRACKING_SERVICE_URL=decouple.config("RESOURCE_TRACKING_SERVICE_URL", default="https://resourcetracking.dbca.wa.gov.au")
+BFRS_SERVICE_URL=decouple.config("BFRS_SERVICE_URL", default="https://bfrs-uat.dbca.wa.gov.au")
+DBCA_STATIC_URL=decouple.config("DBCA_STATIC_URL", default="https://static.dbca.wa.gov.au")
+OVERVIEW_LAYER=decouple.config("OVERVIEW_LAYER", default="dbca:mapbox-outdoors")
 
+BOM_HOME=decouple.config("BOM_HOME", default="/var/www/bom_data")
 
 CORS_ALLOW_ALL_ORIGINS = True
-
 
 CACHES = {
     'default': {
@@ -168,3 +176,9 @@ CACHES = {
         "OPTIONS": {"MAX_ENTRIES": 10000},
     }
 }
+
+
+
+
+
+    

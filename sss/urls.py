@@ -27,6 +27,8 @@ urlpatterns = [
     path('api/brfs-region.json', api.api_bfrs_region, name='api_bfrs_region_api'),
     path('admin/', admin.site.urls),
     path("", views.HomePage.as_view(), name="home"),
+    path("outlookmetadata", api.outlookmetadata, name='api_outlookmetadata'),
+    path("api/environment_config.js", api.environment_config, name='environment_config'),
     re_path('kmi-proxy/(?P<path>.*)', api.kmiProxyView),
     re_path('kb-proxy/(?P<path>.*)', api.kbProxyView),
 
