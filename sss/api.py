@@ -40,7 +40,7 @@ def api_bfrs_region(request, *args, **kwargs):
 def kmiProxyView(request, path):
 
     from requests.auth import HTTPBasicAuth
-    remoteurl = conf.settings.KMI_URL + '/' + path  
+    remoteurl = conf.settings.KMI_API_URL + '/' + path  
    
     proxy_response = None
     proxy_cache = cache.get(remoteurl+'?'+request.META['QUERY_STRING'])
@@ -68,11 +68,11 @@ def kmiProxyView(request, path):
 def kbProxyView(request, path):
 
     from requests.auth import HTTPBasicAuth
-    remoteurl = conf.settings.KB_URL + '/' + path
+    remoteurl = conf.settings.KB_API_URL + '/' + path
      
     proxy_response = None
     proxy_cache = cache.get(remoteurl+'?'+request.META['QUERY_STRING'])
-    #proxy_cache= None
+    proxy_cache= None
     proxy_response_content = None
     base64_json = {}
     if proxy_cache is None:

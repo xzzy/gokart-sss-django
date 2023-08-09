@@ -145,7 +145,8 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 KMI_URL=decouple.config("KMI_URL", default="https://kmi.dbca.wa.gov.au")
-KB_URL=decouple.config("KMI_URL", default="https://kaartdijin-boodja.dbca.wa.gov.au")
+KMI_API_URL=decouple.config("KMI_URL", default="https://kmi-api.dbca.wa.gov.au")
+KB_API_URL=decouple.config("KMI_URL", default="https://kaartdijin-boodja.dbca.wa.gov.au")
 CATALOGUE_URL=decouple.config("CATALOGUE_URL", default="https://csw-uat.dbca.wa.gov.au")
 BFRS_URL=decouple.config("BFRS_URL", default="https://bfrs-uat.dbca.wa.gov.au")
 AUTH2_BASIC_AUTH_USER=decouple.config("AUTH2_BASIC_AUTH_USER", default="admin")
