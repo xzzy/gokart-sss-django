@@ -165,7 +165,7 @@ BFRS_SERVICE_URL=decouple.config("BFRS_SERVICE_URL", default="https://bfrs-uat.d
 DBCA_STATIC_URL=decouple.config("DBCA_STATIC_URL", default="https://static.dbca.wa.gov.au")
 OVERVIEW_LAYER=decouple.config("OVERVIEW_LAYER", default="dbca:mapbox-outdoors")
 
-BOM_HOME=decouple.config("BOM_HOME", default="/var/www/bom_data")
+BOM_HOME=decouple.config("BOM_HOME", default="/var/www/bom_data/.data/")
 
 CORS_ALLOW_ALL_ORIGINS = True
 
