@@ -169,7 +169,7 @@ DBCA_STATIC_URL=decouple.config("DBCA_STATIC_URL", default="https://static.dbca.
 OVERVIEW_LAYER=decouple.config("OVERVIEW_LAYER", default="dbca:mapbox-outdoors")
 ACCOUNT_DETAILS_URL=decouple.config("ACCOUNT_DETAILS_URL", default="/api/account.json")
 
-BOM_HOME=decouple.config("BOM_HOME", default="/var/www/bom_data")
+BOM_HOME=decouple.config("BOM_HOME", default="/var/www/bom_data/.data/")
 
 CORS_ALLOW_ALL_ORIGINS = True
 
