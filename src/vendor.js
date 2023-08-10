@@ -4,7 +4,7 @@
 import 'tether-shepherd/dist/css/shepherd-theme-dark.css'
 import 'foundation-sites/dist/foundation-flex.css'
 import 'foundation-datepicker/css/foundation-datepicker.css'
-import 'openlayers/dist/ol-debug.css'
+import './apps/ol-debug.css'
 import 'dragula/dist/dragula.css'
 
 // jQuery v2, the krazy glue of the internet
