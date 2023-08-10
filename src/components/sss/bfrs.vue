@@ -3106,7 +3106,7 @@
         vm._bfrsStatus.phaseBegin("load_profile", 20, "Load profile")
         $.ajax({
 	    //url: vm.env.bfrsService + "/api/v1/profile/?format=json",
-	    url: "/api/brfs-region.json",
+	    url: "/api/profile.json",
             method:"GET",
             dataType:"json",
             success: function (response, stat, xhr) {

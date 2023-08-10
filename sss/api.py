@@ -9,6 +9,10 @@ import requests
 import base64
 import json
 from io import BytesIO
+from sss.models import UserProfile
+from sss.serializers import ProfileSerializer, AccountDetailsSerializer
+from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 def api_catalogue(request, *args, **kwargs):
 
@@ -127,3 +131,36 @@ def outlookmetadata(request):
     data = raster.outlookmetadata(request)
     #data = raster.test(request)
     return HttpResponse(json.dumps(data), content_type='application/json')
+
+def api_profile(request, *args, **kwargs):
+    user_logged_in = None
+    if request.user.is_authenticated:
+        user_logged_in = request.user
+        try:
+            user_profile = UserProfile.objects.get(user=user_logged_in)
+            serializer = ProfileSerializer(user_profile)
+            return HttpResponse(json.dumps(serializer.data), content_type='application/json')
+        except serializers.ValidationError:
+                raise serializers.ValidationError('Serializer not valid')
+        except UserProfile.DoesNotExist:
+            raise ValidationError('User profile for the logged in user does not exist')
+    else:
+        raise ValidationError('User is not authenticated')
+    
+def api_account(request, *args, **kwargs):
+    user_logged_in = None
+    if request.user.is_authenticated:
+        user_logged_in = request.user
+        try:
+            user_profile = UserProfile.objects.get(user=user_logged_in)
+            serializer = AccountDetailsSerializer(user_profile)
+            return HttpResponse(json.dumps(serializer.data), content_type='application/json')
+        except serializers.ValidationError:
+                raise serializers.ValidationError('Serializer not valid')
+        except UserProfile.DoesNotExist:
+            raise ValidationError('User profile for the logged in user does not exist')
+    else:
+        raise ValidationError('User is not authenticated')
+
+
+    
