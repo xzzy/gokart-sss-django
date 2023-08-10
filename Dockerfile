@@ -23,23 +23,11 @@ RUN apt-get install --no-install-recommends -y postgresql-client mtr htop vim  s
 RUN apt-get install --no-install-recommends -y bzip2
 RUN apt-get install --no-install-recommends -y libgdal-dev build-essential
 RUN ln -s /usr/bin/python3 /usr/bin/python
-#RUN apt remove -y libnode-dev
-#RUN apt remove -y libnode72
-#RUN apt remove -y nodejs
 
 # Install nodejs
 RUN update-ca-certificates
 
 WORKDIR /app
-
-# NPM Install
-#RUN apt-get install --no-install-recommends -y npm
-#RUN npm install npm@6.14.16
-#RUN npm install uglify-js
-#RUN npm install browserify
-
-
-
 
 # install node 16
 RUN touch install_node.sh
@@ -47,10 +35,8 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x -o install_node.sh
 RUN chmod +x install_node.sh && ./install_node.sh
 RUN apt-get update
 RUN apt-get install -y nodejs
-#RUN apt-get install -y node-brfs
 RUN apt-get install -y uglifyjs
 RUN pip install npm
-#RUN apt-get install -y npm
 RUN npm install -g browserify
 RUN npm install -g npm-run-all
 RUN npm install -g closure-util
@@ -60,6 +46,7 @@ COPY cron /etc/cron.d/dockercron
 COPY startup.sh pre_startup.sh /
 COPY ./timezone /etc/timezone
 COPY sss sss
+COPY packages packages
 RUN chmod 0644 /etc/cron.d/dockercron && \
     crontab /etc/cron.d/dockercron && \
     touch /var/log/cron.log && \
