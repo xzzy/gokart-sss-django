@@ -12,3 +12,4 @@ pytz==2023.3
 django-cors-headers==4.2.0
 #GDAL==3.6.3 <-- install from whl file
 affine==2.1.0
+./packages/GDAL-3.6.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
