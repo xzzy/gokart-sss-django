@@ -345,8 +345,9 @@ def prepareDatasource(datasource):
                 del datasource["loadstatus"]["message"]
     except:
         traceback.print_exc()
+        exc_type, exc_value, exc_traceback = sys.exc_info()
         datasource["loadstatus"]["status"] = "initfailed"
-        datasource["loadstatus"]["message"] = traceback.format_exception_only(sys.exc_type,sys.exc_value)
+        datasource["loadstatus"]["message"] = traceback.format_exception_only(exc_type,exc_value)
         datasource["datasource"] = None
 
 
