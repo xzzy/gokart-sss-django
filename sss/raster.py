@@ -156,7 +156,7 @@ def getEpsgSrs(srsid):
         raise Exception("Srs '{}' is not a invalid epsg srs".format(srsid))
     result = osr.SpatialReference()
     result.ImportFromEPSG(int(srs[1]))
-    return result
+    return result.ExportToPrettyWkt()
 
 def loadDatasource(datasource):
     """
@@ -172,7 +172,7 @@ def loadDatasource(datasource):
     ds = None
     try:
         #initialize ds metadata
-        for key in datasource.get("metadata_f").iterkeys():
+        for key in datasource.get("metadata_f").keys():
             datasource["metadata"][key] = None
 
         #initialize the bands
@@ -192,7 +192,7 @@ def loadDatasource(datasource):
             datasource["srs"].ImportFromWkt(ds.GetProjection())
 
         #load ds metadata
-        for key,func in datasource.get("metadata_f").iteritems():
+        for key,func in datasource.get("metadata_f").items():
             datasource["metadata"][key] = func(ds)
 
         if len(datasource["bands"]) > ds.RasterCount:
@@ -207,7 +207,7 @@ def loadDatasource(datasource):
                 band = {}
                 datasource["bands"].append(band)
             band["index"] = index
-            for key,func in datasource.get("band_metadata_f").iteritems():
+            for key,func in datasource.get("band_metadata_f").items():
                 band[key] = func(ds,index)
             #print "Band {} = {}".format(index,bandid)
             index+=1
@@ -235,10 +235,11 @@ def loadDatasource(datasource):
 
         #print "End to load raster datasource:{} metadata:{} status:{}".format(datasource["file"],datasource["metadata"],datasource["loadstatus"])
         return True
-    except:
+    except Exception as e:
         traceback.print_exc()
+        exc_type, exc_value, exc_traceback = sys.exc_info()
         datasource["loadstatus"]["status"] = "loadfailed"
-        datasource["loadstatus"]["message"] = traceback.format_exception_only(sys.exc_type,sys.exc_value)
+        datasource["loadstatus"]["message"] = traceback.format_exception_only(exc_type, exc_value)
         traceback.print_exc()
         return False
     finally:
@@ -265,6 +266,8 @@ def prepareDatasource(datasource):
     
     #print "Prepare raster datasource:{} status:{}".format(datasource["file"],datasource["loadstatus"])
     try:
+        print ("PREPARING")
+        print (datasource["file"])
         if not os.path.exists(datasource["file"]):
             datasource["loadstatus"]["status"] = "notexist"
             datasource["loadstatus"]["message"] = "Datasource file ({}) does not exist".format(datasource["file"])
@@ -304,7 +307,7 @@ def prepareDatasource(datasource):
     
             if not datasource.get("datasource"):
                 try:
-                    fileLock.acquire()
+                    #fileLock.acquire()
                     #check whether the file is decompressed before
                     ds = datasource["file"][:-3]
                     if os.path.exists(ds):
@@ -2055,7 +2058,7 @@ def formatData(data,pattern,no_data=None):
         return str(data)
 
 def formatContext(context,patterns):
-    for key,value in context.iteritems():
+    for key,value in context.items():
         if isinstance(value,datetime.datetime):
             context[key] = formatData(value,patterns.get("{}_pattern".format(key),patterns.get("datetime_pattern")),"")
         elif isinstance(value,datetime.date):
@@ -2198,7 +2201,7 @@ def setDefaultOptionIfMissing(options,defaultOptions):
     if not options:
         return dict(defaultOptions)
 
-    for key,value in defaultOptions.iteritems():
+    for key,value in defaultOptions.items():
         if key not in options:
             options[key] = value
 
@@ -2281,19 +2284,17 @@ def outlookmetadata(request):
     """
     Get weather outlook metadata
     """
-    print ("START 1")
     refresh = (request.GET.get("refresh", "false") or "false").lower() in ("true","yes","on")
     if refresh:
         for datasource in raster_datasources["bom"].values():
             syncDatasource(datasource)
-    print ("START 2")
     #bottle.response.set_header("Content-Type", "application/json")
     hasFailedDs = False
     for ds in outlook_metadata:
+        print (ds["loadstatus"]["status"])
         if ds["loadstatus"]["status"] != "loaded":
             hasFailedDs = True
             break
-    print ("START 3")
 
     """
     #test meta data refresh feature
@@ -2474,7 +2475,7 @@ def weatheroutlook(fmt):
                 
             #initialize 'daily_data' parameter
             if outlook.get("daily_data"):
-                for datasource in outlook["daily_data"].itervalues():
+                for datasource in outlook["daily_data"].values():
                     if not datasource.get("workspace"):
                         raise Exception("Property 'workspace' of datasource in daily_data is missing.")
                     if not datasource.get("id"):
@@ -2484,7 +2485,7 @@ def weatheroutlook(fmt):
         #extract the data from raster dataset and save the data into 'data' property of each datasource
         #the data structure is the same as the times structure
         for outlook in requestData["outlooks"]:
-            for datasource in outlook.get("daily_data",{}).itervalues():
+            for datasource in outlook.get("daily_data",{}).values():
                 datasource.update(getRasterData({
                     "datasource":datasource,
                     "point":requestData["point"],
@@ -2550,7 +2551,7 @@ def weatheroutlook(fmt):
 
             for outlook in requestData["outlooks"]:
                 outlook["options"] = setDefaultOptionIfMissing(outlook.get("options"),outlook_options)
-                for datasource in outlook.get("daily_data",{}).itervalues():
+                for datasource in outlook.get("daily_data",{}).values():
                     try:
                         datasource["options"] = setDefaultOptionIfMissing(datasource.get("options"),raster_datasources[datasource["workspace"]][datasource["id"]].get("options"))
                     except:
@@ -2586,7 +2587,7 @@ def weatheroutlook(fmt):
                         index += 1
                 
                 #format daily data
-                for datasource in outlook.get("daily_data", {}).itervalues():
+                for datasource in outlook.get("daily_data", {}).values():
                     if datasource["status"] :
                         formatBandsData(datasource,result["options"].get("no_data") or "",raster_datasources[datasource["workspace"]][datasource["id"]]["metadata"]["unit"])
                 
@@ -2597,7 +2598,7 @@ def weatheroutlook(fmt):
                     index = 0
                     while index < len(outlook["days"]):
                         groupContext["date"] = outlook["days"][index].strftime(outlook["options"]["date_pattern"])
-                        for name,datasource in outlook.get("daily_data",{}).iteritems():
+                        for name,datasource in outlook.get("daily_data",{}).items():
                             groupContext[name] = datasource["data"][index][1] if datasource["status"] else (result["options"].get("no_data") or "")
                         outlook["daily_group"].append(outlook.get("options",{}).get("daily_title_pattern","{date}").format(**groupContext))
                         index += 1
@@ -2652,6 +2653,8 @@ loadAllDatasources()
 #load outlook metadata
 #outlook_metadata = {'size':len(raster_datasources["bom"]),'datasources':[]}
 outlook_metadata = []
+print ("RASTER OUTLOOK")
+#print (raster_datasources)
 for key,value in raster_datasources["bom"].items():
     data = dict(value)
     if "metadata_f" in data:
@@ -2730,5 +2733,6 @@ def _compare_datasource(ds1,ds2):
         return -1
 
 #outlook_metadata = sorted(outlook_metadata,cmp=_compare_datasource)
+#print (outlook_metadata)
 for ds in outlook_metadata:
     ds.pop("sort_key")

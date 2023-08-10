@@ -125,5 +125,4 @@ def sso_profile(request):
 def outlookmetadata(request):
 
     data = raster.outlookmetadata(request)
-    #data = raster.test(request)
     return HttpResponse(json.dumps(data), content_type='application/json')
