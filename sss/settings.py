@@ -14,11 +14,12 @@ import os
 import pathlib
 import platform
 import json 
+import datetime
+import pytz
 
 # Third-Party
 import decouple
 import dj_database_url
-
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = pathlib.Path(__file__).resolve().parent.parent
@@ -43,6 +44,7 @@ VERSION_NO = "2.00"
 # Application definition
 
 INSTALLED_APPS = [
+    'django_jinja',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -56,18 +58,20 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'dbca_utils.middleware.SSOLoginMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'dbca_utils.middleware.SSOLoginMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
    
 ]
 
 ROOT_URLCONF = 'sss.urls'
+
+JINJA2_BASE_TEMPLATE = BASE_DIR / "sss/jinjatemplates"
 
 TEMPLATES = [
     {
@@ -97,7 +101,7 @@ WSGI_APPLICATION = 'sss.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': BASE_DIR / 'db' / 'db.sqlite3',
     }
 }
 
@@ -168,8 +172,10 @@ BFRS_SERVICE_URL=decouple.config("BFRS_SERVICE_URL", default="https://bfrs-uat.d
 DBCA_STATIC_URL=decouple.config("DBCA_STATIC_URL", default="https://static.dbca.wa.gov.au")
 OVERVIEW_LAYER=decouple.config("OVERVIEW_LAYER", default="dbca:mapbox-outdoors")
 ACCOUNT_DETAILS_URL=decouple.config("ACCOUNT_DETAILS_URL", default="/api/account.json")
-
 BOM_HOME=decouple.config("BOM_HOME", default="/var/www/bom_data/.data/")
+ENV_DOMAIN="dbca"
+
+PERTH_TIMEZONE = datetime.datetime.now(pytz.timezone('Australia/Perth')).tzinfo
 
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -180,8 +186,8 @@ CACHES = {
         "OPTIONS": {"MAX_ENTRIES": 10000},
     }
 }
-
-
+ENV_TYPE=decouple.config("ENV_TYPE", default="DEV")
+ENABLE_AUTH2_GROUPS=True
 
 
 
