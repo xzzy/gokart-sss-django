@@ -131,13 +131,16 @@ def sso_profile(request):
 def outlookmetadata(request):
 
     data = raster.outlookmetadata(request)
+    #print ("WEather")
+    #print (data)    
     #data = raster.test(request)
-    return HttpResponse(json.dumps(data), content_type='application/json')
+    return HttpResponse(json.dumps(data, default=str), content_type='application/json')
 
 @csrf_exempt
 def weatheroutlook(request, fmt):
 
     data = raster.weatheroutlook(request, fmt)
+
     if fmt == 'json':
         content_type = 'application/json'
     elif fmt == 'amicus':
@@ -146,7 +149,7 @@ def weatheroutlook(request, fmt):
         content_type = 'text/html'
     else: 
         content_type = 'text/html'
-        
+    
     response = HttpResponse(data, content_type=content_type)    
     if fmt == 'json':
         response["Content-Disposition"] = "attachment;filename='weather_outlook_{}.json'".format(datetime.datetime.strftime(datetime.datetime.now(),"%Y%m%d_%H%M%S"))

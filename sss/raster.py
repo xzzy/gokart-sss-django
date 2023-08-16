@@ -31,9 +31,9 @@ def convertEpochTimeToDatetime(t):
     if t:
         datetimes = t.split()
         if len(datetimes) == 1:
-            return datetime.datetime.fromtimestamp(long(datetimes[0]),settings.PERTH_TIMEZONE)
-        elif (len(datetimes) == 3 and datetimes[1].lower() == "sec" and datetimes[2].upper() == 'UTC'):
-            return datetime.datetime.fromtimestamp(long(datetimes[0]),settings.PERTH_TIMEZONE)
+            return datetime.datetime.fromtimestamp(int(datetimes[0]),settings.PERTH_TIMEZONE)
+        elif (len(datetimes) == 3 and datetimes[1].lower() == "sec" and datetimes[2].upper() == 'UTC'):            
+            return datetime.datetime.fromtimestamp(int(datetimes[0]),settings.PERTH_TIMEZONE)
         else:
             raise "Invalid epoch time '{}'".format(t)
 
@@ -46,15 +46,19 @@ def getEpochTimeFunc(name,defaultBandIndex=None):
         Get the data from datasource's metadata if both band and defaultBand are None; otherwise get the data from datasource's band
         """
         try:
+          
             if bandIndex is not None:
-                dt = convertEpochTimeToDatetime(ds.GetRasterBand(bandIndex).GetMetadata().get(name))
+                grb = ds.GetRasterBand(bandIndex).GetMetadata().get(name)
+                dt = convertEpochTimeToDatetime(grb)
+
             elif defaultBandIndex is not None:
                 dt = convertEpochTimeToDatetime(ds.GetRasterBand(defaultBandIndex).GetMetadata().get(name))
             else:
-                dt = convertEpochTimeToDatetime(ds.GetMetadata().get(name))
-
+                dt = convertEpochTimeToDatetime(ds.GetMetadata().get(name))        
             return dt
-        except:
+        except Exception as e:
+            print ("getEpochTimeFunc ERROR")
+            print (e)
             return None
     return _func
 
@@ -74,7 +78,7 @@ def getMetadataFunc(name,defaultBandIndex=None):
             else:
                 dt = ds.GetMetadata().get(name)
 
-            return dt
+            return dt #.strftime("%Y-%m-%d %H:%M:%S")
         except:
             return None
     return _func
@@ -180,9 +184,9 @@ def loadDatasource(datasource):
         #initialize ds metadata
         for key in datasource.get("metadata_f").keys():
             datasource["metadata"][key] = None
-
         #initialize the bands
         datasource["bands"] = datasource.get("bands") or []
+
         for band in datasource["bands"]:
             band.clear()
 
@@ -228,8 +232,9 @@ def loadDatasource(datasource):
         bandTimeout = 0
         try:
             bandTimeout =  int(math.ceil(datasource["metadata"].get("band_timeout",0) / 3600))
-        except:
+        except Exception as e:
             print ("Band Timeout Error")
+            print (e)
         if bandTimeout >= 24:
             datasource["metadata"]["type"] = "Daily"
         elif bandTimeout == 1:
@@ -272,8 +277,6 @@ def prepareDatasource(datasource):
     
     #print "Prepare raster datasource:{} status:{}".format(datasource["file"],datasource["loadstatus"])
     try:
-        print ("PREPARING")
-        print (datasource["file"])
         if not os.path.exists(datasource["file"]):
             datasource["loadstatus"]["status"] = "notexist"
             datasource["loadstatus"]["message"] = "Datasource file ({}) does not exist".format(datasource["file"])
@@ -349,7 +352,7 @@ def prepareDatasource(datasource):
             datasource["loadstatus"]["status"] = "inited"
             if "message" in datasource["loadstatus"]:
                 del datasource["loadstatus"]["message"]
-    except:
+    except:     
         traceback.print_exc()
         exc_type, exc_value, exc_traceback = sys.exc_info()
         datasource["loadstatus"]["status"] = "initfailed"
@@ -496,7 +499,7 @@ def getFireDangerRating(band,data):
         return fdr_index["name"]
 
    
-raster_datasources={"bom":{}}
+#raster_datasources={"bom":{}}
 raster_datasources={
     "bom":{
         "IDW71000_WA_T_SFC":{
@@ -2145,7 +2148,14 @@ def getRasterData(options,debug=False):
                     if options.get("point"):
                         point = ogr.Geometry(ogr.wkbPoint)
                         point.AddPoint(options["point"][0],options["point"][1])
-                        point.Transform(osr.CoordinateTransformation(getEpsgSrs(options["srs"]),datasource["srs"]))
+
+                        options_srs = osr.SpatialReference ()
+                        options_srs.ImportFromEPSG( int(options["srs"].split(":")[1]))
+                        datasource_srs = osr.SpatialReference ()
+                        datasource_srs.ImportFromWkt(datasource['srs'])
+                        
+                        point.Transform(osr.CoordinateTransformation(options_srs,datasource_srs))
+                                        
                         # Convert geographic co-ordinates to pixel co-ordinates
                         forward_transform = Affine.from_gdal(*datasource["geotransform"])
                         reverse_transform = ~forward_transform
@@ -2299,7 +2309,6 @@ def outlookmetadata(request):
     #bottle.response.set_header("Content-Type", "application/json")
     hasFailedDs = False
     for ds in outlook_metadata:
-        print (ds["loadstatus"]["status"])
         if ds["loadstatus"]["status"] != "loaded":
             hasFailedDs = True
             break
@@ -2388,6 +2397,7 @@ def weatheroutlook(request, fmt):
             
     Response: json or html or others
     """
+    loadAllDatasources()
     fmt = (fmt or "json").lower()
     try:
 
@@ -2686,7 +2696,6 @@ loadAllDatasources()
 #load outlook metadata
 #outlook_metadata = {'size':len(raster_datasources["bom"]),'datasources':[]}
 outlook_metadata = []
-print ("RASTER OUTLOOK")
 #print (raster_datasources)
 for key,value in raster_datasources["bom"].items():
     data = dict(value)
