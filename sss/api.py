@@ -14,6 +14,7 @@ from sss.models import UserProfile
 from sss.serializers import ProfileSerializer, AccountDetailsSerializer
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from sss import utils_cache
 
 def api_catalogue(request, *args, **kwargs):
 
@@ -154,7 +155,7 @@ def api_profile(request, *args, **kwargs):
     if request.user.is_authenticated:
         user_logged_in = request.user
         try:
-            user_profile = UserProfile.objects.get(user=user_logged_in)
+            user_profile = utils_cache.get_user_profile(user_logged_in, request.session.session_key)
             serializer = ProfileSerializer(user_profile)
             return HttpResponse(json.dumps(serializer.data), content_type='application/json')
         except serializers.ValidationError:
@@ -169,7 +170,7 @@ def api_account(request, *args, **kwargs):
     if request.user.is_authenticated:
         user_logged_in = request.user
         try:
-            user_profile = UserProfile.objects.get(user=user_logged_in)
+            user_profile = utils_cache.get_user_profile(user_logged_in, request.session.session_key)
             serializer = AccountDetailsSerializer(user_profile)
             return HttpResponse(json.dumps(serializer.data), content_type='application/json')
         except serializers.ValidationError:
