@@ -216,7 +216,7 @@
       </div>
     </div>
 
-    <form id="get_weatheroutlook" name="weatheroutlook" action="{{env.gokartService + '/weatheroutlook/html'}}" method="post" target="weatheroutlook">
+    <form id="get_weatheroutlook" name="weatheroutlook" action="{{ '/weatheroutlook/html'}}" method="post" target="weatheroutlook">
         <input type="hidden" name="data" id="weatheroutlook_data">
     </form>
   </div>
@@ -1514,7 +1514,8 @@
             } else {
                 try{
                     var req = new window.XMLHttpRequest()
-                    req.open('POST', vm.env.gokartService + "/weatheroutlook/" + format)
+                    //req.open('POST', vm.env.gokartService + "/weatheroutlook/" + format)
+                    req.open('POST', "/weatheroutlook/" + format)
                     req.responseType = 'blob'
                     req.withCredentials = true
                     req.onload = function (event) {

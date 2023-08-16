@@ -136,13 +136,15 @@ def outlookmetadata(request):
 
 @csrf_exempt
 def weatheroutlook(request, fmt):
-    print (request.POST)
+
     data = raster.weatheroutlook(request, fmt)
     if fmt == 'json':
         content_type = 'application/json'
     elif fmt == 'amicus':
         content_type = 'application/xml'
     elif fmt == 'html':
+        content_type = 'text/html'
+    else: 
         content_type = 'text/html'
         
     response = HttpResponse(data, content_type=content_type)    
