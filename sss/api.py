@@ -7,6 +7,7 @@ from django.template.loader import render_to_string
 from sss import raster
 import requests
 import base64
+import datetime
 import json
 from io import BytesIO
 from sss.models import UserProfile
@@ -131,6 +132,22 @@ def outlookmetadata(request):
     data = raster.outlookmetadata(request)
     #data = raster.test(request)
     return HttpResponse(json.dumps(data), content_type='application/json')
+
+@csrf_exempt
+def weatheroutlook(request, fmt):
+    print (request.POST)
+    data = raster.weatheroutlook(request, fmt)
+    if fmt == 'json':
+        content_type = 'application/json'
+    elif fmt == 'amicus':
+        content_type = 'application/xml'
+    elif fmt == 'html':
+        content_type = 'text/html'
+        
+    response = HttpResponse(data, content_type=content_type)    
+    if fmt == 'json':
+        response["Content-Disposition"] = "attachment;filename='weather_outlook_{}.json'".format(datetime.datetime.strftime(datetime.datetime.now(),"%Y%m%d_%H%M%S"))
+    return response
 
 def api_profile(request, *args, **kwargs):
     user_logged_in = None
