@@ -187,7 +187,7 @@ CACHES = {
     }
 }
 ENV_TYPE=decouple.config("ENV_TYPE", default="DEV")
-
+ENABLE_AUTH2_GROUPS=True
 
 
 
