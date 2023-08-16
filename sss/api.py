@@ -45,19 +45,20 @@ def api_bfrs_region(request, *args, **kwargs):
 @csrf_exempt
 def kmiProxyView(request, path):
     # start move to django model
-    cache_times_strings = [
-        {'layer_name': 'mapbox-outdoors',
-         'cache_expiry' : 172800
-        },
-        {'layer_name': 'fuel_age_nonforest_1_6yrs_cddp',
-         'cache_expiry' : 300},  
-        {'layer_name': 'state_map_base', 
-         'cache_expiry' : 172800
-        },
-        {'layer_name': 'resource_tracking_live', 
-         'cache_expiry' : 30
-        } 
-    ]
+    # cache_times_strings = [
+    #     {'layer_name': 'mapbox-outdoors',
+    #      'cache_expiry' : 172800
+    #     },
+    #     {'layer_name': 'fuel_age_nonforest_1_6yrs_cddp',
+    #      'cache_expiry' : 300},  
+    #     {'layer_name': 'state_map_base', 
+    #      'cache_expiry' : 172800
+    #     },
+    #     {'layer_name': 'resource_tracking_live', 
+    #      'cache_expiry' : 30
+    #     } 
+    # ]
+    cache_times_strings = utils_cache.get_proxy_cache()
     # end move to django model
     CACHE_EXPIRY=300
     remoteurl = conf.settings.KMI_API_URL + '/' + path   

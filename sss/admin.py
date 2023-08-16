@@ -11,3 +11,4 @@ class ProfileAdmin(admin.ModelAdmin):
     raw_id_fields = ('user', 'region', 'district')
 
 admin.site.register(models.Region)
+admin.site.register(models.ProxyCache)

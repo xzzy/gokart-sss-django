@@ -1,5 +1,6 @@
 from django.contrib import auth
 from django.db import models
+from django.core.cache import cache
 
 UserModel = auth.get_user_model()
 
@@ -73,5 +74,21 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return f"{self.user}"
+    
+class ProxyCache(models.Model):
+    layer_name = models.CharField(max_length=500)
+    cache_expiry = models.IntegerField(default=300)
+    active = models.BooleanField(default=True)
+
+    class Meta:
+        app_label = 'sss'
+
+    def __str__(self):
+        return f"{self.layer_name}"
+    
+    def save(self, *args, **kwargs):
+        cache.delete('utils_cache.get_proxy_cache()')
+        self.full_clean()
+        super(ProxyCache, self).save(*args, **kwargs)
     
 
