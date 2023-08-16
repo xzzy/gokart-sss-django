@@ -8,13 +8,19 @@ import datetime
 import os
 from osgeo import ogr, osr, gdal
 from affine import Affine
+from pathlib import Path
 
 import json
 #import bottle
 
 from django.conf import settings
+from django.template.loader import render_to_string
+from django import shortcuts
+
+from jinja2 import Environment, FileSystemLoader, select_autoescape, PackageLoader
 
 from sss.jinja2settings import settings as jinja2settings
+from sss import jinja2settings as jinja2filters
 from sss.file_lock import FileLock
 
 
@@ -2167,9 +2173,10 @@ def getRasterData(options,debug=False):
                 else:
                     raise
     except:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_exc()
         options["datasource"]["status"] = False
-        options["datasource"]["message"] = traceback.format_exception_only(sys.exc_type,sys.exc_value)
+        options["datasource"]["message"] = traceback.format_exception_only(exc_type,exc_value)
         return options["datasource"]
     finally:
         if datasource and options["datasource"] and "context" in options["datasource"]:
@@ -2326,7 +2333,7 @@ def outlookmetadata(request):
         return {'size':len(outlook_metadata),'datasources':outlook_metadata}
 
 
-def weatheroutlook(fmt):
+def weatheroutlook(request, fmt):
     """
     Get data from raster datasources
     Request data
@@ -2383,7 +2390,15 @@ def weatheroutlook(fmt):
     """
     fmt = (fmt or "json").lower()
     try:
-        requestData = bottle.request.forms.get("data")
+
+        env = Environment(loader=FileSystemLoader(Path(settings.JINJA2_BASE_TEMPLATE)), autoescape=False) ##, autoescape=select_autoescape())
+        env.filters["addDate"] = jinja2filters.addDate
+        env.filters["formatDate"]= jinja2filters.formatDate
+        env.filters["format"]= jinja2filters.format
+        env.filters["formatText"]= jinja2filters.formatText
+        env.globals= jinja2filters.globals   
+
+        requestData = request.POST.get("data")
         if requestData:
             requestData = json.loads(requestData)
         else:
@@ -2391,7 +2406,7 @@ def weatheroutlook(fmt):
         #check whether request is valid and initialize the request parameters
         requestData["srs"] = (requestData.get("srs") or "EPSG:4326").strip().upper()
         
-        debug = (bottle.request.query.get("debug") or "false").lower() in ("true")
+        debug = (request.POST.get("debug", "false") or "false").lower() in ("true")
         if not requestData.get("outlooks"):
             raise Exception("Parameter 'outlooks' is missing")
 
@@ -2524,9 +2539,9 @@ def weatheroutlook(fmt):
         result["issued_time"] = datetime.datetime.now(settings.PERTH_TIMEZONE)
 
         if fmt == "json":
-            bottle.response.set_header("Content-Type", "application/json")
-            bottle.response.set_header("Content-Disposition", "attachment;filename='weather_outlook_{}.json'".format(datetime.datetime.strftime(datetime.datetime.now(),"%Y%m%d_%H%M%S")))
-            return result
+            #bottle.response.set_header("Content-Type", "application/json")
+            #bottle.response.set_header("Content-Disposition", "attachment;filename='weather_outlook_{}.json'".format(datetime.datetime.strftime(datetime.datetime.now(),"%Y%m%d_%H%M%S")))
+            return json.dumps(result)
         else:
             #get total columns and check whether have groups
             for outlook in result["outlooks"]:
@@ -2632,20 +2647,37 @@ def weatheroutlook(fmt):
                         if datasource["status"] :
                             formatBandsData(datasource,result["options"].get("no_data") or "")
 
-            envDomain = settings.getEnvDomain()
+            #envDomain = settings.getEnvDomain()
+            envDomain = settings.ENV_DOMAIN
             if fmt == "amicus":
-                bottle.response.set_header("Content-Type", "application/xml")
-                bottle.response.set_header("Content-Disposition", "attachment;filename='weather_outlook_for_amicus_{}.xml'".format(datetime.datetime.strftime(datetime.datetime.now(),"%Y%m%d_%H%M%S")))
-                return bottle.template('weatheroutlook_amicus.xml',template_adapter=bottle.Jinja2Template,template_settings=jinja2settings, staticService=settings.STATIC_SERVICE,data=result,envType=settings.ENV_TYPE,envDomain=envDomain)
+                #bottle.response.set_header("Content-Type", "application/xml")
+                #bottle.response.set_header("Content-Disposition", "attachment;filename='weather_outlook_for_amicus_{}.xml'".format(datetime.datetime.strftime(datetime.datetime.now(),"%Y%m%d_%H%M%S")))
+                #return bottle.template('weatheroutlook_amicus.xml',template_adapter=bottle.Jinja2Template,template_settings=jinja2settings, staticService=settings.STATIC_SERVICE,data=result,envType=settings.ENV_TYPE,envDomain=envDomain)
+                #template_response = render_to_string('weather/weatheroutlook_amicus.xml', requestData, request)  
+                #return template_response
+            
+                template = env.get_template('weather/weatheroutlook_amicus.xml')
+                template_response = template.render({"data": result, "settings": settings})         
+                return template_response            
+
             else:
-                bottle.response.set_header("Content-Type", "text/html")
-                return bottle.template('weatheroutlook.html',template_adapter=bottle.Jinja2Template,template_settings=jinja2settings, staticService=settings.STATIC_SERVICE,data=result,envType=settings.ENV_TYPE,envDomain=envDomain)
+                # env = Environment(loader=FileSystemLoader(Path(settings.JINJA2_BASE_TEMPLATE)), autoescape=False) ##, autoescape=select_autoescape())
+                # env.filters["addDate"] = jinja2filters.addDate
+                # env.filters["formatDate"]= jinja2filters.formatDate
+                # env.filters["format"]= jinja2filters.format
+                # env.filters["formatText"]= jinja2filters.formatText
+                # env.globals= jinja2filters.globals                
+                template = env.get_template('weather/weatheroutlook.html')
+                template_response = template.render({"data": result, "settings": settings})         
+                return template_response
+                
 
     except:
-        bottle.response.status = 400
-        bottle.response.set_header("Content-Type","text/plain")
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        #bottle.response.status = 400
+        #bottle.response.set_header("Content-Type","text/plain")
         traceback.print_exc()
-        return traceback.format_exception_only(sys.exc_type,sys.exc_value)
+        return traceback.format_exception_only(exc_type,exc_value)
         
 
     
