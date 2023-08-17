@@ -27,6 +27,7 @@ urlpatterns = [
     path('api/brfs-region.json', api.api_bfrs_region, name='api_bfrs_region_api'),
     path('api/profile.json', api.api_profile, name='api_profile_api'),
     path('api/account.json', api.api_account, name='api_account_api'),
+    path('api/mapbox.json', api.api_mapbox, name='api_mapbox_api'),
     path('admin/', admin.site.urls),
     path("", views.HomePage.as_view(), name="home"),
     path("outlookmetadata", api.outlookmetadata, name='api_outlookmetadata'),

@@ -172,16 +172,14 @@
             center = this._wa_perth
         }
         $.ajax({
-          url: vm.env.gokartService
-            +'/mapbox/geocoding/v5/mapbox.places/'+encodeURIComponent(geoStr)+'.json?' + $.param({
+            url: '/api/mapbox.json?' + $.param({
+            geo_str: encodeURIComponent(geoStr),
             country: 'au',
             //types: 'country,region,postcode,place,locality,address',
             proximity: ''+center[0]+','+center[1]
           }),
+          method:"GET",
           dataType: 'json',
-          xhrFields: {
-            withCredentials: true
-          },
           success: function(data, status, xhr) {
             if (data.features.length) {
               var feature = null
