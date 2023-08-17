@@ -420,23 +420,23 @@ def getDirFunc(mode):
     return _func
 
 WEATHER_ICONS = {
-    1:{"icon":"/dist/static/images/weather/sunny.png","night-icon":"/dist/static/images/weather/sunny-night.png","desc":"Sunny"},
-    2:{"icon":"/dist/static/images/weather/clear.png","desc":"Clear"},
-    3:{"icon":"/dist/static/images/weather/partly-cloudy.png","night-icon":"/dist/static/images/weather/partly-cloudy-night.png","desc":"Mostly sunny,Partly cloudy"},
-    4:{"icon":"/dist/static/images/weather/cloudy.png","desc":"Cloudy"},
-    6:{"icon":"/dist/static/images/weather/hazy.png","night-icon":"/dist/static/images/weather/hazy-night.png","desc":"Hazy"},
-    8:{"icon":"/dist/static/images/weather/light-rain.png","desc":"Light rain"},
-    9:{"icon":"/dist/static/images/weather/windy.png","desc":"Windy"},
-    10:{"icon":"/dist/static/images/weather/fog.png","night-icon":"/dist/static/images/weather/fog-night.png","desc":"Fog"},
-    11:{"icon":"/dist/static/images/weather/showers.png","night-icon":"/dist/static/images/weather/showers-night.png","desc":"Shower"},
-    12:{"icon":"/dist/static/images/weather/rain.png","desc":"Rain"},
-    13:{"icon":"/dist/static/images/weather/dusty.png","desc":"Dusty"},
-    14:{"icon":"/dist/static/images/weather/frost.png","desc":"Frost"},
-    15:{"icon":"/dist/static/images/weather/snow.png","desc":"Snow"},
-    16:{"icon":"/dist/static/images/weather/storm.png","desc":"Storm"},
-    17:{"icon":"/dist/static/images/weather/light-showers.png","night-icon":"/dist/static/images/weather/light-showers-night.png","desc":"Light shower"},
-    18:{"icon":"/dist/static/images/weather/heavy-showers.png","desc":"Heavy shower"},
-    19:{"icon":"/dist/static/images/weather/tropicalcyclone.png","desc":"Cyclone"},
+    1:{"icon":"/static/dist/static/images/weather/sunny.png","night-icon":"/static/dist/static/images/weather/sunny-night.png","desc":"Sunny"},
+    2:{"icon":"/static/dist/static/images/weather/clear.png","desc":"Clear"},
+    3:{"icon":"/static/dist/static/images/weather/partly-cloudy.png","night-icon":"/static/dist/static/images/weather/partly-cloudy-night.png","desc":"Mostly sunny,Partly cloudy"},
+    4:{"icon":"/static/dist/static/images/weather/cloudy.png","desc":"Cloudy"},
+    6:{"icon":"/static/dist/static/images/weather/hazy.png","night-icon":"/static/dist/static/images/weather/hazy-night.png","desc":"Hazy"},
+    8:{"icon":"/static/dist/static/images/weather/light-rain.png","desc":"Light rain"},
+    9:{"icon":"/static/dist/static/images/weather/windy.png","desc":"Windy"},
+    10:{"icon":"/static/dist/static/images/weather/fog.png","night-icon":"/static/dist/static/images/weather/fog-night.png","desc":"Fog"},
+    11:{"icon":"/static/dist/static/images/weather/showers.png","night-icon":"/static/dist/static/images/weather/showers-night.png","desc":"Shower"},
+    12:{"icon":"/static/dist/static/images/weather/rain.png","desc":"Rain"},
+    13:{"icon":"/static/dist/static/images/weather/dusty.png","desc":"Dusty"},
+    14:{"icon":"/static/dist/static/images/weather/frost.png","desc":"Frost"},
+    15:{"icon":"/static/dist/static/images/weather/snow.png","desc":"Snow"},
+    16:{"icon":"/static/dist/static/images/weather/storm.png","desc":"Storm"},
+    17:{"icon":"/static/dist/static/images/weather/light-showers.png","night-icon":"/static/dist/static/images/weather/light-showers-night.png","desc":"Light shower"},
+    18:{"icon":"/static/dist/static/images/weather/heavy-showers.png","desc":"Heavy shower"},
+    19:{"icon":"/static/dist/static/images/weather/tropicalcyclone.png","desc":"Cyclone"},
 }
 
 FIRE_DANGER_RATING = {
@@ -448,11 +448,11 @@ FIRE_DANGER_RATING = {
 }
 
 FIRE_DANGER_RATING_IMAGES = {
-        0: {'img': '/dist/static/images/fdr/norating_50.png'},
-        1: {'img': '/dist/static/images/fdr/moderate_50.png'},
-        2: {'img': '/dist/static/images/fdr/high_50.png'},
-        3: {'img': '/dist/static/images/fdr/extreme_50.png'},
-        4: {'img': '/dist/static/images/fdr/catastrophic_50.png'}
+        0: {'img': '/static/dist/static/images/fdr/norating_50.png'},
+        1: {'img': '/static/dist/static/images/fdr/moderate_50.png'},
+        2: {'img': '/static/dist/static/images/fdr/high_50.png'},
+        3: {'img': '/static/dist/static/images/fdr/extreme_50.png'},
+        4: {'img': '/static/dist/static/images/fdr/catastrophic_50.png'}
 }
 for value in WEATHER_ICONS.values():
     if "night-icon" not in value:
