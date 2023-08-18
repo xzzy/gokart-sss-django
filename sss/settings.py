@@ -30,6 +30,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = decouple.config("SECRET_KEY")
+MAPBOX_ACCESS_TOKEN = decouple.config("MAPBOX_ACCESS_TOKEN")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -175,6 +176,7 @@ SSS_SERVICE_URL=decouple.config("SSS_SERVICE_URL", default="https://sss-uat.dbca
 RESOURCE_TRACKING_SERVICE_URL=decouple.config("RESOURCE_TRACKING_SERVICE_URL", default="https://resourcetracking.dbca.wa.gov.au")
 BFRS_SERVICE_URL=decouple.config("BFRS_SERVICE_URL", default="https://bfrs-uat.dbca.wa.gov.au")
 DBCA_STATIC_URL=decouple.config("DBCA_STATIC_URL", default="https://static.dbca.wa.gov.au")
+MAPBOX_URL=decouple.config("MAPBOX_URL", default="https://api.mapbox.com")
 OVERVIEW_LAYER=decouple.config("OVERVIEW_LAYER", default="dbca:mapbox-outdoors")
 ACCOUNT_DETAILS_URL=decouple.config("ACCOUNT_DETAILS_URL", default="/api/account.json")
 BOM_HOME=decouple.config("BOM_HOME", default="/var/www/bom_data/.data/")

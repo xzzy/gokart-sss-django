@@ -8,7 +8,12 @@ class DistrictAdmin(admin.ModelAdmin):
 
 @admin.register(models.UserProfile)
 class ProfileAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'region', 'district', 'created')
     raw_id_fields = ('user', 'region', 'district')
 
+@admin.register(models.ProxyCache)
+class ProxyCacheAdmin(admin.ModelAdmin):
+    list_display = ('id', 'layer_name', 'created', 'active')
+
 admin.site.register(models.Region)
-admin.site.register(models.ProxyCache)
+

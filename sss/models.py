@@ -1,6 +1,7 @@
 from django.contrib import auth
 from django.db import models
 from django.core.cache import cache
+from django.utils import timezone
 
 UserModel = auth.get_user_model()
 
@@ -68,6 +69,7 @@ class UserProfile(models.Model):
     )
     region = models.ForeignKey(Region, default=None, on_delete=models.SET_NULL, null=True, blank=True)
     district = models.ForeignKey(District, default=None, on_delete=models.SET_NULL, null=True, blank=True)
+    created = models.DateTimeField(default=timezone.now)
 
     class Meta:
         app_label = 'sss'
@@ -79,6 +81,7 @@ class ProxyCache(models.Model):
     layer_name = models.CharField(max_length=500)
     cache_expiry = models.IntegerField(default=300)
     active = models.BooleanField(default=True)
+    created = models.DateTimeField(default=timezone.now)
 
     class Meta:
         app_label = 'sss'

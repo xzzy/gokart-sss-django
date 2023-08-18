@@ -185,6 +185,38 @@ def api_account(request, *args, **kwargs):
             raise ValidationError('User profile for the logged in user does not exist')
     else:
         raise ValidationError('User is not authenticated')
+    
+def api_mapbox(request, *args, **kwargs):
+
+    geo_str = request.GET.get('geo_str')
+    country = request.GET.get('country')
+    proximity = request.GET.get('proximity')
+    access_token = conf.settings.MAPBOX_ACCESS_TOKEN
+    mapbox_url = conf.settings.MAPBOX_URL
+
+    params = {
+        'country': country,
+        'proximity':proximity,
+        'access_token': access_token 
+    }
+    headers = {
+        # 'proxy_ssl_server_name': 'on',
+        # 'resolver': '127.0.0.0',
+        'proxy_set_header': 'Host api.mapbox.com',
+        'proxy_hide_header': 'Access-Control-Allow-Credentials',
+        'proxy_hide_header': 'Access-Control-Allow-Headers',
+        'proxy_hide_header': 'Access-Control-Allow-Methods',
+        'proxy_hide_header': 'Access-Control-Allow-Origin',
+        'proxy_hide_header': 'Access-Control-Expose-Headers',
+        'proxy_hide_header': 'Vary',
+        'include': 'custom/cors',
+        'proxy_pass': 'https://api.mapbox.com'
+    }
+
+
+    response = requests.get(mapbox_url + '/geocoding/v5/mapbox.places/' + geo_str + '.json', params=params, headers=headers)
+
+    return HttpResponse(response, content_type='application/json')
 
 
     
