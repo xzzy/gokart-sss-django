@@ -43,81 +43,126 @@ def api_bfrs_region(request, *args, **kwargs):
     data  = response.text
     return HttpResponse(data, content_type='application/json')
 
-@csrf_exempt
-def kmiProxyView(request, path):
-    # start move to django model
-    # cache_times_strings = [
-    #     {'layer_name': 'mapbox-outdoors',
-    #      'cache_expiry' : 172800
-    #     },
-    #     {'layer_name': 'fuel_age_nonforest_1_6yrs_cddp',
-    #      'cache_expiry' : 300},  
-    #     {'layer_name': 'state_map_base', 
-    #      'cache_expiry' : 172800
-    #     },
-    #     {'layer_name': 'resource_tracking_live', 
-    #      'cache_expiry' : 30
-    #     } 
-    # ]
-    cache_times_strings = utils_cache.get_proxy_cache()
-    # end move to django model
-    CACHE_EXPIRY=300
-    remoteurl = conf.settings.KMI_API_URL + '/' + path   
-    query_string_remote_url=remoteurl+'?'+request.META['QUERY_STRING']
-    proxy_response = None
-    proxy_cache = cache.get(query_string_remote_url)
-    #proxy_cache= None
-    proxy_response_content = None
-    base64_json = {}
+# @csrf_exempt
+# def kmiProxyView(request, path):
+#     # start move to django model
+#     # cache_times_strings = [
+#     #     {'layer_name': 'mapbox-outdoors',
+#     #      'cache_expiry' : 172800
+#     #     },
+#     #     {'layer_name': 'fuel_age_nonforest_1_6yrs_cddp',
+#     #      'cache_expiry' : 300},  
+#     #     {'layer_name': 'state_map_base', 
+#     #      'cache_expiry' : 172800
+#     #     },
+#     #     {'layer_name': 'resource_tracking_live', 
+#     #      'cache_expiry' : 30
+#     #     } 
+#     # ]
+#     cache_times_strings = utils_cache.get_proxy_cache()
+#     # end move to django model
+#     CACHE_EXPIRY=300
+#     remoteurl = conf.settings.KMI_API_URL + '/' + path   
+#     query_string_remote_url=remoteurl+'?'+request.META['QUERY_STRING']
+#     proxy_response = None
+#     proxy_cache = cache.get(query_string_remote_url)
+#     #proxy_cache= None
+#     proxy_response_content = None
+#     base64_json = {}
 
 
-    for cts in cache_times_strings:
-        if cts['layer_name'] in query_string_remote_url:
-            CACHE_EXPIRY = cts['cache_expiry']
-        print (cts['layer_name'])
+#     for cts in cache_times_strings:
+#         if cts['layer_name'] in query_string_remote_url:
+#             CACHE_EXPIRY = cts['cache_expiry']
+#         print (cts['layer_name'])
 
-    print (CACHE_EXPIRY)
-    if proxy_cache is None:
-        proxy_response = proxy_view(request, remoteurl, basic_auth={"user": conf.settings.KMI_AUTH2_BASIC_AUTH_USER, 'password' : conf.settings.KMI_AUTH2_BASIC_AUTH_PASSWORD}, cookies={})    
-        proxy_response_content_encoded = base64.b64encode(proxy_response.content)
-        base64_json = {"status_code": proxy_response.status_code, "content_type": proxy_response.headers['content-type'], "content" : proxy_response_content_encoded.decode('utf-8'), "cache_expiry": CACHE_EXPIRY}
-        if proxy_response.status_code == 200: 
-            cache.set(query_string_remote_url, json.dumps(base64_json), CACHE_EXPIRY)
-        else:
-            cache.set(query_string_remote_url, json.dumps(base64_json), 15)
-    else:
-        print ("CACHED")
-        print (query_string_remote_url)
-        base64_json = json.loads(proxy_cache)
-    proxy_response_content = base64.b64decode(base64_json["content"].encode())
-    http_response =   HttpResponse(proxy_response_content, content_type=base64_json['content_type'], status=base64_json['status_code'])    
-    http_response.headers['Django-Cache-Expiry']= str(base64_json['cache_expiry']) + " seconds"
-    return http_response
+#     print (CACHE_EXPIRY)
+#     if proxy_cache is None:
+#         proxy_response = proxy_view(request, remoteurl, basic_auth={"user": conf.settings.KMI_AUTH2_BASIC_AUTH_USER, 'password' : conf.settings.KMI_AUTH2_BASIC_AUTH_PASSWORD}, cookies={})    
+#         proxy_response_content_encoded = base64.b64encode(proxy_response.content)
+#         base64_json = {"status_code": proxy_response.status_code, "content_type": proxy_response.headers['content-type'], "content" : proxy_response_content_encoded.decode('utf-8'), "cache_expiry": CACHE_EXPIRY}
+#         if proxy_response.status_code == 200: 
+#             cache.set(query_string_remote_url, json.dumps(base64_json), CACHE_EXPIRY)
+#         else:
+#             cache.set(query_string_remote_url, json.dumps(base64_json), 15)
+#     else:
+#         print ("CACHED")
+#         print (query_string_remote_url)
+#         base64_json = json.loads(proxy_cache)
+#     proxy_response_content = base64.b64decode(base64_json["content"].encode())
+#     http_response =   HttpResponse(proxy_response_content, content_type=base64_json['content_type'], status=base64_json['status_code'])    
+#     http_response.headers['Django-Cache-Expiry']= str(base64_json['cache_expiry']) + " seconds"
+#     return http_response
 
-
-
-
-@csrf_exempt
-def kbProxyView(request, path):
-    remoteurl = conf.settings.KB_API_URL + '/' + path
-     
-    proxy_response = None
-    proxy_cache = cache.get(remoteurl+'?'+request.META['QUERY_STRING'])
+def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
     proxy_cache= None
+    proxy_response = None
     proxy_response_content = None
     base64_json = {}
+    query_string_remote_url=remoteurl+'?'+queryString
+
+    proxy_cache = cache.get(query_string_remote_url)
+        
     if proxy_cache is None:
-        proxy_response = proxy_view(request, remoteurl, basic_auth={"user": conf.settings.KB_AUTH2_BASIC_AUTH_USER, 'password' : conf.settings.KB_AUTH2_BASIC_AUTH_PASSWORD}, cookies={})    
+        proxy_response = proxy_view(request, remoteurl, basic_auth={"user": auth_user, 'password' : auth_password}, cookies={})    
         proxy_response_content_encoded = base64.b64encode(proxy_response.content)
         base64_json = {"content_type": proxy_response.headers['content-type'], "content" : proxy_response_content_encoded.decode('utf-8')}
 
-        cache.set(remoteurl+'?'+request.META['QUERY_STRING'], json.dumps(base64_json), 86400)
+        cache.set(remoteurl+'?'+queryString, json.dumps(base64_json), 86400)
     else:
-        # print ("CACHED")
-        # print (remoteurl+'?'+request.META['QUERY_STRING'])
         base64_json = json.loads(proxy_cache)
-    proxy_response_content = base64.b64decode(base64_json["content"].encode())
-    return HttpResponse(proxy_response_content, content_type=base64_json['content_type'])    
+        proxy_response_content = base64.b64decode(base64_json["content"].encode())
+    return HttpResponse(proxy_response_content, content_type=base64_json['content_type'])
+
+@csrf_exempt
+def mapProxyView(request, path):
+    if request.user.is_authenticated:
+        queryString = request.META['QUERY_STRING']
+        remoteurl = None
+        auth_user = None
+        auth_password = None
+
+        if 'kmi-proxy' in request.path:
+            remoteurl = conf.settings.KMI_API_URL + '/' + path 
+            auth_user = conf.settings.KMI_AUTH2_BASIC_AUTH_USER
+            auth_password = conf.settings.KMI_AUTH2_BASIC_AUTH_PASSWORD
+        
+        elif 'kb-proxy' in request.path:
+            remoteurl = conf.settings.KMI_API_URL + '/' + path 
+            auth_user = conf.settings.KB_AUTH2_BASIC_AUTH_USER
+            auth_password = conf.settings.KB_AUTH2_BASIC_AUTH_PASSWORD
+        
+        elif 'hotspots-proxy' in request.path:
+            remoteurl = conf.settings.HOTSPOT_URL + '/' + path
+
+        response = process_proxy(request, remoteurl, queryString, auth_user, auth_password)
+        return response
+    else:
+        raise ValidationError('User is not authenticated')
+    
+   
+
+# @csrf_exempt
+# def kbProxyView(request, path):
+#     remoteurl = conf.settings.KB_API_URL + '/' + path
+     
+#     proxy_response = None
+#     proxy_cache = cache.get(remoteurl+'?'+request.META['QUERY_STRING'])
+#     proxy_cache= None
+#     proxy_response_content = None
+#     base64_json = {}
+#     if proxy_cache is None:
+#         proxy_response = proxy_view(request, remoteurl, basic_auth={"user": conf.settings.KB_AUTH2_BASIC_AUTH_USER, 'password' : conf.settings.KB_AUTH2_BASIC_AUTH_PASSWORD}, cookies={})    
+#         proxy_response_content_encoded = base64.b64encode(proxy_response.content)
+#         base64_json = {"content_type": proxy_response.headers['content-type'], "content" : proxy_response_content_encoded.decode('utf-8')}
+
+#         cache.set(remoteurl+'?'+request.META['QUERY_STRING'], json.dumps(base64_json), 86400)
+#     else:
+#         # print ("CACHED")
+#         # print (remoteurl+'?'+request.META['QUERY_STRING'])
+#         base64_json = json.loads(proxy_cache)
+#     proxy_response_content = base64.b64decode(base64_json["content"].encode())
+#     return HttpResponse(proxy_response_content, content_type=base64_json['content_type'])    
 
 def environment_config(request):
     context = {'settings': conf.settings}
