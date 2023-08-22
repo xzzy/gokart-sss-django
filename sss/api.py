@@ -101,18 +101,41 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
     base64_json = {}
     query_string_remote_url=remoteurl+'?'+queryString
 
-    proxy_cache = cache.get(query_string_remote_url)
-        
-    if proxy_cache is None:
-        proxy_response = proxy_view(request, remoteurl, basic_auth={"user": auth_user, 'password' : auth_password}, cookies={})    
-        proxy_response_content_encoded = base64.b64encode(proxy_response.content)
-        base64_json = {"content_type": proxy_response.headers['content-type'], "content" : proxy_response_content_encoded.decode('utf-8')}
+    cache_times_strings = utils_cache.get_proxy_cache()
+    CACHE_EXPIRY=300
 
-        cache.set(remoteurl+'?'+queryString, json.dumps(base64_json), 86400)
+    proxy_cache = cache.get(query_string_remote_url)
+
+    for cts in cache_times_strings:
+        if cts['layer_name'] in query_string_remote_url:
+            CACHE_EXPIRY = cts['cache_expiry']
+        print (cts['layer_name'])
+
+    print (CACHE_EXPIRY)
+    proxy_cache = None
+    if proxy_cache is None:
+        auth_details = None
+        if auth_user is None and auth_password is None:
+            auth_details = None
+        else:
+            auth_details = {"user": auth_user, 'password' : auth_password}
+        proxy_response = proxy_view(request, remoteurl, basic_auth=auth_details, cookies={})    
+        proxy_response_content_encoded = base64.b64encode(proxy_response.content)
+        base64_json = {"status_code": proxy_response.status_code, "content_type": proxy_response.headers['content-type'], "content" : proxy_response_content_encoded.decode('utf-8'), "cache_expiry": CACHE_EXPIRY}
+        if proxy_response.status_code == 200: 
+            cache.set(query_string_remote_url, json.dumps(base64_json), CACHE_EXPIRY)
+        else:
+            cache.set(query_string_remote_url, json.dumps(base64_json), 15)
     else:
+        print ("CACHED")
+        print (query_string_remote_url)
         base64_json = json.loads(proxy_cache)
-        proxy_response_content = base64.b64decode(base64_json["content"].encode())
-    return HttpResponse(proxy_response_content, content_type=base64_json['content_type'])
+
+    proxy_response_content = base64.b64decode(base64_json["content"].encode())
+    http_response =   HttpResponse(proxy_response_content, content_type=base64_json['content_type'], status=base64_json['status_code'])    
+    http_response.headers['Django-Cache-Expiry']= str(base64_json['cache_expiry']) + " seconds"
+    return http_response
+
 
 @csrf_exempt
 def mapProxyView(request, path):

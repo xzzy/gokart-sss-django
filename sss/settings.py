@@ -169,6 +169,8 @@ KMI_AUTH2_BASIC_AUTH_USER=decouple.config("KMI_AUTH2_BASIC_AUTH_USER", default="
 KMI_AUTH2_BASIC_AUTH_PASSWORD=decouple.config("KMI_AUTH2_BASIC_AUTH_PASSWORD", default="nopassword")
 KB_AUTH2_BASIC_AUTH_USER=decouple.config("KB_AUTH2_BASIC_AUTH_USER", default="admin")
 KB_AUTH2_BASIC_AUTH_PASSWORD=decouple.config("KB_AUTH2_BASIC_AUTH_PASSWORD", default="nopassword")
+HOTSPOT_AUTH2_BASIC_AUTH_USER=decouple.config("HOTSPOT_AUTH2_BASIC_AUTH_USER", default=None)
+HOTSPOT_AUTH2_BASIC_AUTH_PASSWORD=decouple.config("HOTSPOT_AUTH2_BASIC_AUTH_PASSWORD", default=None)
 
 CSW_SERVICE_URL=decouple.config("CSW_SERVICE_URL", default="/api/catalogue.json")
 KMI_SERVICE_URL=decouple.config("KMI_SERVICE_URL", default="/kmi-proxy/geoserver")
