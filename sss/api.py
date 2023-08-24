@@ -17,31 +17,38 @@ from rest_framework.exceptions import ValidationError
 from sss import utils_cache
 
 def api_catalogue(request, *args, **kwargs):
+    if request.user.is_authenticated:
 
-    # if DEV use this
-    # file = open(str(conf.settings.BASE_DIR)+"/devdata/catalogue.json", "r")
-    # data = file.read()
-    # file.close()
+        # if DEV use this
+        # file = open(str(conf.settings.BASE_DIR)+"/devdata/catalogue.json", "r")
+        # data = file.read()
+        # file.close()
 
-    catalogue_url = conf.settings.CATALOGUE_URL+"/catalogue/api/records/?format=json&application__name=sss"    
-    auth_request = requests.auth.HTTPBasicAuth(conf.settings.AUTH2_BASIC_AUTH_USER, conf.settings.AUTH2_BASIC_AUTH_PASSWORD)
-    response = requests.get(catalogue_url, auth=auth_request)
-    data  = response.text
-    return HttpResponse(data, content_type='application/json')
-
-def api_bfrs_region(request, *args, **kwargs):
-
-    # if DEV use this
-    # file = open(str(conf.settings.BASE_DIR)+"/devdata/catalogue.json", "r")
-    # data = file.read()
-    # file.close()
+        catalogue_url = conf.settings.CATALOGUE_URL+"/catalogue/api/records/?format=json&application__name=sss"    
+        auth_request = requests.auth.HTTPBasicAuth(conf.settings.AUTH2_BASIC_AUTH_USER, conf.settings.AUTH2_BASIC_AUTH_PASSWORD)
+        response = requests.get(catalogue_url, auth=auth_request)
+        data  = response.text
+        return HttpResponse(data, content_type='application/json')
+    else:
+        raise ValidationError('User is not authenticated')
     
-    bfrs_region_url = conf.settings.BFRS_URL+"/api/v1/region/?format=json"
-    print (conf.settings.AUTH2_BASIC_AUTH_USER, conf.settings.AUTH2_BASIC_AUTH_PASSWORD)
-    auth_request = requests.auth.HTTPBasicAuth(conf.settings.AUTH2_BASIC_AUTH_USER, conf.settings.AUTH2_BASIC_AUTH_PASSWORD)
-    response = requests.get(bfrs_region_url, auth=auth_request)
-    data  = response.text
-    return HttpResponse(data, content_type='application/json')
+def api_bfrs_region(request, *args, **kwargs):
+    if request.user.is_authenticated:
+
+        # if DEV use this
+        # file = open(str(conf.settings.BASE_DIR)+"/devdata/catalogue.json", "r")
+        # data = file.read()
+        # file.close()
+        
+        bfrs_region_url = conf.settings.BFRS_URL+"/api/v1/region/?format=json"
+        print (conf.settings.AUTH2_BASIC_AUTH_USER, conf.settings.AUTH2_BASIC_AUTH_PASSWORD)
+        auth_request = requests.auth.HTTPBasicAuth(conf.settings.AUTH2_BASIC_AUTH_USER, conf.settings.AUTH2_BASIC_AUTH_PASSWORD)
+        response = requests.get(bfrs_region_url, auth=auth_request)
+        data  = response.text
+        return HttpResponse(data, content_type='application/json')
+    else:
+        raise ValidationError('User is not authenticated')
+    
 
 # @csrf_exempt
 # def kmiProxyView(request, path):
@@ -207,22 +214,25 @@ def outlookmetadata(request):
 
 @csrf_exempt
 def weatheroutlook(request, fmt):
+    if request.user.is_authenticated:
 
-    data = raster.weatheroutlook(request, fmt)
+        data = raster.weatheroutlook(request, fmt)
 
-    if fmt == 'json':
-        content_type = 'application/json'
-    elif fmt == 'amicus':
-        content_type = 'application/xml'
-    elif fmt == 'html':
-        content_type = 'text/html'
-    else: 
-        content_type = 'text/html'
-    
-    response = HttpResponse(data, content_type=content_type)    
-    if fmt == 'json':
-        response["Content-Disposition"] = "attachment;filename='weather_outlook_{}.json'".format(datetime.datetime.strftime(datetime.datetime.now(),"%Y%m%d_%H%M%S"))
-    return response
+        if fmt == 'json':
+            content_type = 'application/json'
+        elif fmt == 'amicus':
+            content_type = 'application/xml'
+        elif fmt == 'html':
+            content_type = 'text/html'
+        else: 
+            content_type = 'text/html'
+        
+        response = HttpResponse(data, content_type=content_type)    
+        if fmt == 'json':
+            response["Content-Disposition"] = "attachment;filename='weather_outlook_{}.json'".format(datetime.datetime.strftime(datetime.datetime.now(),"%Y%m%d_%H%M%S"))
+        return response
+    else:
+        raise ValidationError('User is not authenticated')
 
 def api_profile(request, *args, **kwargs):
     user_logged_in = None
@@ -255,36 +265,39 @@ def api_account(request, *args, **kwargs):
         raise ValidationError('User is not authenticated')
     
 def api_mapbox(request, *args, **kwargs):
+    if request.user.is_authenticated:
 
-    geo_str = request.GET.get('geo_str')
-    country = request.GET.get('country')
-    proximity = request.GET.get('proximity')
-    access_token = conf.settings.MAPBOX_ACCESS_TOKEN
-    mapbox_url = conf.settings.MAPBOX_URL
+        geo_str = request.GET.get('geo_str')
+        country = request.GET.get('country')
+        proximity = request.GET.get('proximity')
+        access_token = conf.settings.MAPBOX_ACCESS_TOKEN
+        mapbox_url = conf.settings.MAPBOX_URL
 
-    params = {
-        'country': country,
-        'proximity':proximity,
-        'access_token': access_token 
-    }
-    headers = {
-        # 'proxy_ssl_server_name': 'on',
-        # 'resolver': '127.0.0.0',
-        'proxy_set_header': 'Host api.mapbox.com',
-        'proxy_hide_header': 'Access-Control-Allow-Credentials',
-        'proxy_hide_header': 'Access-Control-Allow-Headers',
-        'proxy_hide_header': 'Access-Control-Allow-Methods',
-        'proxy_hide_header': 'Access-Control-Allow-Origin',
-        'proxy_hide_header': 'Access-Control-Expose-Headers',
-        'proxy_hide_header': 'Vary',
-        'include': 'custom/cors',
-        'proxy_pass': 'https://api.mapbox.com'
-    }
+        params = {
+            'country': country,
+            'proximity':proximity,
+            'access_token': access_token 
+        }
+        headers = {
+            # 'proxy_ssl_server_name': 'on',
+            # 'resolver': '127.0.0.0',
+            'proxy_set_header': 'Host api.mapbox.com',
+            'proxy_hide_header': 'Access-Control-Allow-Credentials',
+            'proxy_hide_header': 'Access-Control-Allow-Headers',
+            'proxy_hide_header': 'Access-Control-Allow-Methods',
+            'proxy_hide_header': 'Access-Control-Allow-Origin',
+            'proxy_hide_header': 'Access-Control-Expose-Headers',
+            'proxy_hide_header': 'Vary',
+            'include': 'custom/cors',
+            'proxy_pass': 'https://api.mapbox.com'
+        }
 
 
-    response = requests.get(mapbox_url + '/geocoding/v5/mapbox.places/' + geo_str + '.json', params=params, headers=headers)
+        response = requests.get(mapbox_url + '/geocoding/v5/mapbox.places/' + geo_str + '.json', params=params, headers=headers)
 
-    return HttpResponse(response, content_type='application/json')
+        return HttpResponse(response, content_type='application/json')
+    else:
+        raise ValidationError('User is not authenticated')
 
 
     
