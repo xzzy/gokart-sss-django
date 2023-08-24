@@ -10,6 +10,7 @@ class HomePage(base.TemplateView):
 
     # Template name
     template_name = "sss/home.html"
+    error_template = "sss/error_message.html"
 
     def get(self, request, *args, **kwargs):
         """Provides the GET request endpoint for the HomePage view.
@@ -25,5 +26,9 @@ class HomePage(base.TemplateView):
         # Construct Context
         context: dict[str, Any] = {}
         
+        if request.user.is_authenticated:
+            return shortcuts.render(request, self.template_name, context)
+        else:
+            return shortcuts.render(request, self.error_template, context)
         # Render Template and Return
-        return shortcuts.render(request, self.template_name, context)
+        
