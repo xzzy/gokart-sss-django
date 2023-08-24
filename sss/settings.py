@@ -30,7 +30,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = decouple.config("SECRET_KEY")
-MAPBOX_ACCESS_TOKEN = decouple.config("MAPBOX_ACCESS_TOKEN", "default")
+MAPBOX_ACCESS_TOKEN = decouple.config("MAPBOX_ACCESS_TOKEN", default="default")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
