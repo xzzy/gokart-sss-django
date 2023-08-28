@@ -126,8 +126,8 @@
 			<div class="row">
               <div class="small-9 columns" >
                 <div class="row">
-                    <a class="button" :disabled="invalidDateFilter"@click="loadHotspotLayers" title="Show Hotspots"button style="margin:5px;">Show Hotspots </a>
-					<a class="button" :disabled="invalidDateFilter"@click="clearHotspotLayers" title="Clear Hotspots" button style="margin:5px;">Clear Hotspots </a>
+                    <a class="button" :disabled="invalidDateFilter" @click="loadHotspotLayers" title="Show Hotspots" button style="margin:5px;">Show Hotspots </a>
+					<a class="button" :disabled="invalidDateFilter" @click="clearHotspotLayers" title="Clear Hotspots" button style="margin:5px;">Clear Hotspots </a>
 					<!--a class="button" :disabled="invalidDateFilter"@click="removeHotspotMosaic" title="Clear Mosaic" button style="margin:5px;">Clear Mosaic </a-->
                 </div>
               </div>
@@ -697,9 +697,9 @@
 		setTimeout(function(){
 			map.olmap.getLayers().getArray().slice().forEach(function(layer){
 				"Thermal Imaging Flight Footprints"===layer.get("name")&&map.olmap.removeLayer(layer),"Flight mosaics"===layer.get("name")&&map.olmap.removeLayer(layer)
-				if (layer.get("name") == "Thermal Imaging Hotspots"){
-					map.olmap.removeLayer(layer)
-				}
+				// if (layer.get("name") == "Thermal Imaging Hotspots"){
+				// 	map.olmap.removeLayer(layer)
+				// }
 				if (layer.get("name").startsWith("Hotspot image")){
 					map.olmap.removeLayer(layer)
 				}
