@@ -1400,9 +1400,12 @@
 		  var imgLayer = new ol.layer.Image({
 			  opacity: 1,
 			  source: imgSource,
-			  name: 'Thermal Imaging Hotspots'
+			  name: 'Thermal Imaging Hotspots',
+        id: 'hotspots:hotspot_centroids_two'
 		  })
 		  vm.olmap.getLayers().insertAt(insertPosition, imgLayer)
+      // imgLayer.progress = ''
+      // imgSource.setTileLoadFunction(this.$root.map.tileLoaderHook(imgSource, imgLayer))
 	  },
 	  
       createAnnotations: function (layer) {
@@ -1702,7 +1705,12 @@
         if (!this.olmap) {return undefined}
         if (id && id.mapLayerId) { id = id.mapLayerId} // if passed a catalogue layer, get actual id
         return this.olmap.getLayers().getArray().find(function (layer) {
-          return layer.get('id') === id
+          if(id == "hotspots:hotspot_centroids" && layer.get('id') == "hotspots:hotspot_centroids_two"){
+            return true
+          }
+          else{
+            return layer.get('id') === id
+          }
         })
       },
       

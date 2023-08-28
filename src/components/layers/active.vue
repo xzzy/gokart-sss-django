@@ -37,7 +37,7 @@
           </div>
           <div class="columns small-1">
             <a title="Stop auto refresh" v-if="!layerRefreshStopped" class="button tiny secondary float-right" @click="stopLayerRefresh()" ><i class="fa fa-stop"></i></a>
-            <a title="Start auto refresh" v-if="layerRefreshStopped"class="button tiny secondary float-right" @click="startLayerRefresh()" ><i class="fa fa-play"></i></a>
+            <a title="Start auto refresh" v-if="layerRefreshStopped" class="button tiny secondary float-right" @click="startLayerRefresh()" ><i class="fa fa-play"></i></a>
           </div>
         </div>
         <div class="tool-slice row" v-if="layer && mapLayer()">
@@ -247,6 +247,9 @@
 
       },
       getLayer: function (id) {
+        if(id == "hotspots:hotspot_centroids_two"){
+          return this.$root.catalogue.getLayer("hotspots:hotspot_centroids")
+        }
         return this.$root.catalogue.getLayer(id)
       },
       removeLayer: function (olLayer) {
