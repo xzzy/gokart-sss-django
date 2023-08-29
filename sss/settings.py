@@ -180,7 +180,7 @@ ACCOUNT_DETAILS_URL=decouple.config("ACCOUNT_DETAILS_URL", default="/api/account
 BOM_HOME=decouple.config("BOM_HOME", default="/var/www/bom_data/.data/")
 ENV_DOMAIN="dbca"
 CSRF_TRUSTED_ORIGINS_STRING = decouple.config("CSRF_TRUSTED_ORIGINS", default='[]')
-CSRF_TRUSTED_ORIGINS = json.loads(CSRF_TRUSTED_ORIGINS_STRING)
+CSRF_TRUSTED_ORIGINS = json.loads(str(CSRF_TRUSTED_ORIGINS_STRING))
 
 PERTH_TIMEZONE = datetime.datetime.now(pytz.timezone('Australia/Perth')).tzinfo
 
@@ -196,6 +196,3 @@ CACHES = {
 ENV_TYPE=decouple.config("ENV_TYPE", default="DEV")
 ENABLE_AUTH2_GROUPS=True
 
-
-
-    
