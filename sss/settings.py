@@ -30,6 +30,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = decouple.config("SECRET_KEY")
+MAPBOX_ACCESS_TOKEN = decouple.config("MAPBOX_ACCESS_TOKEN", default="default")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -161,20 +162,24 @@ KMI_API_URL=decouple.config("KMI_URL", default="https://kmi-api.dbca.wa.gov.au")
 KB_API_URL=decouple.config("KMI_URL", default="https://kaartdijin-boodja.dbca.wa.gov.au")
 CATALOGUE_URL=decouple.config("CATALOGUE_URL", default="https://csw-uat.dbca.wa.gov.au")
 BFRS_URL=decouple.config("BFRS_URL", default="https://bfrs-uat.dbca.wa.gov.au")
+HOTSPOT_URL=decouple.config("HOTSPOT_URL", default="https://hotspots.dbca.wa.gov.au/geoserver/hotspots/ows")
 AUTH2_BASIC_AUTH_USER=decouple.config("AUTH2_BASIC_AUTH_USER", default="admin")
 AUTH2_BASIC_AUTH_PASSWORD=decouple.config("AUTH2_BASIC_AUTH_PASSWORD", default="nopassword")
 KMI_AUTH2_BASIC_AUTH_USER=decouple.config("KMI_AUTH2_BASIC_AUTH_USER", default="admin")
 KMI_AUTH2_BASIC_AUTH_PASSWORD=decouple.config("KMI_AUTH2_BASIC_AUTH_PASSWORD", default="nopassword")
 KB_AUTH2_BASIC_AUTH_USER=decouple.config("KB_AUTH2_BASIC_AUTH_USER", default="admin")
 KB_AUTH2_BASIC_AUTH_PASSWORD=decouple.config("KB_AUTH2_BASIC_AUTH_PASSWORD", default="nopassword")
+HOTSPOT_AUTH2_BASIC_AUTH_USER=decouple.config("HOTSPOT_AUTH2_BASIC_AUTH_USER", default=None)
+HOTSPOT_AUTH2_BASIC_AUTH_PASSWORD=decouple.config("HOTSPOT_AUTH2_BASIC_AUTH_PASSWORD", default=None)
 
 CSW_SERVICE_URL=decouple.config("CSW_SERVICE_URL", default="/api/catalogue.json")
 KMI_SERVICE_URL=decouple.config("KMI_SERVICE_URL", default="/kmi-proxy/geoserver")
-HOTSPOT_SERVICE_URL=decouple.config("HOTSPOT_SERVICE_URL", default="https://hotspots.dbca.wa.gov.au/geoserver/hotspots/ows")
+HOTSPOT_SERVICE_URL=decouple.config("HOTSPOT_SERVICE_URL", default="/hotspots-proxy")
 SSS_SERVICE_URL=decouple.config("SSS_SERVICE_URL", default="https://sss-uat.dbca.wa.gov.au")
 RESOURCE_TRACKING_SERVICE_URL=decouple.config("RESOURCE_TRACKING_SERVICE_URL", default="https://resourcetracking.dbca.wa.gov.au")
 BFRS_SERVICE_URL=decouple.config("BFRS_SERVICE_URL", default="https://bfrs-uat.dbca.wa.gov.au")
 DBCA_STATIC_URL=decouple.config("DBCA_STATIC_URL", default="https://static.dbca.wa.gov.au")
+MAPBOX_URL=decouple.config("MAPBOX_URL", default="https://api.mapbox.com")
 OVERVIEW_LAYER=decouple.config("OVERVIEW_LAYER", default="dbca:mapbox-outdoors")
 ACCOUNT_DETAILS_URL=decouple.config("ACCOUNT_DETAILS_URL", default="/api/account.json")
 BOM_HOME=decouple.config("BOM_HOME", default="/var/www/bom_data/.data/")

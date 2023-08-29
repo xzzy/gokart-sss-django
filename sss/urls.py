@@ -28,12 +28,14 @@ urlpatterns = [
     path('api/profile.json', api.api_profile, name='api_profile_api'),
     path('api/account.json', api.api_account, name='api_account_api'),
     path('api/spatial', api.spatial, name='api_spatial_api'),
+    path('api/mapbox.json', api.api_mapbox, name='api_mapbox_api'),
     path('admin/', admin.site.urls),
     path("", views.HomePage.as_view(), name="home"),
     path("outlookmetadata", api.outlookmetadata, name='api_outlookmetadata'),
     path("api/environment_config.js", api.environment_config, name='environment_config'),
-    re_path('kmi-proxy/(?P<path>.*)', api.kmiProxyView),
-    re_path('kb-proxy/(?P<path>.*)', api.kbProxyView),
+    re_path('kmi-proxy/(?P<path>.*)', api.mapProxyView),
+    re_path('kb-proxy/(?P<path>.*)', api.mapProxyView),
+    re_path('hotspots-proxy/(?P<path>.*)', api.mapProxyView),
     re_path('weatheroutlook/(?P<fmt>.*)', api.weatheroutlook),
 
     path("sso/profile", api.sso_profile)
