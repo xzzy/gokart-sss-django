@@ -614,7 +614,40 @@
       },
       animate: function (args) {
         // pan from the current center
-        this.olmap.getView().animate.apply(this.olmap.getView(),arguments)
+        // this.olmap.getView().animate.apply(this.olmap.getView(),arguments)
+
+        var mapView = this.olmap.getView();
+        var targetCenter =  [args[0], args[1]];
+
+        // Animation for panning to the target center
+        var panAnimation = ol.animation.pan({
+          duration: 1000,
+          source: mapView.getCenter(),
+          start: +new Date()
+        });
+
+        // Apply the pan animation before rendering the map
+        this.olmap.beforeRender(panAnimation);
+
+        // Set the target center
+        mapView.setCenter(targetCenter);
+
+        // After panning animation is complete, start the zoom animation
+        setTimeout(() => {
+          // Animation for zooming to the target zoom level
+          var zoomAnimation = ol.animation.zoom({
+            resolution: mapView.getResolution(),
+            duration: 500,
+            start: +new Date()
+          });
+
+          // Apply the zoom animation before rendering the map
+          this.olmap.beforeRender(zoomAnimation);
+
+          // Set the target zoom level
+          mapView.setZoom(12);
+        }, 1000);
+       
       },
       // force OL to approximate a fixed scale (1:1K increments)
       setScale: function (scale) {
