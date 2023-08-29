@@ -60,7 +60,8 @@
 
         var victory = function (searchMethod,coords, name, update_name) {
           $('#map-search, #map-search-button').addClass('success')
-          map.animate({center:coords},{resolution:vm.resolutions[10]})
+          // map.animate({center:coords},{resolution:vm.resolutions[10]})
+          map.animate(coords)
           if (update_name) {
             $('#map-search').val(update_name)
           }
