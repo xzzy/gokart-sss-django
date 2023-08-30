@@ -37,6 +37,9 @@ urlpatterns = [
     re_path('kb-proxy/(?P<path>.*)', api.mapProxyView),
     re_path('hotspots-proxy/(?P<path>.*)', api.mapProxyView),
     re_path('weatheroutlook/(?P<fmt>.*)', api.weatheroutlook),
+    re_path('gdal/(?P<fmt>.*)', api.gdal),
+    re_path('ogrinfo', api.gdal_ogrinfo),
+    re_path('download/(?P<fmt>.*)', api.gdal_download),
 
     path("sso/profile", api.sso_profile)
 ]

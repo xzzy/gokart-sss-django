@@ -5,6 +5,7 @@ from wagov_utils.components.proxy.views import proxy_view
 from django.core.cache import cache
 from django.template.loader import render_to_string
 from sss import raster
+from sss import sss_gdal
 import requests
 import base64
 import datetime
@@ -15,6 +16,7 @@ from sss.serializers import ProfileSerializer, AccountDetailsSerializer
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from sss import utils_cache
+from django.conf import settings
 
 def api_catalogue(request, *args, **kwargs):
     if request.user.is_authenticated:
@@ -302,17 +304,60 @@ def api_mapbox(request, *args, **kwargs):
 
 @csrf_exempt
 def spatial(request):
+    if request.user.is_authenticated:
+        data = spatial.spatial(request)
 
-    data = spatial.spatial(request)
+        if fmt == 'json':
+            content_type = 'application/json'
+        elif fmt == 'amicus':
+            content_type = 'application/xml'
+        elif fmt == 'html':
+            content_type = 'text/html'
+        else: 
+            content_type = 'text/html'
+        
+        response = HttpResponse(data, content_type=content_type)    
+        return response    
+    else:
+        raise ValidationError('User is not authenticated')
 
-    if fmt == 'json':
-        content_type = 'application/json'
-    elif fmt == 'amicus':
-        content_type = 'application/xml'
-    elif fmt == 'html':
-        content_type = 'text/html'
-    else: 
-        content_type = 'text/html'
+@csrf_exempt
+def gdal(request,fmt):
+
+    if request.user.is_authenticated:
+        print ("GENERATING: "+fmt)    
+        if settings.EMAIL_INSTANCE == "UAT" or settings.EMAIL_INSTANCE == "DEV":
+            instance_format = settings.EMAIL_INSTANCE+'_'    
+        jpg = request.FILES.get("jpg")
+        output_filename = instance_format+jpg.name.replace("jpg", fmt)
+        
+        if fmt == "tif":
+            content_type="image/tiff"
+        elif fmt == "pdf":
+            content_type = "application/pdf"                    
+        else:
+            raise Exception("File format({}) Not Support".format(fmt))
+        
+        data = sss_gdal.gdal_convert(request,fmt)
+        
+        #print (data)
+        response = HttpResponse(data, content_type=content_type)    
+        response["Content-Disposition"] = "attachment;filename='{}'".format(output_filename)
+        return response
+       
+    else:
+        raise ValidationError('User is not authenticated')
+
+@csrf_exempt
+def gdal_ogrinfo(request):
+
+     
+    response = HttpResponse(data, content_type=content_type)    
+    return response    
+
+@csrf_exempt
+def gdal_download(request):
+
     
     response = HttpResponse(data, content_type=content_type)    
     return response    
