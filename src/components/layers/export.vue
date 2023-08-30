@@ -858,7 +858,7 @@
                 formData.append('bucket_key',bucketKey)
             }
             var req = new window.XMLHttpRequest()
-            req.open('POST', vm.env.gokartService + '/gdal/' + format)
+            req.open('POST', '/gdal/' + format)
             req.withCredentials = true
             req.responseType = 'blob'
             req.onload = function (event) {

@@ -27,6 +27,7 @@ urlpatterns = [
     path('api/brfs-region.json', api.api_bfrs_region, name='api_bfrs_region_api'),
     path('api/profile.json', api.api_profile, name='api_profile_api'),
     path('api/account.json', api.api_account, name='api_account_api'),
+    path('api/spatial', api.spatial, name='api_spatial_api'),
     path('api/mapbox.json', api.api_mapbox, name='api_mapbox_api'),
     path('admin/', admin.site.urls),
     path("", views.HomePage.as_view(), name="home"),
@@ -36,6 +37,9 @@ urlpatterns = [
     re_path('kb-proxy/(?P<path>.*)', api.mapProxyView),
     re_path('hotspots-proxy/(?P<path>.*)', api.mapProxyView),
     re_path('weatheroutlook/(?P<fmt>.*)', api.weatheroutlook),
+    re_path('gdal/(?P<fmt>.*)', api.gdal),
+    re_path('ogrinfo', api.gdal_ogrinfo),
+    re_path('download/(?P<fmt>.*)', api.gdal_download),
 
     path("sso/profile", api.sso_profile)
 ]

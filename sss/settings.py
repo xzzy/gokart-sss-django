@@ -23,6 +23,7 @@ import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = pathlib.Path(__file__).resolve().parent.parent
+BASE_PATH = BASE_DIR
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Quick-start development settings - unsuitable for production
@@ -185,7 +186,13 @@ ACCOUNT_DETAILS_URL=decouple.config("ACCOUNT_DETAILS_URL", default="/api/account
 BOM_HOME=decouple.config("BOM_HOME", default="/var/www/bom_data/.data/")
 ENV_DOMAIN="dbca"
 CSRF_TRUSTED_ORIGINS_STRING = decouple.config("CSRF_TRUSTED_ORIGINS", default='[]')
-CSRF_TRUSTED_ORIGINS = json.loads(CSRF_TRUSTED_ORIGINS_STRING)
+CSRF_TRUSTED_ORIGINS = json.loads(str(CSRF_TRUSTED_ORIGINS_STRING))
+
+EMAIL_INSTANCE = decouple.config("EMAIL_INSTANCE", default="PROD")
+NON_PROD_EMAIL = decouple.config("NON_PROD_EMAIL", default="")
+PRODUCTION_EMAIL= decouple.config("PRODUCTION_EMAIL", default=False, cast=bool)
+EMAIL_DELIVERY = decouple.config("EMAIL_DELIVERY", default="off")
+
 
 PERTH_TIMEZONE = datetime.datetime.now(pytz.timezone('Australia/Perth')).tzinfo
 
@@ -201,6 +208,3 @@ CACHES = {
 ENV_TYPE=decouple.config("ENV_TYPE", default="DEV")
 ENABLE_AUTH2_GROUPS=True
 
-
-
-    
