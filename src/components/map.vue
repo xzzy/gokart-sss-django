@@ -1845,7 +1845,8 @@
         })
 
         vm.olmap.on("changeLayerOrder", function(ev){
-            if (ev.mapLayer.layer.dependentLayers) {
+         
+            if (ev.mapLayer.layer && ev.mapLayer.layer.dependentLayers) {
               //remove dependentlayer first
               $.each(ev.mapLayer.layer.dependentLayers, function(index, dependentLayer){
                   if (!dependentLayer["mapLayer"] || !dependentLayer["mapLayer"].show) {
