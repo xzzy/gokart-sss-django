@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'sss',
     'rest_framework',
+    'django_cron',
 ]
 
 MIDDLEWARE = [
@@ -74,6 +75,11 @@ MIDDLEWARE = [
     'dbca_utils.middleware.SSOLoginMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
    
+]
+
+CRON_CLASSES = [
+    "sss.cron.FetchCatalogueDataCronJob",
+    "sss.cron.FetchBfrsRegionDataCronJob"
 ]
 
 ROOT_URLCONF = 'sss.urls'
