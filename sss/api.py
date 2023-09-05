@@ -26,11 +26,21 @@ def api_catalogue(request, *args, **kwargs):
         # data = file.read()
         # file.close()
 
-        catalogue_url = conf.settings.CATALOGUE_URL+"/catalogue/api/records/?format=json&application__name=sss"    
-        auth_request = requests.auth.HTTPBasicAuth(conf.settings.AUTH2_BASIC_AUTH_USER, conf.settings.AUTH2_BASIC_AUTH_PASSWORD)
-        response = requests.get(catalogue_url, auth=auth_request)
-        data  = response.text
-        return HttpResponse(data, content_type='application/json')
+        catalogue_cache_dumped_data =cache.get('catalogue_cache_data')
+        catalogue_data = None
+
+        if catalogue_cache_dumped_data is None:
+            catalogue_url = conf.settings.CATALOGUE_URL+"/catalogue/api/records/?format=json&application__name=sss"    
+            auth_request = requests.auth.HTTPBasicAuth(conf.settings.AUTH2_BASIC_AUTH_USER, conf.settings.AUTH2_BASIC_AUTH_PASSWORD)
+            response = requests.get(catalogue_url, auth=auth_request)
+            catalogue_data  = response.text
+            if response.status_code == 200:
+                cache.set('catalogue_cache_data', catalogue_data, 86400)
+            
+        else:
+            catalogue_data =  catalogue_cache_dumped_data
+
+        return HttpResponse(catalogue_data, content_type='application/json')
     else:
         raise ValidationError('User is not authenticated')
     
@@ -41,13 +51,22 @@ def api_bfrs_region(request, *args, **kwargs):
         # file = open(str(conf.settings.BASE_DIR)+"/devdata/catalogue.json", "r")
         # data = file.read()
         # file.close()
-        
-        bfrs_region_url = conf.settings.BFRS_URL+"/api/v1/region/?format=json"
-        print (conf.settings.AUTH2_BASIC_AUTH_USER, conf.settings.AUTH2_BASIC_AUTH_PASSWORD)
-        auth_request = requests.auth.HTTPBasicAuth(conf.settings.AUTH2_BASIC_AUTH_USER, conf.settings.AUTH2_BASIC_AUTH_PASSWORD)
-        response = requests.get(bfrs_region_url, auth=auth_request)
-        data  = response.text
-        return HttpResponse(data, content_type='application/json')
+
+        bfrs_region_cache_dumped_data =cache.get('bfrs_region_cache_data')
+        bfrs_region_data = None
+
+        if bfrs_region_cache_dumped_data is None:
+            bfrs_region_url = conf.settings.BFRS_URL+"/api/v1/region/?format=json"
+            auth_request = requests.auth.HTTPBasicAuth(conf.settings.AUTH2_BASIC_AUTH_USER, conf.settings.AUTH2_BASIC_AUTH_PASSWORD)
+            response = requests.get(bfrs_region_url, auth=auth_request)
+            bfrs_region_data  = response.text
+            if response.status_code == 200:
+                cache.set('bfrs_region_cache_data', bfrs_region_data, 86400)
+            
+        else:
+            bfrs_region_data =  bfrs_region_cache_dumped_data
+
+        return HttpResponse(bfrs_region_data, content_type='application/json')
     else:
         raise ValidationError('User is not authenticated')
     
@@ -121,7 +140,6 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
         print (cts['layer_name'])
 
     print (CACHE_EXPIRY)
-    proxy_cache = None
     if proxy_cache is None:
         auth_details = None
         if auth_user is None and auth_password is None:
@@ -160,7 +178,7 @@ def mapProxyView(request, path):
             auth_password = conf.settings.KMI_AUTH2_BASIC_AUTH_PASSWORD
         
         elif 'kb-proxy' in request.path:
-            remoteurl = conf.settings.KMI_API_URL + '/' + path 
+            remoteurl = conf.settings.KB_API_URL + '/' + path 
             auth_user = conf.settings.KB_AUTH2_BASIC_AUTH_USER
             auth_password = conf.settings.KB_AUTH2_BASIC_AUTH_PASSWORD
         
