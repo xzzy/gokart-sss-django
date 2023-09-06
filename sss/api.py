@@ -6,10 +6,12 @@ from django.core.cache import cache
 from django.template.loader import render_to_string
 from sss import raster
 from sss import sss_gdal
+from sss import spatial as sss_spatial
 import requests
 import base64
 import datetime
 import json
+import pathlib
 from io import BytesIO
 from sss.models import UserProfile
 from sss.serializers import ProfileSerializer, AccountDetailsSerializer
@@ -27,7 +29,7 @@ def api_catalogue(request, *args, **kwargs):
         # file.close()
 
         catalogue_url = conf.settings.CATALOGUE_URL+"/catalogue/api/records/?format=json&application__name=sss"    
-        auth_request = requests.auth.HTTPBasicAuth(conf.settings.AUTH2_BASIC_AUTH_USER, conf.settings.AUTH2_BASIC_AUTH_PASSWORD)
+        auth_request = requests.auth.HTTPBasicAuth(conf.settings.KMI_AUTH2_BASIC_AUTH_USER, conf.settings.AUTH2_BASIC_AUTH_PASSWORD)
         response = requests.get(catalogue_url, auth=auth_request)
         data  = response.text
         return HttpResponse(data, content_type='application/json')
@@ -305,17 +307,17 @@ def api_mapbox(request, *args, **kwargs):
 @csrf_exempt
 def spatial(request):
     if request.user.is_authenticated:
-        data = spatial.spatial(request)
+        data = sss_spatial.spatial(request)
 
-        if fmt == 'json':
-            content_type = 'application/json'
-        elif fmt == 'amicus':
-            content_type = 'application/xml'
-        elif fmt == 'html':
-            content_type = 'text/html'
-        else: 
-            content_type = 'text/html'
-        
+        # if fmt == 'json':
+        #     content_type = 'application/json'
+        # elif fmt == 'amicus':
+        #     content_type = 'application/xml'
+        # elif fmt == 'html':
+        #     content_type = 'text/html'
+        # else: 
+        #     content_type = 'text/html'
+        content_type = 'text/html'
         response = HttpResponse(data, content_type=content_type)    
         return response    
     else:
@@ -350,14 +352,38 @@ def gdal(request,fmt):
 
 @csrf_exempt
 def gdal_ogrinfo(request):
-
-     
-    response = HttpResponse(data, content_type=content_type)    
-    return response    
-
+    if request.user.is_authenticated:
+        if settings.EMAIL_INSTANCE == "UAT" or settings.EMAIL_INSTANCE == "DEV":
+            instance_format = settings.EMAIL_INSTANCE+'_'
+        resp = sss_gdal.ogrinfo(request) 
+        content_type='text/plain'
+        output = ""
+        if resp['format'] == 'json':
+            content_type=resp['content_type']
+            output = json.dumps(resp['output'])
+        elif resp['format'] == 'plain':                           
+            content_type=resp['content_type']
+            output = resp['output']
+            
+        response = HttpResponse(output, content_type=content_type)    
+        return response    
+    else:
+        raise ValidationError('User is not authenticated')
 @csrf_exempt
-def gdal_download(request):
+def gdal_download(request, fmt):
 
-    
-    response = HttpResponse(data, content_type=content_type)    
-    return response    
+    if request.user.is_authenticated:
+        if settings.EMAIL_INSTANCE == "UAT" or settings.EMAIL_INSTANCE == "DEV":
+            instance_format = settings.EMAIL_INSTANCE+'_'    
+        resp = sss_gdal.download(request,fmt)
+        print (resp)
+        output = resp['output']
+        if resp['outputfile']:
+            with open(pathlib.Path(resp['outputfile']), 'rb') as f:
+                output = f.read()
+        
+        response = HttpResponse(output, content_type=resp['filemime'])  
+        response["Content-Disposition"] = "attachment;filename='{}'".format(resp["outputfilename"])
+        return response    
+    else:
+        raise ValidationError('User is not authenticated')    

@@ -2140,7 +2140,7 @@
           var vm = this
           var feat = new ol.Feature({geometry:new ol.geom.Point(coordinate)})
           $.ajax({
-              url:vm.env.gokartService + "/spatial",
+              url: "/api/spatial",
               dataType:"json",
               data:{
                   features:vm.$root.geojson.writeFeatures([feat]),

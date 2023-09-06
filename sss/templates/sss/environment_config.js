@@ -8,7 +8,7 @@ var env = {
 
     //kmiService:"https://kmi.dbca.wa.gov.au/geoserver",
     kmiService:"{{ settings.KMI_SERVICE_URL }}",
-
+    kmiApiService: "{{ settings.KMI_API_URL }}",
     legendSrc:"https://kmi.dbca.wa.gov.au/geoserver/gwc/service/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&legend_options=fontName:Times%20New%20Roman;fontAntiAliasing:true;fontSize:14;bgColor:0xFFFFEE;dpi:120;labelMargin:10&LAYER=",
 
 	hotspotService:"{{ settings.HOTSPOT_SERVICE_URL }}",
@@ -18,7 +18,7 @@ var env = {
     bfrsService:"{{ settings.BFRS_SERVICE_URL }}",
     staticService:"{{ settings.DBCA_STATIC_URL }}",
 
-    s3Service:"http://gokart.dpaw.io/",
+    s3Service:"{{ settings.SSS_FILE_URL }}",
 
     appMapping:{
     },

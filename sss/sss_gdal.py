@@ -10,10 +10,11 @@ import json
 import traceback
 from jinja2 import Template
 
-from . import s3
+from sss import s3
+from sss import common
 from django.conf import settings
 from django.core.files.base import ContentFile
-
+from django.core.files import File
 
 gdalinfo = subprocess.check_output(["gdalinfo", "--version"])
 
@@ -34,10 +35,8 @@ def gdal_convert(request, fmt):
     path = os.path.join(workdir, instance_format+'_'+jpg.name)
     output_filepath = path + "." + fmt
     
-    #--
-    from django.core.files import File
+    #--    
     fout = open(path, 'wb+')
-
     file_content = ContentFile( jpg.read() )
 
     # Iterate through the chunks.
@@ -76,7 +75,7 @@ def gdal_convert(request, fmt):
         path, output_filepath
     ])
     output_filename = instance_format+jpg.name.replace("jpg", fmt)
-    print (output_filename)
+
     #merge map pdf and legend pdf
     if fmt == "pdf" and legends_path:
         #dump meta data
@@ -108,12 +107,13 @@ def gdal_convert(request, fmt):
     return output
 
 def detectEpsg(filename):
+
     gdal_cmd = ['gdalsrsinfo', '-e', filename]
     gdal = subprocess.Popen(gdal_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     gdal_output = gdal.communicate()
-
     result = None
-    for line in gdal_output[0].split('\n'):
+    print (gdal_output[0].decode())
+    for line in gdal_output[0].decode().split('\n'):
         if line.startswith('EPSG') and line != 'EPSG:-1':
             result = line
             break
@@ -207,7 +207,7 @@ COMPRESS_FILE_SETTINGS = {
 def getBaseDatafileName(f,includeDir=False):
     if not includeDir:
         f = os.path.split(f)[1]
-    for fileext in COMPRESS_FILE_SETTINGS.iterkeys():
+    for fileext in COMPRESS_FILE_SETTINGS.keys():
         if f.lower().endswith(fileext):
             return f[0:len(f) - len(fileext)]
 
@@ -224,21 +224,30 @@ def getDatasourceFiles(workdir,datasourcefile):
     #import ipdb;ipdb.set_trace()
     #uncompress files, support recursive uncompress
     files = [datasourcefile]
+
     while len(files) > 0:
         f = files.pop()
+
         if os.path.isfile(f):
-            for (fileext,cmd) in COMPRESS_FILE_SETTINGS.iteritems():
+
+            for (fileext,cmd) in COMPRESS_FILE_SETTINGS.items():
+  
                 if f.lower().endswith(fileext):
+
                     extractDir = f[0:len(f) - len(fileext)]
                     os.mkdir(extractDir)
                     subprocess.check_call(cmd(f,extractDir))
+
                     if f != datasourcefile:
                         os.remove(f)
                     else:
                         datasourcefile = extractDir
+
                     files.append(extractDir)
+
                     break
         else:
+
             files.extend([os.path.join(f,path) for path in os.listdir(f)])
 
     if os.path.isdir(datasourcefile):
@@ -250,7 +259,7 @@ def getDatasourceFiles(workdir,datasourcefile):
                 else:
                     if os.path.splitext(fileName)[1] in SPATIAL_FORMATS:
                         datasourcefiles.append((os.path.join(f[0],fileName),os.path.relpath(os.path.join(f[0],fileName),datasourcefile)))
-
+    
     elif os.path.splitext(datasourcefile)[1] in SPATIAL_FORMATS:
         datasourcefiles = [(datasourcefile,os.path.relpath(datasourcefile,workdir))]
 
@@ -310,9 +319,12 @@ def getLayers(datasource,layer=None,srs=None,defaultSrs=None,featureType=None):
                 info["fields"].append([lkey,m.group('type'),m.group('width'),m.group('precision')])
 
         return info
-    info = subprocess.check_output(cmd)
+
+    info_encoded = subprocess.check_output(cmd)
+    info = info_encoded.decode()
     layers = []
     previousMatch = None
+
     layerIter = layer_re.finditer(info)
     for m in layerIter:
         if previousMatch is None:
@@ -359,7 +371,7 @@ def getOutputDatasource(workdir,fmt,layer,geometryType=None):
 
 geojson_re = re.compile("^\s*\{\s*[\"\']type[\"\']\s*:\s*[\"\']FeatureCollection[\"\']\s*\,")
 service_exception_re = re.compile("^.*(\<ServiceExceptionReport)",re.DOTALL)
-def loadDatasource(session_cookie,workdir,loadedDatasources,options):
+def loadDatasource(session_cookie,workdir,loadedDatasources,options, request):
     """
     options:{
         name: datasource name, optional; if missing, derived from url or parameter
@@ -393,9 +405,11 @@ def loadDatasource(session_cookie,workdir,loadedDatasources,options):
             if not os.path.exists(os.path.dirname(datasource)):
                 os.makedirs(os.path.dirname(datasource))
             url = "{}&outputFormat=application%2Fjson&srsName=EPSG:4326".format(options["url"])
+            auth_request = requests.auth.HTTPBasicAuth(settings.AUTH2_BASIC_AUTH_USER,settings.KMI_AUTH2_BASIC_AUTH_PASSWORD)
             r = requests.get(url,
                 verify=False,
-                cookies=session_cookie
+                #cookies=session_cookie
+                auth=auth_request
             )
             with open(datasource,"wb") as f:
                 for chunk in r.iter_content(chunk_size=1024):
@@ -417,10 +431,18 @@ def loadDatasource(session_cookie,workdir,loadedDatasources,options):
         if options["parameter"] not in loadedDatasources:
             if sourcetype == "UPLOAD":
                 #load layer from http request
-                datasource = bottle.request.files.get(options["parameter"])
-                datasource.save(workdir,overwrite=True)
-                datasource =  os.path.join(workdir,datasource.filename)
-                loadedDatasources[options["parameter"]] = (datasource,getDatasourceFiles(os.path.dirname(datasource),datasource))
+                datasource = request.FILES.get(options["parameter"])
+                #datasource.save(workdir,overwrite=True)
+                datasource_path =  os.path.join(workdir,datasource.name)
+
+                fout = open(datasource_path, 'wb+')
+                file_content = ContentFile( datasource.read() )        
+                # Iterate through the chunks.
+                for chunk in file_content.chunks():
+                    fout.write(chunk)
+                fout.close()
+
+                loadedDatasources[options["parameter"]] = (datasource_path,getDatasourceFiles(os.path.dirname(datasource_path),datasource_path))
     
             elif sourcetype == "FORM":
                 #load layer from http request
@@ -428,7 +450,7 @@ def loadDatasource(session_cookie,workdir,loadedDatasources,options):
                 if not os.path.exists(os.path.dirname(datasource)):
                     os.makedirs(os.path.dirname(datasource))
                 with open(datasource,"wb") as f:
-                    f.write(bottle.request.forms.get(options["parameter"]))
+                    f.write(request.POST.get(options["parameter"]))
                 loadedDatasources[options["parameter"]] = (datasource,getDatasourceFiles(os.path.dirname(datasource),datasource))
     
         options["file"] = loadedDatasources[options["parameter"]][0]
@@ -481,7 +503,7 @@ def loadDatasource(session_cookie,workdir,loadedDatasources,options):
         datasource = os.path.join(filterdir,"{}{}".format(options["sourcename"],options["format"]["fileext"]))
         if not os.path.exists(os.path.dirname(datasource)):
             os.makedirs(os.path.dirname(datasource))
-
+        
         cmd = ["ogr2ogr","-preserve_fid" ,"-skipfailures",
             #"-where","\"{}\"".format(options["where"]),
             "-where",options["where"],
@@ -489,7 +511,7 @@ def loadDatasource(session_cookie,workdir,loadedDatasources,options):
             datasource, 
             options["datasource"][0],
         ]
-
+        
         if "layer" in options:
             cmd.append(options["layer"])
 
@@ -526,40 +548,52 @@ def loadDatasource(session_cookie,workdir,loadedDatasources,options):
         else:
             raise Exception("Multiple layers are found in datasource({})".format(options["sourcename"]))
     
-def ogrinfo():
+def ogrinfo(request):
     # needs gdal 1.10+
     #import ipdb;ipdb.set_trace()
-    datasource = bottle.request.files.get("datasource")
+    datasource = request.FILES.get("datasource")
     workdir = tempfile.mkdtemp()
+
     try:
-        datasource.save(workdir)
-        datasourcefile = os.path.join(workdir, datasource.filename)
+        #datasource.save(workdir)
+        datasourcefile = os.path.join(workdir, datasource.name)
+        print (datasourcefile)
+        fout = open(datasourcefile, 'wb+')
+        file_content = ContentFile( datasource.read() )
+
+        # Iterate through the chunks.
+        for chunk in file_content.chunks():
+            fout.write(chunk)
+        fout.close()
 
         datasources = []
         layerSize = 0
         datasourceSize = 0
+
         for filePath,relativeFilePath in getDatasourceFiles(workdir,datasourcefile):
             layers = getLayers(filePath)
+
             layers = [l for l in layers if l["geometry"] in SUPPORTED_GEOMETRY_TYPES or l["geometry"].upper().find("UNKNOWN") >= 0]
+
             if layers:
                 datasources.append({"datasource":relativeFilePath,"layers": layers})
                 layerSize += len(datasources[len(datasources) - 1]["layers"])
                 datasourceSize += 1
 
-
         if layerSize == 0:
             raise Exception("No spatial data is found.")
 
-        bottle.response.set_header("Content-Type", "application/json")
-        return {"layerCount":layerSize,"datasourceCount":datasourceSize,"datasources":datasources}
+        return {"output" : { "layerCount":layerSize,"datasourceCount":datasourceSize,"datasources":datasources}, "content_type": "application/json", "format": "json"}
     except Exception as ex:
-        bottle.response.status = 500
-        bottle.response.set_header("Content-Type", "text/plain")
-        return  str(ex)
+        #bottle.response.status = 500
+        #bottle.response.set_header("Content-Type", "text/plain")
+
+        return  {"output" : str(ex), "content_type":"text/plain", "format": "json"}
 
     finally:
         try:
-            shutil.rmtree(workdir)
+            pass
+            #shutil.rmtree(workdir)
         except:
             pass
 
@@ -574,7 +608,7 @@ GEOMETRY_TYPE_MAP={
     "GEOMETRYCOLLECTION":"wkbGeometryCollection"
 }
 
-def download(fmt):
+def download(request, fmt):
     """
     form data:
     layers: a layer or a list of layer
@@ -626,11 +660,11 @@ def download(fmt):
     srs: optional, output srs
     """
     # needs gdal 1.10+
-    layers = bottle.request.forms.get("layers")
-    output = bottle.request.forms.get("output")
-    datasources = bottle.request.forms.get("datasources")
-    filename = bottle.request.forms.get("filename")
-    outputSrs = bottle.request.forms.get("srs")
+    layers = request.POST.get("layers")
+    output = request.POST.get("output")
+    datasources = request.POST.get("datasources")
+    filename = request.POST.get("filename")
+    outputSrs = request.POST.get("srs")
 
     try:
         if layers:
@@ -664,7 +698,7 @@ def download(fmt):
                 if layer.get("fields"): 
                     index = 0
                     while  index < len(layer["fields"]):
-                        if isinstance(layer["fields"][index],basestring):
+                        if isinstance(layer["fields"][index],str):
                             layer["fields"][index] = {"name":layer["fields"][index],"src":layer["fields"][index]}
                         index += 1
 
@@ -677,7 +711,7 @@ def download(fmt):
                     if slayer.get("fields"): 
                         index = 0
                         while  index < len(slayer["fields"]):
-                            if isinstance(slayer["fields"][index],basestring):
+                            if isinstance(slayer["fields"][index],str):
                                 slayer["fields"][index] = {"name":slayer["fields"][index],"src":slayer["fields"][index]}
                             index += 1
                     elif layer.get("fields"):
@@ -691,7 +725,7 @@ def download(fmt):
                     layer["field_strategy"] = "Intersection"
                 layer["ignore_if_empty"] = layer.get("ignore_if_empty") or False
                 #if geometry column is a string, change it to a dict
-                if layer.get("geometry_column") and isinstance(layer["geometry_column"],basestring):
+                if layer.get("geometry_column") and isinstance(layer["geometry_column"],str):
                     layer["geometry_column"] = {name:layer["geometry_column"]}
 
                 if layer.get("geometry_column",{}).get("type"):
@@ -706,7 +740,7 @@ def download(fmt):
                 datasource["ignore_if_empty"] = datasource.get("ignore_if_empty") or False
                 if datasource.get("fields"):
                     while  index < len(datasource["fields"]):
-                        if isinstance(datasource["fields"][index],basestring):
+                        if isinstance(datasource["fields"][index],str):
                             datasource["fields"][index] = {"name":datasource["fields"][index],"src":datasource["fields"][index]}
                         index += 1
 
@@ -720,9 +754,10 @@ def download(fmt):
             if "url" in ds:
                 ds["type"] = "WFS"
             elif "parameter" in ds:
-                if bottle.request.forms.get(ds["parameter"]):
+              
+                if request.POST.get(ds["parameter"]):
                     ds["type"] = "FORM"
-                elif bottle.request.files.get(ds["parameter"]):
+                elif request.FILES.get(ds["parameter"]):
                     ds["type"] = "UPLOAD"
                 else:
                     raise Exception("Can't locate the http request data ({})".format(ds["parameter"]))
@@ -733,36 +768,36 @@ def download(fmt):
             if "sourcename" in ds:
                 name = ds["sourcename"]
                 if unique and "where" in ds:
-                    name = "{}-{}".format(name,settings.get_md5(ds["where"]))
+                    name = "{}-{}".format(name,common.get_md5(ds["where"]))
             elif ds["type"] == "WFS":
-                name = settings.typename(ds["url"])
+                name = common.typename(ds["url"])
                 if not name:
-                    name = settings.get_md5(ds["url"])
+                    name = common.get_md5(ds["url"])
                     if unique and "where" in ds:
-                        name = "{}-{}".format(name,settings.get_md5(ds["where"]))
+                        name = "{}-{}".format(name,common.get_md5(ds["where"]))
                 else:
                     name = name.replace(":","_")
                     if unique:
                         if "where" in ds:
-                            name = "{}-{}-{}".format(name,settings.get_md5(ds["url"]),settings.get_md5(ds["where"]))
+                            name = "{}-{}-{}".format(name,common.get_md5(ds["url"]),common.get_md5(ds["where"]))
                         else:
-                            name = "{}-{}".format(name,settings.get_md5(ds["url"]))
+                            name = "{}-{}".format(name,common.get_md5(ds["url"]))
             elif ds["type"] == "FORM":
                 name = ds["parameter"]
                 if unique and "where" in ds:
-                    name = "{}-{}".format(name,settings.get_md5(ds["where"]))
+                    name = "{}-{}".format(name,common.get_md5(ds["where"]))
             elif ds["type"] == "UPLOAD":
-                filename = bottle.request.files.get(ds["parameter"]).filename
+                filename = request.FILES.get(ds["parameter"]).name
                 filename = os.path.split(filename)[1]
                 name = None
-                for fileext in COMPRESS_FILE_SETTINGS.iterkeys():
+                for fileext in COMPRESS_FILE_SETTINGS.keys():
                     if filename.lower().endswith(fileext):
                         name = filename[:len(filename) - len(fileext)]
                         break
                 if not name:
                     name = os.path.splitext(filename)[0]
                 if unique and "where" in ds:
-                    name = "{}-{}".format(name,settings.get_md5(ds["where"]))
+                    name = "{}-{}".format(name,common.get_md5(ds["where"]))
 
 
             return name
@@ -807,7 +842,7 @@ def download(fmt):
         #load data sources
         workdir = tempfile.mkdtemp()
 
-        cookies = settings.get_session_cookie()
+        cookies = settings.SESSION_COOKIE_NAME
 
         loaddir = os.path.join(workdir,"load")
         os.mkdir(loaddir)
@@ -816,14 +851,14 @@ def download(fmt):
         if layers:
             for layer in layers:
                 for sourcelayer in layer["sourcelayers"]:
-                    loadDatasource(cookies,loaddir,loadedDatasources,sourcelayer)
+                    loadDatasource(cookies,loaddir,loadedDatasources,sourcelayer, request)
         
         #import ipdb;ipdb.set_trace()
         #load data sources and add all layers in datasources to layers
         if datasources:
             for datasource in datasources:
                 datasource["datasource"] = datasource.get("datasource") or "*"
-                loadDatasource(cookies,loaddir,loadedDatasources,datasource)
+                loadDatasource(cookies,loaddir,loadedDatasources,datasource,request)
                 for dsfile in datasource["datasources"]:
                     if datasource.get("datasource") != "*" and datasource.get("datasource") != dsfile[0]:
                         continue
@@ -834,7 +869,7 @@ def download(fmt):
                         sourcelayer["datasource"] = dsfile[1]
                         sourcelayer["meta"] = metadata
                         sourcelayer["layer"] = metadata["layer"]
-                        loadDatasource(cookies,loaddir,loadedDatasources,sourcelayer)
+                        loadDatasource(cookies,loaddir,loadedDatasources,sourcelayer,request)
 
                         layer = {
                             "sourcename":getBaseDatafileName(dsfile[1],True),
@@ -1000,7 +1035,7 @@ def download(fmt):
                 vrtFile = os.path.join(vrtdir,"{}.vrt".format(layer["layer"]))
             if not os.path.exists(os.path.dirname(vrtFile)):
                 os.makedirs(os.path.dirname(vrtFile))
-
+                      
             if layer.get("geometry_column"):
                 layer["geometry_field"] = {"name":layer["geometry_column"]["name"]}
 
@@ -1023,9 +1058,14 @@ def download(fmt):
                     if slayer["meta"].get("geometry_column"):
                         slayer["geometry_field"]["src"] = slayer["meta"]["geometry_column"]
 
+
             vrt = UNIONLAYERS_TEMPLATE.render(layer)
-            with open(vrtFile,"wb") as f:
+
+            with open(vrtFile,"w") as f:
                 f.write(vrt)
+
+
+            os.listdir(os.path.dirname(vrtFile))
             vrt = None
             if fmt["multitype"]:
                 outputDatasource = getOutputDatasource(outputdir,fmt,layer)
@@ -1095,6 +1135,7 @@ def download(fmt):
                     else:
                         cmd = ["ogr2ogr","-skipfailures","-t_srs",(layer.get("srs") or "EPSG:4326"), "-f", fmt["format"],outputDatasource, vrtFile]
                         outputFiles.append(outputDatasource)
+                    
                     #print " ".join(cmd)
                     if "ogr2ogr_arguments" in fmt:
                         index = 1
@@ -1111,6 +1152,7 @@ def download(fmt):
                         else:
                             cmd = ["ogr2ogr","-skipfailures","-where", where,"-t_srs",(layer.get("srs") or "EPSG:4326"), "-f", fmt["format"],outputDatasource, vrtFile]
                             outputFiles.append(outputDatasource)
+
                         #print " ".join(cmd)
                         if "ogr2ogr_arguments" in fmt:
                             index = 1
@@ -1158,18 +1200,23 @@ def download(fmt):
             outputfilename = os.path.basename(outputfile)
 
         output = open(outputfile)
-        bottle.response.set_header("Content-Type", filemime)
-        bottle.response.set_header("Content-Disposition", "attachment;filename='{}'".format(os.path.basename(outputfilename)))
-        return output
+        #bottle.response.set_header("Content-Type", filemime)
+        #bottle.response.set_header("Content-Disposition", "attachment;filename='{}'".format(os.path.basename(outputfilename)))
+        resp = {'outputfile': outputfile, 'outputfilename': outputfilename,'filemime':filemime, "output": output}
+        return resp
+        #return output
     except:
-        bottle.response.status = 400
-        bottle.response.set_header("Content-Type","text/plain")
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        #bottle.response.status = 400
+        #bottle.response.set_header("Content-Type","text/plain")
         traceback.print_exc()
-        return traceback.format_exception_only(sys.exc_type,sys.exc_value)
+        resp = {'output' :  traceback.format_exception_only(exc_type,exc_value) , 'filemime': 'text/plain' , 'outputfile': None, "outputfilename": "traceback_error.html"}
+        return resp
+        #eturn traceback.format_exception_only(exc_type,exc_value)
     finally:
         try:
             #print "workdir = {}".format(workdir)
-            shutil.rmtree(workdir)
+            #shutil.rmtree(workdir)
             pass
         except:
             pass
