@@ -1,4 +1,3 @@
-import bottle
 #import os
 import sys
 import requests
@@ -17,8 +16,8 @@ from shapely.geometry.base import BaseGeometry
 from shapely import ops
 from functools import partial
 
-import settings
-import kmi
+from django.conf import settings
+from sss import kmi
 
 proj_aea = lambda geometry: pyproj.Proj("+proj=aea +lat_1=-17.5 +lat_2=-31.5 +lat_0=0 +lon_0=121 +x_0=5000000 +y_0=10000000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs")
 
@@ -280,14 +279,18 @@ def extractPoints(geom):
         return None
 
 def retrieveFeatures(url,session_cookies):
-        res = requests.get(url,verify=False,cookies=session_cookies)
+        auth_request = requests.auth.HTTPBasicAuth(settings.AUTH2_BASIC_AUTH_USER,settings.KMI_AUTH2_BASIC_AUTH_PASSWORD)
+        res = requests.get(url,
+                           verify=False,
+                           auth=auth_request,
+                           #cookies=session_cookies
+                            )   
         res.raise_for_status()
         return res.json()
 
 def checkOverlap(session_cookies,feature,options,logfile):
     # needs gdal 1.10+
     layers = options["layers"]
-
     geometry = extractPolygons(getShapelyGeometry(feature))
 
     if not geometry :
@@ -344,7 +347,7 @@ def checkOverlap(session_cookies,feature,options,logfile):
                     layer2_pk = layer2.get("primary_key")
 
                     if layer1_pk:
-                        if isinstance(layer1_pk,basestring):
+                        if isinstance(layer1_pk,str):
                             feat1 = "{}({}={})".format(layer1["layerid"],layer1_pk,feature1["properties"][layer1_pk])
                         else:
                             feat1 = "{}({})".format(layer1["layerid"],", ".join(["{}={}".format(k,v) for k,v in feature1["properties"].items() if k in layer1_pk ]))
@@ -352,7 +355,7 @@ def checkOverlap(session_cookies,feature,options,logfile):
                         feat1 = "{}({})".format(layer1["layerid"],json.dumps(feature1["properties"]))
 
                     if layer2_pk:
-                        if isinstance(layer2_pk,basestring):
+                        if isinstance(layer2_pk,str):
                             feat2 = "{}({}={})".format(layer2["layerid"],layer2_pk,feature2["properties"][layer2_pk])
                         else:
                             feat2 = "{}({})".format(layer2["layerid"],", ".join(["{}={}".format(k,v) for k,v in feature2["properties"].items() if k in layer2_pk ]))
@@ -409,6 +412,7 @@ def calculateArea(feature,kmiserver,session_cookies,options):
 def calculateAreaInProcess(conn):
     feature,kmiserver,session_cookies,options = conn.recv()
     result = _calculateArea(feature,kmiserver,session_cookies,options,True)
+
     if "overlap_logfile" in result:
         overlapLogfile = result["overlap_logfile"]
         del result["overlap_logfile"]
@@ -458,7 +462,6 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
 
     total_area = 0
     total_layer_area = 0
-
     geometry = extractPolygons(getShapelyGeometry(feature))
 
     if not geometry :
@@ -467,9 +470,9 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
 
     #before calculating area, check the polygon first.
     #if polygon is invalid, throw exception
-    valid,msg = geometry.check_valid
-    if not valid:
-        status["invalid"] = msg
+    #valid,msg = geometry.check_valid
+    #if not valid:
+    #    status["invalid"] = msg
 
     geometry_aea = transform(geometry,target_proj='aea')
 
@@ -585,8 +588,9 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
                 break
 
         except:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exc()
-            status["failed"] = "Calculate intersection area between fire boundary and layer '{}' failed.{}".format(layer["layerid"] or layer["id"],traceback.format_exception_only(sys.exc_type,sys.exc_value))
+            status["failed"] = "Calculate intersection area between fire boundary and layer '{}' failed.{}".format(layer["layerid"] or layer["id"],traceback.format_exception_only(exc_type,exc_value))
 
             break
 
@@ -825,8 +829,8 @@ def spatial(request):
         else:
             options = {}
 
-        kmiserver = settings.get_kmiserver()
-        cookies = settings.get_session_cookie()
+        kmiserver = settings.KMI_API_URL
+        cookies = settings.SESSION_COOKIE_NAME
         results = []
 
         features = features["features"] or []

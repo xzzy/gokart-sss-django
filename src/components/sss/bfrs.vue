@@ -1445,7 +1445,7 @@
                         ]
                     }
                     $.ajax({
-                        url:vm.env.gokartService + "/spatial",
+                        url: "/api/spatial",
                         dataType:"json",
                         data:{
                                 features:vm.$root.geojson.writeFeatures([feat]),
@@ -2179,7 +2179,7 @@
                     layer:"bushfire_fireboundary",
                     ignore_if_empty:true,
                     sourcelayers:{
-                        url:vm.env.kmiService + "/wfs?servicea=wfs&version=2.0&request=GetFeature&typeNames=" + fireboundaryLayer + fireboundary_filter + bbox,
+                        url:vm.env.kmiApiService + "/geoserver/wfs?servicea=wfs&version=2.0&request=GetFeature&typeNames=" + fireboundaryLayer + fireboundary_filter + bbox,
                         fields:["fire_number","name","district","financial_year","fire_detected_date","cause","dfes_incident_no","other_info",{name:"author",src:"fireboundary_uploaded_by"},"capt_meth","capt_desc"],
                     },
                     geometry_column:{name:"fire_boundary", type:"MULTIPOLYGON"},
@@ -2194,7 +2194,7 @@
                     layer: "initial_bushfire_originpoint",
                     ignore_if_empty: true,
                     sourcelayers: {
-                        url:vm.env.kmiService + "/wfs?service=wfs&version=2.0&request=GetFeature&typeNames=" + bushfireLayer + originpoint_filter  + bbox,
+                        url:vm.env.kmiApiService + "/geoserver/wfs?service=wfs&version=2.0&request=GetFeature&typeNames=" + bushfireLayer + originpoint_filter  + bbox,
                         where:"report_status='Initial Fire Report'",
                     },
                     geometry_column: {name:"origin_point", type:"POINT"},
@@ -2202,7 +2202,7 @@
                     layer: "final_bushfire_originpoint",
                     ignore_if_empty: true,
                     sourcelayers: {
-                        url: vm.env.kmiService + "/wfs?service=wfs&version=2.0&request=GetFeature&typeNames=" + bushfireLayer + originpoint_filter + bbox,
+                        url: vm.env.kmiApiService + "/geoserver/wfs?service=wfs&version=2.0&request=GetFeature&typeNames=" + bushfireLayer + originpoint_filter + bbox,
                         where: "report_status<>'Initial Fire Report'",
                     },
                     geometry_column: {name:"origin_point", type:"POINT"},
@@ -2210,7 +2210,7 @@
                     layer:"initial_bushfire_fireboundary",
                     ignore_if_empty:true,
                     sourcelayers:{
-                        url:vm.env.kmiService + "/wfs?service=wfs&version=2.0&request=GetFeature&typeNames=" + fireboundaryLayer + fireboundary_filter + bbox,
+                        url:vm.env.kmiApiService + "/geoserver/wfs?service=wfs&version=2.0&request=GetFeature&typeNames=" + fireboundaryLayer + fireboundary_filter + bbox,
                         where:"report_status='Initial Fire Report'",
                     },
                     geometry_column:{name:"fire_boundary", type:"MULTIPOLYGON"},
@@ -2218,7 +2218,7 @@
                     layer:"final_bushfire_fireboundary",
                     ignore_if_empty:true,
                     sourcelayers:{
-                        url:vm.env.kmiService + "/wfs?service=wfs&version=2.0&request=GetFeature&typeNames=" + fireboundaryLayer + fireboundary_filter + bbox,
+                        url:vm.env.kmiApiService + "/geoserver/wfs?service=wfs&version=2.0&request=GetFeature&typeNames=" + fireboundaryLayer + fireboundary_filter + bbox,
                         where:"report_status<>'Initial Fire Report'",
                     },
                     geometry_column:{name:"fire_boundary", type:"MULTIPOLYGON"},
