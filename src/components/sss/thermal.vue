@@ -264,7 +264,8 @@
 		//dateRange: '',
         revision: 1,
         selectRevision: 1,
-		extent: null
+		extent: null,
+		isHotspotImageON: false, 
       }
     },
 	
@@ -570,6 +571,7 @@
 		})
 		if (hotspotsLoaded && this.showRawImageMosaic) {
 			console.log("HOT SPOT IS LOADED mosaicLoaded");
+			vm.removeImages();
 			/*var mosaicLayers = []
 			if (!this.hasDateFilter()) {
 				mosaicLayers.push('vrt-test')
@@ -663,6 +665,7 @@
 	  },
 	   
 	  removeImages:function(){
+		this.isHotspotImageON = false;
 		var hotspotButtons=(this.$root.map,document.getElementById("hotspot-list").querySelectorAll(".collapsible"))
 		var i = 0
 		return hotspotButtons.forEach(function(button){
@@ -929,6 +932,7 @@
 						map.olmap.removeLayer(layer)
 					}
 				})
+				this.isHotspotImageON = false;
 			} else {
 			  imageListContent.style.display = "block"
 			}
@@ -952,6 +956,10 @@
 	    	var map = this.$root.map
 		var hotspots_position = 0
 		var other_hotspot_images = 0	// counts number of other hotpsots with an image displayed
+		this.isHotspotImageON = true;
+		if(this.showRawImageMosaic){
+			this.toggleRawImageMosaic();
+		}
 		// Close any other single images for the same hotspot
 		map.olmap.getLayers().forEach(function (layer) {
 			if (layer.get('name') === 'Hotspot image ' + flight_datetime + ' ' + hotspot_no) {
