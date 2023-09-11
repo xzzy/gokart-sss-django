@@ -1371,6 +1371,8 @@
 				  })
 			  }
 			  // Create map layer NB this.env.hotSpotService does not work inside $get so URL is created from the GetCapabilities run above
+        const layerId = 'hotspots: flight_mosaics';
+        const layerName = 'Flight mosaics';
 			  var url = vm.env.hotSpotService + '/wms'
 			  var imgSource = new ol.source.ImageWMS({
 				  url: capabilities.Service.OnlineResource + '/hotspots/wms',
@@ -1385,11 +1387,17 @@
 			  var imgLayer = new ol.layer.Image({
 				  opacity: 1,
 				  source: imgSource,
-				  name: 'Flight mosaics',
-				  //id: 'hotspots:vrt-test'
+				  name: layerName,
+				  id: layerId
 			  })
-			  
-			  vm.olmap.getLayers().insertAt(mosaicPosition, imgLayer)
+        imgLayer.id = layerId;
+        imgLayer.name = layerName;
+        vm.olmap.getLayers().insertAt(mosaicPosition, imgLayer)
+
+        const layerAlreadyExists = vm.$root.catalogue.getLayer(layerId) ? true : false;
+        if(imgLayer != undefined && !layerAlreadyExists){
+          vm.$root.catalogue.catalogue.push(imgLayer);
+        }
 			  //vm.olmap.getLayers().insertAt(1, imgLayer)
 			  })
 	},
@@ -1398,6 +1406,8 @@
 		  // Added Nov/Dec 2020 to enable loading of hotspot imagery
 		  //position is the position within the map layers array in which the mosaic layers should be loaded (immediately below hotspots and footprints)
 		  var vm = this
+      const layerId = 'hotspots: ' + flight_datetime + '_img_' + image_name;
+      const layerName = 'Hotspot image ' + flight_datetime + ' ' + hotspot_no;
 		  var imgSource = new ol.source.ImageWMS({
 			  url: this.env.hotspotService + '/wms',
 			  serverType: 'geoserver',			  
@@ -1410,9 +1420,17 @@
 		  var imgLayer = new ol.layer.Image({
 			  opacity: 1,
 			  source: imgSource,
-			  name: 'Hotspot image ' + flight_datetime + ' ' + hotspot_no
+			  name: layerName,
+        id: layerId
 		  })
-		  vm.olmap.getLayers().insertAt(position, imgLayer)  
+      imgLayer.id = layerId;
+      imgLayer.name = layerName;
+		  vm.olmap.getLayers().insertAt(position, imgLayer);
+
+      const layerAlreadyExists = vm.$root.catalogue.getLayer(layerId) ? true : false;
+      if(imgLayer != undefined && !layerAlreadyExists){
+        vm.$root.catalogue.catalogue.push(imgLayer);
+      }
 		  //vm.olmap.getLayers().insertAt(1, imgLayer)  
 	  },
 	  
