@@ -161,22 +161,15 @@
 		<div id="hotspot-list" class="layers-flexibleframe scroller" style="margin-left:-15px; margin-right:-15px;">
               <!--template v-for="f in featurelist" track-by="get('hotspot_no')"-->
 			  <template v-for="f in featurelist" >
-			    <div v-if="showFeature(f)" class="row feature-row" v-bind:class="{\'feature-selected\': isFeatureSelected(f) }" @click="toggleSelect(f)"> 
+			    <div v-show="revision && (!viewportOnly || f.inViewport)" class="row feature-row" v-bind:class="{\'feature-selected\': isFeatureSelected(f) }" @click="toggleSelect(f)"> 
 			    <button class="collapsible" v-on:click="toggleImageList">{{f.get('flight_datetime')}} {{f.get('hotspot_no')}}</button>
-				<!--button class="collapsible" @click="toggleImageList(event, f.get('flight_datetime'), f.get('hotspot_no'))">{{f.get('flight_datetime')}} {{f.get('hotspot_no')}}</button-->
+				
 			    <div class="showImages">
 				  <template v-for="imageFile in f.shortImages" >
-				  <!--a class="button" @click="showImage(imageFile)" id={{imageFile}}><i class="fa fa-camera"></i>View image {{imageFile}}</a-->
-				  <!--button v-bind:id="'img_' + imageFile" class="button"  v-on:click="showImage(imageFile)" ><i class="fa fa-camera"></i>View image {{imageFile}}</button-->
+				 
 				  <button v-bind:id="'img_' + imageFile" v-bind:class=["button"] v-on:click="changeButtons" @click="showImage(f.get('flight_datetime'), f.get('hotspot_no'), imageFile, $index, $parent.$index)">
 					<i class="fa fa-camera"></i>        image {{imageFile}}</button>
-				  <!--button v-bind:id="'img_' + imageFile" v-bind:class=["button"] @click="showImage(f.get('flight_datetime'), imageFile)" ><i class="fa fa-camera"></i>View image {{imageFile}}</button-->
-				  <!--template>
-					  <div class="images" v-for="imageFile in f.shortImages" :key="imageFile">
-						<button class="favorite" v-on:click="imageFile.favorited = !imageFile.favorited">
-							<i v-bind:class="[{ 'red' : imageFile.favorited }, 'fa fa-camera']">View image {{imageFile}}</i>
-						</button>           
-					  </div-->
+				 
 				  </template>
 				</div>
 				</div>
@@ -1100,13 +1093,16 @@
 
       setExtentFeatureSize: function() {
         var vm = this
-        var size = 0
-        this._featurelist.forEach(function(feat){
-            if (feat.inViewport) {
-                ++size
-            }
-        })
-        this.extentFeaturesSize = size
+        // var size = 0
+        // this._featurelist.forEach(function(feat){
+        //     if (feat.inViewport) {
+		// 		console.log("setting feature size.......")
+        //         ++size
+        //     }
+        // })
+		// this.extentFeaturesSize = size
+		const size = this._featurelist.getArray().reduce((accumulator, feat) => feat.inViewport ? accumulator + 1 : accumulator, 0);
+		this.extentFeaturesSize = size
       },
 
       updateViewport: function(wait) {
