@@ -653,7 +653,8 @@
 	  removeHotspotList: function(){
 		var hotspotButtons = document.getElementById("hotspot-list").querySelectorAll(".collapsible")
 		hotspotButtons.forEach(function(button){
-			button.parentNode.remove()
+			// button.parentNode.remove()
+			button.parentNode.style.display = "none";
 		})
 	  },
 	   
