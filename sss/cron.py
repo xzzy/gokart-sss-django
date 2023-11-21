@@ -30,7 +30,7 @@ class FetchBfrsRegionDataCronJob(CronJobBase):
 
 
 class SyncBOMDataCronJob(CronJobBase):
-    RUN_EVERY_MINS = 30
+    RUN_EVERY_MINS = 20
 
     schedule = Schedule(run_every_mins=RUN_EVERY_MINS)
     code = 'sss.cron.sync_bom_data'

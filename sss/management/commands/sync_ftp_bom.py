@@ -65,8 +65,9 @@ class Command(BaseCommand):
                 else:
                     print (str(current_time)+ " : ERROR: file does not exist on remote server : "+ file.file_name )
 
-            
+            ftp_session.close()
         except Exception as e:
             print ("ERROR running BOM SYNC")
             print (e)
             self.stderr.write(self.style.ERROR(f"An error occurred: {str(e)}"))
+            
