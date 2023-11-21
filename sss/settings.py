@@ -79,7 +79,8 @@ MIDDLEWARE = [
 
 CRON_CLASSES = [
     "sss.cron.FetchCatalogueDataCronJob",
-    "sss.cron.FetchBfrsRegionDataCronJob"
+    "sss.cron.FetchBfrsRegionDataCronJob",
+    "sss.cron.SyncBOMDataCronJob"
 ]
 
 ROOT_URLCONF = 'sss.urls'
@@ -205,6 +206,14 @@ EMAIL_DELIVERY = decouple.config("EMAIL_DELIVERY", default="off")
 SSS_FILE_URL = decouple.config("SSS_FILE_URL", default="http://sss-maps.dbca.wa.gov.au/")
 CALCULATE_AREA_IN_SEPARATE_PROCESS  = decouple.config("CALCULATE_AREA_IN_SEPARATE_PROCESS", default="true")
 EXPORT_CALCULATE_AREA_FILES_4_DEBUG = decouple.config("EXPORT_CALCULATE_AREA_FILES_4_DEBUG", default="true")
+
+NON_PROD_EMAIL = decouple.config("NON_PROD_EMAIL", default="")
+
+# BOM FTP Login Details
+BOM_FTP_SERVER = decouple.config("BOM_FTP_SERVER", default="")
+BOM_FTP_USERNAME = decouple.config("BOM_FTP_USERNAME", default="")
+BOM_FTP_PASSWORD = decouple.config("BOM_FTP_PASSWORD", default="")
+BOM_FTP_DIRECTORY = decouple.config("BOM_FTP_DIRECTORY", default="")
 
 PERTH_TIMEZONE = datetime.datetime.now(pytz.timezone('Australia/Perth')).tzinfo
 

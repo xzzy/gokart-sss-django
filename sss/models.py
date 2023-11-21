@@ -95,3 +95,13 @@ class ProxyCache(models.Model):
         super(ProxyCache, self).save(*args, **kwargs)
     
 
+class BomSyncList(models.Model):
+        file_name = models.CharField(max_length=500)
+        active = models.BooleanField(default=True)
+        created = models.DateTimeField(default=timezone.now)
+
+        class Meta:
+            app_label = 'sss'
+
+        def __str__(self):
+            return f"{self.file_name}"

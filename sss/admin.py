@@ -17,5 +17,10 @@ class ProxyCacheAdmin(admin.ModelAdmin):
     list_display = ('id', 'layer_name', 'created', 'active')
     readonly_fields = ['created',]
 
+@admin.register(models.BomSyncList)
+class BomSyncListAdmin(admin.ModelAdmin):
+    list_display = ('id', 'file_name', 'created', 'active')
+    readonly_fields = ['created',]
+    
 admin.site.register(models.Region)
 
