@@ -252,6 +252,8 @@ def weatheroutlook(request, fmt):
         response = HttpResponse(data, content_type=content_type)    
         if fmt == 'json':
             response["Content-Disposition"] = "attachment;filename='weather_outlook_{}.json'".format(datetime.datetime.strftime(datetime.datetime.now(),"%Y%m%d_%H%M%S"))
+        elif fmt == 'amicus':
+            response["Content-Disposition"] = "attachment;filename='weather_outlook_{}.xml'".format(datetime.datetime.strftime(datetime.datetime.now(),"%Y%m%d_%H%M%S"))
         return response
     else:
         raise ValidationError('User is not authenticated')
