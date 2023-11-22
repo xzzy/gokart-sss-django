@@ -59,7 +59,15 @@ def gdal_convert(request, fmt):
         legends = request.FILES.get("legends")
         if legends:
             legends_path = os.path.join(workdir, legends.name)
-            legends.save(workdir)
+            #legends.save(workdir)
+
+            fout = open(legends_path, 'wb+')
+            file_content = ContentFile( legends.read() )        
+            # Iterate through the chunks.
+            for chunk in file_content.chunks():
+                fout.write(chunk)
+            fout.close()
+
             
     else:
         raise Exception("File format({}) Not Support".format(fmt))
