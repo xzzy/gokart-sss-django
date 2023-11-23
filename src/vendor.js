@@ -104,9 +104,9 @@ ol.interaction.Draw.prototype.addToDrawing_ = function() {
     return function(event) {
         if (this.freehand_) {
           var coordinates = null
-          if (this.mode_ === ol.interaction.Draw.Mode.LINE_STRING) {
+          if (this.mode_ === ol.interaction.Draw.Mode_.LINE_STRING) {
             coordinates = this.sketchCoords_;
-          } else if (this.mode_ === ol.interaction.Draw.Mode.POLYGON) {
+          } else if (this.mode_ === ol.interaction.Draw.Mode_.POLYGON) {
             coordinates = this.sketchCoords_[0];
           }
           if (coordinates.length >= 2) {
@@ -131,9 +131,9 @@ ol.interaction.Draw.prototype.atFinish_ = function(event) {
   if (this.sketchFeature_) {
     var potentiallyDone = false;
     var potentiallyFinishCoordinates = [this.finishCoordinate_];
-    if (this.mode_ === ol.interaction.Draw.Mode.LINE_STRING) {
+    if (this.mode_ === ol.interaction.Draw.Mode_.LINE_STRING) {
       potentiallyDone = this.sketchCoords_.length > this.minPoints_;
-    } else if (this.mode_ === ol.interaction.Draw.Mode.POLYGON) {
+    } else if (this.mode_ === ol.interaction.Draw.Mode_.POLYGON) {
       potentiallyDone = this.sketchCoords_[0].length >
           this.minPoints_;
       potentiallyFinishCoordinates = [this.sketchCoords_[0][0],
