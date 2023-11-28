@@ -235,18 +235,20 @@ div.ol-previewmap.ol-uncollapsible {
         }
         // make the layer match the state
         if (checked) {
-		  var olLayer = map['create' + layer.type](layer)
+		    var olLayer = map['create' + layer.type](layer)
           olLayer.setOpacity(layer.opacity || 1)
           if (layer.base) {
             // "Switch out base layers automatically" is enabled, remove
             // all other layers with the "base" option set.
             if (this.swapBaseLayers) {
               active.olLayers.forEach(function (mapLayer) {
-                if (mapLayer.get('dependentLayer')) return
-                if (vm.getLayer(mapLayer).base) {
-                  active.removeLayer(mapLayer)
+                if (vm.getLayer(mapLayer)) {
+                  if (mapLayer.get('dependentLayer')) return
+                  if (vm.getLayer(mapLayer).base) {
+                    active.removeLayer(mapLayer)
+                  }
                 }
-              })
+                })
             }
             // add new base layer to bottom
             map.olmap.getLayers().insertAt(0, olLayer)
