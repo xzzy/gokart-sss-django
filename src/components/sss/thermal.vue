@@ -695,11 +695,11 @@
 			map.olmap.getLayers().getArray().slice().forEach(function(layer){
 				var layer_name = layer.get("name");
 				console.log(layer_name);
-				"Thermal Imaging Flight Footprints"===layer.get("name")&&map.olmap.removeLayer(layer),"Flight mosaics"===layer.get("name")&&map.olmap.removeLayer(layer)
+				//"Thermal Imaging Flight Footprints"===layer.get("name")&&map.olmap.removeLayer(layer),"Flight mosaics"===layer.get("name")&&map.olmap.removeLayer(layer)
 				// if (layer.get("name") == "Thermal Imaging Hotspots"){
 				// 	map.olmap.removeLayer(layer)
 				// }
-				if (layer.get("name").startsWith("Hotspot image") || layer.get("name").startsWith("Thermal Imaging Hotspots") || layer.get("name").startsWith("Thermal Imaging Flight Footprints")){
+				if (layer.get("name").startsWith("Hotspot image") || layer.get("name").startsWith("Thermal Imaging Hotspots") || layer.get("name").startsWith("Thermal Imaging Flight Footprints") || layer.get("name").startsWith("Flight mosaics")){
 					map.olmap.removeLayer(layer)
 				}
 			})
