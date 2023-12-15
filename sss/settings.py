@@ -80,7 +80,8 @@ MIDDLEWARE = [
 CRON_CLASSES = [
     "sss.cron.FetchCatalogueDataCronJob",
     "sss.cron.FetchBfrsRegionDataCronJob",
-    "sss.cron.SyncBOMDataCronJob"
+    "sss.cron.SyncBOMDataCronJob",
+    "sss.cron.SyncCatalogueCSWDataCronJob"
 ]
 
 ROOT_URLCONF = 'sss.urls'
@@ -171,7 +172,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 KMI_URL=decouple.config("KMI_URL", default="https://kmi.dbca.wa.gov.au")
 KMI_API_URL=decouple.config("KMI_URL", default="https://kmi-api.dbca.wa.gov.au")
-KB_API_URL=decouple.config("KMI_URL", default="https://kaartdijin-boodja.dbca.wa.gov.au")
+KB_API_URL=decouple.config("KMI_URL", default="https://kaartdijin-boodja-geoserver-api.dbca.wa.gov.au")
+HOTSPOT_API_URL=decouple.config("HOTSPOT_URL", default="https://hotspots.dbca.wa.gov.au")
 CATALOGUE_URL=decouple.config("CATALOGUE_URL", default="https://csw-uat.dbca.wa.gov.au")
 BFRS_URL=decouple.config("BFRS_URL", default="https://bfrs-uat.dbca.wa.gov.au")
 HOTSPOT_URL=decouple.config("HOTSPOT_URL", default="https://hotspots.dbca.wa.gov.au/geoserver/hotspots/ows")
@@ -186,7 +188,7 @@ HOTSPOT_AUTH2_BASIC_AUTH_PASSWORD=decouple.config("HOTSPOT_AUTH2_BASIC_AUTH_PASS
 
 CSW_SERVICE_URL=decouple.config("CSW_SERVICE_URL", default="/api/catalogue.json")
 KMI_SERVICE_URL=decouple.config("KMI_SERVICE_URL", default="/kmi-proxy/geoserver")
-HOTSPOT_SERVICE_URL=decouple.config("HOTSPOT_SERVICE_URL", default="/hotspots-proxy")
+HOTSPOT_SERVICE_URL=decouple.config("HOTSPOT_SERVICE_URL", default="/hotspots-proxy/geoserver")
 SSS_SERVICE_URL=decouple.config("SSS_SERVICE_URL", default="https://sss-uat.dbca.wa.gov.au")
 RESOURCE_TRACKING_SERVICE_URL=decouple.config("RESOURCE_TRACKING_SERVICE_URL", default="https://resourcetracking.dbca.wa.gov.au")
 BFRS_SERVICE_URL=decouple.config("BFRS_SERVICE_URL", default="https://bfrs-uat.dbca.wa.gov.au")
@@ -217,13 +219,17 @@ BOM_FTP_DIRECTORY = decouple.config("BOM_FTP_DIRECTORY", default="")
 
 PERTH_TIMEZONE = datetime.datetime.now(pytz.timezone('Australia/Perth')).tzinfo
 
+# Django Timezone
+TIME_ZONE = 'Australia/Perth'
+USE_TZ = True
+
 CORS_ALLOW_ALL_ORIGINS = True
 
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': os.path.join(BASE_DIR, 'sss', 'cache'),
-        "OPTIONS": {"MAX_ENTRIES": 10000},
+        "OPTIONS": {"MAX_ENTRIES": 20000},
     }
 }
 ENV_TYPE=decouple.config("ENV_TYPE", default="DEV")
