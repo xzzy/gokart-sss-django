@@ -120,17 +120,18 @@ CATALOGUE_TYPE = (
     ('', "None"),
     ('TileLayer','TileLayer'),
     ('TileLayer2','TileLayer2'),
-    ('WMSLayer','WMSLayer'),
+    ('TileWMSLayer','TileWMSLayer'),
+    ('WMSLayer','WMSLayer'),    
     ('ImageLayer','ImageLayer')
 )
 class Catalogue(models.Model):
-
+        title =  models.CharField(max_length=500, null=True, blank=True)
         identifier = models.CharField(max_length=500)
         map_server = models.ForeignKey(MapServer, default=None, on_delete=models.SET_NULL, null=True, blank=True)
         #type =  models.CharField(max_length=500, null=True, blank=True, help_text="Map Server Type TileLayer, ImageLayer, WMSLayer etc")                  
         type = models.CharField(choices=CATALOGUE_TYPE, default='', null=True, blank=True, max_length=128, help_text="Map Server Type TileLayer, ImageLayer, WMSLayer etc")
+        workspace = models.CharField(max_length=500, null=True, blank=True)
         url = models.CharField(max_length=500, null=True, blank=True)        
-        title =  models.CharField(max_length=500, null=True, blank=True)
         any_text = models.TextField(null=True, blank=True)
         abstract = models.TextField(null=True, blank=True)
         keywords = models.CharField(max_length=500, null=True, blank=True)

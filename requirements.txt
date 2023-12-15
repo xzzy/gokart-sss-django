@@ -1,4 +1,4 @@
-Django==4.2.7
+Django==4.2.8
 git+https://github.com/dbca-wa/dbca-utils.git#egg=dbca-utils
 gunicorn==21.2.0
 gevent==23.9.1
