@@ -39,3 +39,15 @@ class SyncBOMDataCronJob(CronJobBase):
         log.info("CRON JOB: syncing bom data...")
 
         management.call_command("sync_ftp_bom")        
+
+
+class SyncCatalogueCSWDataCronJob(CronJobBase):
+    RUN_EVERY_MINS = 20
+
+    schedule = Schedule(run_every_mins=RUN_EVERY_MINS)
+    code = 'sss.cron.sync_catalogue_from_csw'
+
+    def do(self):
+        log.info("CRON JOB: syncing catalogue data from csw..")
+
+        management.call_command("sync_catalogue_from_csw")              

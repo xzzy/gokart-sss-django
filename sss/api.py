@@ -14,6 +14,7 @@ import json
 import pathlib
 from io import BytesIO
 from sss.models import UserProfile
+from sss import models as sss_models
 from sss.serializers import ProfileSerializer, AccountDetailsSerializer
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -139,10 +140,11 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
     for cts in cache_times_strings:
         if cts['layer_name'] in query_string_remote_url:
             CACHE_EXPIRY = cts['cache_expiry']
-        print (cts['layer_name'])
+        #print (cts['layer_name'])
 
-    print (CACHE_EXPIRY)
+    #print (CACHE_EXPIRY)
     if proxy_cache is None:
+        #print ("NO CACHE")
         auth_details = None
         if auth_user is None and auth_password is None:
             auth_details = None
@@ -152,11 +154,12 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
         proxy_response_content_encoded = base64.b64encode(proxy_response.content)
         base64_json = {"status_code": proxy_response.status_code, "content_type": proxy_response.headers['content-type'], "content" : proxy_response_content_encoded.decode('utf-8'), "cache_expiry": CACHE_EXPIRY}
         if proxy_response.status_code == 200: 
+            #print ("CREATING CACHE")
             cache.set(query_string_remote_url, json.dumps(base64_json), CACHE_EXPIRY)
         else:
             cache.set(query_string_remote_url, json.dumps(base64_json), 15)
     else:
-        print ("CACHED")
+        print ("---- > USING CACHE < ----")
         print (query_string_remote_url)
         base64_json = json.loads(proxy_cache)
 
@@ -185,7 +188,7 @@ def mapProxyView(request, path):
             auth_password = conf.settings.KB_AUTH2_BASIC_AUTH_PASSWORD
         
         elif 'hotspots-proxy' in request.path:
-            remoteurl = conf.settings.HOTSPOT_URL + '/' + path
+            remoteurl = conf.settings.HOTSPOT_API_URL + '/' + path
 
         response = process_proxy(request, remoteurl, queryString, auth_user, auth_password)
         return response
@@ -221,6 +224,56 @@ def environment_config(request):
     template_date = render_to_string('sss/environment_config.js', context)    
     return HttpResponse(template_date, content_type='text/javascript')
 
+def cataloguev2(request):
+    if request.user.is_authenticated:
+        catalogue_array = []
+        catalogue = sss_models.Catalogue.objects.filter(active=True)
+        for c in catalogue:
+            catalogue_row = {}
+            catalogue_row['id'] = c.id
+            catalogue_row['url'] = c.url
+            catalogue_row['identifier'] = c.identifier
+            catalogue_row['title'] = c.title
+            catalogue_row['any_text'] = c.any_text
+            catalogue_row['abstract'] = c.abstract
+            catalogue_row['keywords'] = c.keywords
+            catalogue_row['bounding_box'] = c.bounding_box
+            catalogue_row['crs'] = c.crs
+            catalogue_row['service_type'] = c.service_type
+            catalogue_row['service_type_version'] = c.service_type_version
+            catalogue_row['legend'] = c.legend
+            catalogue_row['active'] = c.active
+            catalogue_row['updated'] = c.updated.strftime("%d/%m/%Y %H:%M:%S")
+            catalogue_row['created'] = c.created.strftime("%d/%m/%Y %H:%M:%S")
+            catalogue_row['tags'] = []
+            catalogue_tags = sss_models.CatalogueTag.objects.filter(catalogue=c)
+            catalogue_row['map_server_name'] = c.map_server.name 
+            catalogue_row['map_server_url'] = c.map_server.url
+
+            # Fix to add to model tomorrow
+            catalogue_row['type'] = "TileLayer"
+            if c.type:
+                catalogue_row['type'] = c.type
+                
+            ct_row = {}
+            for ct in catalogue_tags:
+                ct_row['name'] = ct.name
+                ct_row['description'] = ct.description
+                catalogue_row['tags'].append(ct_row)
+
+            catalogue_array.append(catalogue_row)
+
+
+        catalogue_csw = sss_models.CatalogueSyncCSW.objects.filter(active=True, removed_from_csw=False)
+        for c_csw in catalogue_csw:
+            json_cs_csw = json.loads(c_csw.json_data)
+            json_cs_csw['map_server_name'] = "kmi"
+            json_cs_csw['map_server_url'] = "/kmi-proxy/geoserver"
+            catalogue_array.append(json_cs_csw)
+
+        context = {'settings': conf.settings}
+        template_date = render_to_string('sss/catalogue_example.json', context)    
+        return HttpResponse(json.dumps(catalogue_array), content_type='text/json')
 
 def sso_profile(request):
     data= '{"authenticated": true, "email": "test.test@dbca.wa.gov.au", "username": "test.test@dbca.wa.gov.au", "first_name": "Test", "last_name": "Test", "full_name": "Test Test", "groups": "TEST,TEST1,TEST_ADMIN_TEAM,TEST_DEV_TEAM", "logout_url": "/sso/auth_logout", "session_key": "000.000.000.000.000|AUTH2-01|000dddeeefffff|1-auth2018eeedddfffgghhhtttyuuhgg", "auth_cache_hit": "success", "Frame_Options": "DENY", "Content_Type_Options": "nosniff", "client_logon_ip": "000.000.000.000", "access_token": "eeddfffuuiiidlkdldkdkdldkllksdlkdlkkjasdlksajlkdjkhlsajkdsajdlkas", "access_token_created": "2023-07-19 10:24:54", "access_token_expireat": "2023-08-16 23:59:59", "idp": "staff"}'

@@ -1338,7 +1338,7 @@
 		  var layerNames = []		// Will be used to hold names of all layers in geoserver hotspots.dbca.wa.gov.au
 		  var mosaicLayersString = ""	// Will be used to form string of layers passed in (mosaicLayers) which exist on geoserver
 		  // Fill layerNames (all geoserver layer names)
-		  $.get(this.env.hotspotService + '/wms?service=WMS&version=1.1.0&request=GetCapabilities').then(function(response) {
+		  $.get(this.env.hotspotService + '/hotspots/ows/wms?service=WMS&version=1.1.0&request=GetCapabilities').then(function(response) {
 			  var capabilities = parser.read(response)
 			  $.each(Object.keys(capabilities.Capability.Layer.Layer), function(index) {		//Object.keys(capabilities.Capability.Layer.Layer) gives array of indices of layers e.g. [0,1,2,3]
 				  layerNames.push(capabilities.Capability.Layer.Layer[index].Name)
@@ -1466,9 +1466,461 @@
         }
         return this.annotations.featureOverlay
       },
-	  
+      createTileWMSLayer: function (options) {
+
+        if (options.mapLayer) return options.mapLayer
+        var vm = this
+        if (options.base) {
+          options.format = 'image/jpeg'
+        }
+        var layer = $.extend({
+          opacity: 1,
+          //name: 'Mapbox Outdoors',
+          //id: 'dpaw:mapbox_outdoors',
+          name: options.title,
+          id: options.identifier,
+          format: 'image/png',
+          //tileSize: 1024,
+          tileSize: 1024,
+          //style: '',
+          projection: 'EPSG:4326',
+          wmts_url: options.map_server_url+ "/gwc/service/wmts"
+        }, options)
+        // // wmts_url: this.env.kmiService+ "/gwc/service/wmts"
+        // create a tile grid using the stock KMI resolutions
+
+
+        // var matrixSet = "mercator";
+        // var projection2 = ol.proj.get("EPSG:4326");
+        // //var projectionExtent = projection.getExtent();
+        // var projectionExtent2 = projection2.getExtent();
+        // var s = ol.extent.getWidth(projectionExtent2) / 256;
+        // var matrixIds = new Array(21);
+        // var resolutions = new Array(21);
+        // for (var c = 0; c < 21; ++c)
+        //     resolutions[c] = s / Math.pow(2, c),
+        //     matrixIds[c] = matrixSet + ":" + c;
+              
+        // var resolutions2 = new Array(21);
+        // var matrixIds2 = new Array(21);
+        // var tileGrid = new ol.tilegrid.WMTS({
+        //     origin: ol.extent.getTopLeft(projectionExtent2),
+        //     resolutions: resolutions,
+        //     matrixIds: matrixIds2,
+        //     tileSize: 1024
+        // });            
+        // var tileGrid = new ol.tilegrid.WMTS({
+        //   origin: ol.extent.getTopLeft(projectionExtent),
+        //   resolutions: resolutions,
+        //   matrixIds: matrixIds
+        //   //tileSize: layer.tileSize
+        // })
+
+        // override getZForResolution on tile grid object;
+        // for weird zoom levels, the default is to round up or down to the
+        // nearest integer to determine which tiles to use.
+        // because we want the printing rasters to contain as much detail as
+        // possible, we rig it here to always round up.
+        // tileGrid.origGetZForResolution = tileGrid.getZForResolution
+        // tileGrid.getZForResolution = function (resolution, optDirection) {
+        //   return tileGrid.origGetZForResolution(resolution*1.4, -1)
+        // }
+
+
+
+
+        // create a tile source
+        // var tileSource = new ol.source.WMTS({
+        //   url: layer.wmts_url,
+        //   format: "image/png",
+        //   layer: getLayerId(layer.id),
+        //   matrixSet: matrixSet,
+        //   format: layer.format,
+        //   style: layer.style,
+        //   projection: projection2,
+        //   // wrapX: true,
+        //   tileGrid: tileGrid,
+        //   tileSize: 256
+        // })
+
+        // var tileLayer = new ol.layer.Tile({
+        //   opacity: layer.opacity || 1,
+        //   source: tileSource
+        // })
+        var projection = ol.proj.get("EPSG:3857");
+        var projectionExtent = projection.getExtent();
+        console.log("projectionExtent");
+        console.log(projectionExtent);
+
+        var s = ol.extent.getWidth(projectionExtent) / 256;
+        var matrixSet = "mercator";
+        var resolutions = new Array(21);
+        var matrixIds = new Array(21);
+        for (var c = 0; c < 21; ++c)
+            resolutions[c] = s / Math.pow(2, c),
+            matrixIds[c] = matrixSet + ":" + c;
+        var m = new ol.tilegrid.WMTS({
+              origin: ol.extent.getTopLeft(projectionExtent),
+              resolutions: resolutions,
+              matrixIds: matrixIds
+        });
+
+        // var tileSource = new ol.source.WMTS({
+        //      // url: "https://kmi.dpaw.wa.gov.au/geoserver/gwc/service/wmts",
+        //       url: options.map_server_url+ "/gwc/service/wmts",
+        //       format: "image/png",
+        //       // layer: "public:mapbox-streets",
+        //       layer: options.identifier,              
+        //       matrixSet: matrixSet,
+        //       projection: projection,
+        //       tileGrid: m
+        // })
+
+        var tileSource = new ol.source.TileWMS({
+          url: options.map_server_url+'/geoserver/dbca/wms',
+          params: { 'FORMAT': 'image/png', 
+                    'VERSION': '1.1.1',
+                    tiled: true,
+                    STYLES: '',
+                    LAYERS: options.identifier,
+          }
+        })
+
+
+        var tileLayer =  new ol.layer.Tile({
+          //name: "street",
+          name: options.title,
+          canDelete: "no",
+          visible: !0,
+          source: tileSource
+          // source: new ol.source.WMTS({
+          //     url: "https://kmi.dpaw.wa.gov.au/geoserver/gwc/service/wmts",
+          //     format: "image/png",
+          //     layer: "public:mapbox-streets",
+          //     matrixSet: matrixSet,
+          //     projection: projection,
+          //     tileGrid: m,
+            
+        })
+
+        // hook the tile loading function to update progress indicator
+        tileLayer.progress = ''
+
+        // set properties for use in layer selector
+        tileLayer.set('name', layer.name,false)
+        tileLayer.set('id', layer.mapLayerId,false)
+        tileLayer.layer = options
+        options.mapLayer = tileLayer
+
+        if (options.lastUpdatetime) {
+            tileLayer.set('updated',layer.lastUpdatetime)
+        }
+
+        // hook to swap the tile layer when timeIndex changes
+        tileLayer.on('propertychange', function (event) {
+          if (event.key === 'timeIndex') {
+            if (options.timeline && options.timeline.length > 0) {
+                if (!(options.timeline[event.target.get(event.key)][2])) {
+                    options.timeline[event.target.get(event.key)][2] = new ol.source.WMTS({
+                      url: layer.wmts_url,
+                      layer: getLayerId(options.timeline[event.target.get(event.key)][1]),
+                      matrixSet: matrixSet.name,
+                      format: layer.format,
+                      style: layer.style,
+                      projection: layer.projection,
+                      wrapX: true,
+                      tileGrid: tileGrid
+                    })
+                    options.timeline[event.target.get(event.key)][2].setTileLoadFunction(vm.tileLoaderHook(options.timeline[event.target.get(event.key)][2], tileLayer))
+                    vm.setUrlTimestamp(options.timeline[event.target.get(event.key)][2],moment.utc().unix())
+                }
+                tileLayer.setSource(options.timeline[event.target.get(event.key)][2] )
+
+                if (options.refresh && options.autoRefreshStopped !== true ) {
+                    tileLayer.stopAutoRefresh()
+                    tileLayer.startAutoRefresh()
+                }
+            }
+          }
+        })
+
+        if (!options.refreshTimeline && options.timelineRefresh && options.fetchTimelineUrl) {
+            options.refreshTimeline = vm.refreshTimelineFunc(options,function(layer,tileLayer,timeline){
+                if (layer.timeline) {
+                    //reuse already created tile source
+                    $.each(timeline.layers,function(index,timelineLayer) {
+                        if (layer.timeline.length > index && layer.timeline[index][2] && layer.timeline[index][1] === timelineLayer[1]) {
+                            timelineLayer[2] = layer.timeline[index][2]
+                            //clear browser cache and tile cache
+                            vm.setUrlTimestamp(timelineLayer[2],moment.utc().unix())
+                            timelineLayer[2].tileCache.clear()
+                        }
+                    })
+                }
+            })  
+        }
+
+        tileLayer.postAdd = function() {
+            if (options.refreshTimeline) {
+                if (tileLayer.autoTimelineRefresh) {
+                    clearInterval(tileLayer.autoTimelineRefresh)
+                    tileLayer.autoTimelineRefresh = null
+                }
+                options.refreshTimeline(true)
+            } else {
+                tileSource.setTileLoadFunction(vm.tileLoaderHook(tileSource, tileLayer))
+            }
+
+            // if the "refresh" option is set, set a timer
+            // to force a reload of the tile content
+            this.startAutoRefresh()
+            if (options.refresh) {
+              tileLayer.set('updated', moment().toLocaleString())
+              vm.$root.active.refreshRevision += 1
+            }
+        }
+
+        tileLayer.postRemove = function () {
+          vm._postRemove(this)
+          if (this.autoTimelineRefresh) {
+              clearInterval(this.autoTimelineRefresh)
+              this.autoTimelineRefresh = null
+          }
+        }   
+
+        tileLayer.refresh = function() {
+            if (!this.refreshTimeline) {
+                this.set('updated', moment().toLocaleString())
+                vm.$root.active.refreshRevision += 1
+            }
+            vm.refreshLayerTile(this)
+        }
+
+        tileLayer.stopAutoRefresh = function() {
+            vm._stopAutoRefresh(this)
+        }
+
+        tileLayer.startAutoRefresh = function() {
+            vm._startAutoRefresh(this)
+        }
+
+        return tileLayer
+        },      
+
       // loader to create a WMTS layer from a kmi datasource
       createTileLayer: function (options) {
+
+        if (options.mapLayer) return options.mapLayer
+        var vm = this
+        if (options.base) {
+          options.format = 'image/jpeg'
+        }
+        var layer = $.extend({
+          opacity: 1,
+          //name: 'Mapbox Outdoors',
+          //id: 'dpaw:mapbox_outdoors',
+          name: options.title,
+          id: options.identifier,
+          format: 'image/png',
+          //tileSize: 1024,
+          tileSize: 1024,
+          //style: '',
+          projection: 'EPSG:4326',
+          wmts_url: options.map_server_url+ "/gwc/service/wmts"
+        }, options)
+        // // wmts_url: this.env.kmiService+ "/gwc/service/wmts"
+        // create a tile grid using the stock KMI resolutions
+
+
+        // var matrixSet = "mercator";
+        // var projection2 = ol.proj.get("EPSG:4326");
+        // //var projectionExtent = projection.getExtent();
+        // var projectionExtent2 = projection2.getExtent();
+        // var s = ol.extent.getWidth(projectionExtent2) / 256;
+        // var matrixIds = new Array(21);
+        // var resolutions = new Array(21);
+        // for (var c = 0; c < 21; ++c)
+        //     resolutions[c] = s / Math.pow(2, c),
+        //     matrixIds[c] = matrixSet + ":" + c;
+               
+        // var resolutions2 = new Array(21);
+        // var matrixIds2 = new Array(21);
+        // var tileGrid = new ol.tilegrid.WMTS({
+        //     origin: ol.extent.getTopLeft(projectionExtent2),
+        //     resolutions: resolutions,
+        //     matrixIds: matrixIds2,
+        //     tileSize: 1024
+        // });            
+        // var tileGrid = new ol.tilegrid.WMTS({
+        //   origin: ol.extent.getTopLeft(projectionExtent),
+        //   resolutions: resolutions,
+        //   matrixIds: matrixIds
+        //   //tileSize: layer.tileSize
+        // })
+
+        // override getZForResolution on tile grid object;
+        // for weird zoom levels, the default is to round up or down to the
+        // nearest integer to determine which tiles to use.
+        // because we want the printing rasters to contain as much detail as
+        // possible, we rig it here to always round up.
+        // tileGrid.origGetZForResolution = tileGrid.getZForResolution
+        // tileGrid.getZForResolution = function (resolution, optDirection) {
+        //   return tileGrid.origGetZForResolution(resolution*1.4, -1)
+        // }
+
+
+
+
+        var projection = ol.proj.get("EPSG:3857");
+        var projectionExtent = projection.getExtent();        
+        var s = ol.extent.getWidth(projectionExtent) / 256;
+        var matrixSet = "mercator";
+        var resolutions = new Array(21);
+        var matrixIds = new Array(21);
+        for (var c = 0; c < 21; ++c)
+            resolutions[c] = s / Math.pow(2, c),
+            matrixIds[c] = matrixSet + ":" + c;
+        var m = new ol.tilegrid.WMTS({
+              origin: ol.extent.getTopLeft(projectionExtent),
+              resolutions: resolutions,
+              matrixIds: matrixIds
+        });
+
+        var tileSource = new ol.source.WMTS({
+             // url: "https://kmi.dpaw.wa.gov.au/geoserver/gwc/service/wmts",
+              url: options.map_server_url+ "/gwc/service/wmts",
+              format: "image/png",
+              // layer: "public:mapbox-streets",
+              layer: options.identifier,              
+              matrixSet: matrixSet,
+              projection: projection,
+              tileGrid: m,
+              version : '1.1.1'
+        })
+
+        var tileLayer =  new ol.layer.Tile({
+          //name: "street",
+          name: options.title,
+          canDelete: "no",
+          visible: !0,
+          source: tileSource
+        })
+    
+        // hook the tile loading function to update progress indicator
+        tileLayer.progress = ''
+
+        // set properties for use in layer selector
+        tileLayer.set('name', layer.name,false)
+        tileLayer.set('id', layer.mapLayerId,false)
+        tileLayer.layer = options
+        options.mapLayer = tileLayer
+
+        if (options.lastUpdatetime) {
+            tileLayer.set('updated',layer.lastUpdatetime)
+        }
+
+        // hook to swap the tile layer when timeIndex changes
+        tileLayer.on('propertychange', function (event) {
+          if (event.key === 'timeIndex') {
+            if (options.timeline && options.timeline.length > 0) {
+                if (!(options.timeline[event.target.get(event.key)][2])) {
+                    options.timeline[event.target.get(event.key)][2] = new ol.source.WMTS({
+                      url: layer.wmts_url,
+                      layer: getLayerId(options.timeline[event.target.get(event.key)][1]),
+                      matrixSet: matrixSet.name,
+                      format: layer.format,
+                      style: layer.style,
+                      projection: layer.projection,
+                      wrapX: true,
+                      tileGrid: tileGrid
+                    })
+                    options.timeline[event.target.get(event.key)][2].setTileLoadFunction(vm.tileLoaderHook(options.timeline[event.target.get(event.key)][2], tileLayer))
+                    vm.setUrlTimestamp(options.timeline[event.target.get(event.key)][2],moment.utc().unix())
+                }
+                tileLayer.setSource(options.timeline[event.target.get(event.key)][2] )
+
+                if (options.refresh && options.autoRefreshStopped !== true ) {
+                    tileLayer.stopAutoRefresh()
+                    tileLayer.startAutoRefresh()
+                }
+            }
+          }
+        })
+
+        if (!options.refreshTimeline && options.timelineRefresh && options.fetchTimelineUrl) {
+            options.refreshTimeline = vm.refreshTimelineFunc(options,function(layer,tileLayer,timeline){
+                if (layer.timeline) {
+                    //reuse already created tile source
+                    $.each(timeline.layers,function(index,timelineLayer) {
+                        if (layer.timeline.length > index && layer.timeline[index][2] && layer.timeline[index][1] === timelineLayer[1]) {
+                            timelineLayer[2] = layer.timeline[index][2]
+                            //clear browser cache and tile cache
+                            vm.setUrlTimestamp(timelineLayer[2],moment.utc().unix())
+                            timelineLayer[2].tileCache.clear()
+                        }
+                    })
+                }
+            })  
+        }
+
+        tileLayer.postAdd = function() {
+            if (options.refreshTimeline) {
+                if (tileLayer.autoTimelineRefresh) {
+                    clearInterval(tileLayer.autoTimelineRefresh)
+                    tileLayer.autoTimelineRefresh = null
+                }
+                options.refreshTimeline(true)
+            } else {
+                tileSource.setTileLoadFunction(vm.tileLoaderHook(tileSource, tileLayer))
+            }
+
+            // if the "refresh" option is set, set a timer
+            // to force a reload of the tile content
+            this.startAutoRefresh()
+            if (options.refresh) {
+              tileLayer.set('updated', moment().toLocaleString())
+              vm.$root.active.refreshRevision += 1
+            }
+        }
+
+        tileLayer.postRemove = function () {
+          vm._postRemove(this)
+          if (this.autoTimelineRefresh) {
+              clearInterval(this.autoTimelineRefresh)
+              this.autoTimelineRefresh = null
+          }
+        }   
+
+        tileLayer.refresh = function() {
+            if (!this.refreshTimeline) {
+                this.set('updated', moment().toLocaleString())
+                vm.$root.active.refreshRevision += 1
+            }
+            vm.refreshLayerTile(this)
+        }
+
+        tileLayer.stopAutoRefresh = function() {
+            vm._stopAutoRefresh(this)
+        }
+
+        tileLayer.startAutoRefresh = function() {
+            vm._startAutoRefresh(this)
+        }
+
+        return tileLayer
+        },      
+
+
+
+
+
+      // loader to create a WMTS layer from a kmi datasource
+      createTileLayerOld: function (options) {
+
+        console.log("createTileLayer");
+        console.log(options);
+        console.log(options.map_server_url);
+
         if (options.mapLayer) return options.mapLayer
         var vm = this
         if (options.base) {
@@ -1482,9 +1934,9 @@
           tileSize: 1024,
           style: '',
           projection: 'EPSG:4326',
-          wmts_url: this.env.kmiService + "/gwc/service/wmts"
+          wmts_url: options.map_server_url+ "/gwc/service/wmts"
         }, options)
-
+        // wmts_url: this.env.kmiService+ "/gwc/service/wmts"
         // create a tile grid using the stock KMI resolutions
         var matrixSet = this.matrixSets[layer.projection][layer.tileSize]
         var tileGrid = new ol.tilegrid.WMTS({
@@ -1627,6 +2079,8 @@
 
       // loader to create a WMTS layer from a kmi datasource
       createImageLayer: function (options) {
+        console.log("CREATE IMAGE LAYER");
+        console.log(options);
         if (options.mapLayer) return options.mapLayer
         var vm = this
         if (options.base) {
@@ -1640,7 +2094,7 @@
           tileSize: 1024,
           style: '',
           projection: 'EPSG:4326',
-          wms_url: this.env.kmiService + "/wms"
+          wms_url: options.map_server_url + "/wms"
         }, options)
 
         // create a tile source
@@ -1960,8 +2414,10 @@
                 }),
                 preenable:function(enable){
                     if (enable) {
-                        this.controls.getOverviewMap().addLayer(vm['create' + vm._overviewLayer.type](vm._overviewLayer))
-                        vm._overviewLayer.mapLayer.postAdd()
+                        if (vm._overviewLayer) {
+                          this.controls.getOverviewMap().addLayer(vm['create' + vm._overviewLayer.type](vm._overviewLayer))                      
+                          vm._overviewLayer.mapLayer.postAdd()
+                        }
                     } else {
                         if (this._interact) {
                             this._interact.unset()

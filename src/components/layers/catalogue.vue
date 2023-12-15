@@ -180,6 +180,8 @@ div.ol-previewmap.ol-uncollapsible {
         this.adjustHeight()
       },
       preview: function (l) {
+        console.log("preview");
+        console.log("l.type");
         if (this.layer === l) {
           return
         }
@@ -225,7 +227,10 @@ div.ol-previewmap.ol-uncollapsible {
       // toggle a layer in the Layer Catalogue
       //return true if layer's state is changed; otherwise return false
       onLayerChange: function (layer, checked) {
-		//alert('catalogue 228 onLayerChange: ' + layer.id)
+
+        console.log("onLayerChange");
+        console.log(layer);
+	 
         var vm = this
         var active = this.$root.active
         var map = this.$root.map
@@ -235,6 +240,8 @@ div.ol-previewmap.ol-uncollapsible {
         }
         // make the layer match the state
         if (checked) {
+        console.log("onLayerChange CHECKED");
+        console.log(layer.type);
 		    var olLayer = map['create' + layer.type](layer)
           olLayer.setOpacity(layer.opacity || 1)
           if (layer.base) {
@@ -244,15 +251,16 @@ div.ol-previewmap.ol-uncollapsible {
               active.olLayers.forEach(function (mapLayer) {
                 if (vm.getLayer(mapLayer)) {
                   if (mapLayer.get('dependentLayer')) return
-                  if (vm.getLayer(mapLayer).base) {
-                    active.removeLayer(mapLayer)
-                  }
+                    if (vm.getLayer(mapLayer).base) {
+                      active.removeLayer(mapLayer)
+                    }
                 }
                 })
             }
             // add new base layer to bottom
             map.olmap.getLayers().insertAt(0, olLayer)
           } else {
+            console.log("ADDING LAYER")
             map.olmap.addLayer(olLayer)
           }
           this.map.olmap.dispatchEvent(this.map.createEvent(this.map, "addLayer", {mapLayer:olLayer}))
@@ -264,54 +272,59 @@ div.ol-previewmap.ol-uncollapsible {
 
       // helper to populate the catalogue from a remote service
       loadRemoteCatalogue: function (callback, failedCallback) {
-        var vm = this
-        var req = new window.XMLHttpRequest()
-        req.withCredentials = true
-        req.onload = function () {
-          var checkingLayer = null
-          var layers = []
-          JSON.parse(this.responseText).forEach(function (l) {
-            // overwrite layers in the catalogue with the same identifier
-            i = 0
-			if (vm.getLayer(l.identifier)) {
-                vm.catalogue.remove(vm.getLayer(l.identifier))
-				i += 1
-            }
-            l.systemid = l.id;
-            l.id = getIndependentLayerId(l.identifier);
-            // add the base flag for layers tagged 'basemap'
-            l.base = l.tags.some(function (t) {return t.name === 'basemap'})
-            // set the opacity to 50% for layers tagged 'overlaymap'
-            if (l.tags.some(function (t) { return t.name === 'overlaymap' })) {
-                l.opacity = 0.5
-            }
-            // set the live map refresh interval
-            if (l.tags.some(function (t) { return t.name === 'livemap_10min' })) {
-                l.refresh = 600
-            }
-            if (l.tags.some(function (t) { return t.name === 'livemap_2min' })) {
-                l.refresh = 120
-            }
-            if (!checkingLayer) {
-                checkingLayer = l
-            }
-            layers.push(l)
-          })
-          if (checkingLayer) { 
-			 utils.checkPermission(vm.env.catalogueAdminService + "/admin/catalogue/record/" + checkingLayer.systemid + "/change/", "GET", function(allowed){
+          var vm = this
+          var req = new window.XMLHttpRequest()
+          req.withCredentials = true
+          req.onload = function () {
+            
+            var checkingLayer = null
+            var layers = []
+            
+            JSON.parse(this.responseText).forEach(function (l) {
+                    console.log("JSON LAYERS");
+                    console.log(l);
+                    // overwrite layers in the catalogue with the same identifier
+                    i = 0
+                    if (vm.getLayer(l.identifier)) {
+                        vm.catalogue.remove(vm.getLayer(l.identifier))
+                        i += 1
+                    }
+                    l.systemid = l.id;
+                    l.id = getIndependentLayerId(l.identifier);
+                    // add the base flag for layers tagged 'basemap'
+                    l.base = l.tags.some(function (t) {return t.name === 'basemap'})
+                    // set the opacity to 50% for layers tagged 'overlaymap'
+                    if (l.tags.some(function (t) { return t.name === 'overlaymap' })) {
+                        l.opacity = 0.5
+                    }
+                    // set the live map refresh interval
+                    if (l.tags.some(function (t) { return t.name === 'livemap_10min' })) {
+                        l.refresh = 600
+                    }
+                    if (l.tags.some(function (t) { return t.name === 'livemap_2min' })) {
+                        l.refresh = 120
+                    }
+                    if (!checkingLayer) {
+                        checkingLayer = l
+                    }
+                    layers.push(l)
+            })
+
+            if (checkingLayer) { 
+			          utils.checkPermission(vm.env.catalogueAdminService + "/admin/catalogue/record/" + checkingLayer.systemid + "/change/", "GET", function(allowed){
                 vm.whoami.editLayer = allowed
-				vm.catalogue.extend(layers)
-				/*var my_array = vm.catalogue.getArray()
-				var arrayLength = my_array.length;
-				for (var i = 0; i < arrayLength; i++) {
-				alert(my_array[i]['name'] + ", "  + my_array[i]['id']  + ", "  +  my_array[i]['title'] )}*/
+                vm.catalogue.extend(layers)
+                /*var my_array = vm.catalogue.getArray()
+                var arrayLength = my_array.length;
+                for (var i = 0; i < arrayLength; i++) {
+                alert(my_array[i]['name'] + ", "  + my_array[i]['id']  + ", "  +  my_array[i]['title'] )}*/
                 callback()
               })
-          } else {
+            } else {
               vm.whoami.editLayer = false
               vm.catalogue.extend(layers)
               callback()
-          }
+            }
         }
 
         req.onerror = function (ev) {
@@ -322,8 +335,14 @@ div.ol-previewmap.ol-uncollapsible {
             console.error(msg)
           }
         }
-		req.open('GET', vm.env.cswService + "?format=json&application__name=" + getAppId(this.app.toLowerCase()))
+		    // req.open('GET', vm.env.cswService + "?format=json&application__name=" + getAppId(this.app.toLowerCase()))
+        req.open('GET', '/api/catalogue_example.json')
+        
         req.send()
+
+
+
+        
       },
       getLayer: function (id) {
         // handle openlayers layers as well as raw ids
@@ -341,6 +360,8 @@ div.ol-previewmap.ol-uncollapsible {
       var catalogueStatus = vm.loading.register("catalogue", "Catalogue Component")
       this.catalogue.on('add', function (event) {
         var l = event.element
+        console.log ("MY L.TYPE");
+        console.log(l.type + ":" + l.identifier);
         l.id = l.id || l.identifier
         l.name = l.name || l.title
         l.type = l.type || 'TileLayer'

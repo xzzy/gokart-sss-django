@@ -517,34 +517,45 @@
       toggleFlightFootprint: function() {
 		this.showFlightFootprint = !this.showFlightFootprint
 	        this.export.saveState()
-		var vm = this
-		var map = this.$root.map			
-		// Check if footprints layer already loaded
-		var footprintsLoaded = false
-		var hotspotsLoaded = false
-		map.olmap.getLayers().forEach(function (layer) {
-			if (layer.get('name') === 'Thermal Imaging Flight Footprints') {
-					footprintsLoaded = true
-			}
-			if (layer.get('name') === 'Thermal Imaging Hotspots') {
-					hotspotsLoaded = true
-			}
-		})
-		if (hotspotsLoaded && this.showFlightFootprint) {
-			this.flightFootprintLayer.style = this.footprintStyle
-			var footprintOLLayer = map['createWFSLayer'](this.flightFootprintLayer)
-			map.olmap.addLayer(footprintOLLayer)
-			footprintOLLayer.refresh()
-		}
-		else if (hotspotsLoaded && !this.showFlightFootprint) {
+			var vm = this
+			var map = this.$root.map			
+			// Check if footprints layer already loaded
+			var footprintsLoaded = false
+			var hotspotsLoaded = false
 			map.olmap.getLayers().forEach(function (layer) {
 				if (layer.get('name') === 'Thermal Imaging Flight Footprints') {
-						map.olmap.removeLayer(layer)
+						toggleFlightFootprint = true
+				}
+				if (layer.get('name') === 'Thermal Imaging Hotspots') {
+						hotspotsLoaded = true
 				}
 			})
-		}
-      },
-	  
+			if (hotspotsLoaded && this.showFlightFootprint) {
+				this.flightFootprintLayer.style = this.footprintStyle
+				var footprintOLLayer = map['createWFSLayer'](this.flightFootprintLayer)
+				var ThermalImagingFlightFootprintsExists = false;
+				map.olmap.getLayers().forEach(function (layer) {
+					console.log("LAYERS");
+					console.log(layer);
+					if (layer.get('name') === 'Thermal Imaging Flight Footprints') {
+					 		ThermalImagingFlightFootprintsExists = true;							
+					}
+				})
+				if (ThermalImagingFlightFootprintsExists == false ) {
+					map.olmap.addLayer(footprintOLLayer)
+				} else {
+					footprintOLLayer.refresh()
+				}
+			}
+			else if (hotspotsLoaded && !this.showFlightFootprint) {
+				map.olmap.getLayers().forEach(function (layer) {
+					
+					if (layer.get('name') === 'Thermal Imaging Flight Footprints') {
+							map.olmap.removeLayer(layer)
+					}
+				})
+			}
+      },	  
       toggleRawImageMosaic: function() {
 		this.showRawImageMosaic = !this.showRawImageMosaic
      		this.export.saveState()
@@ -569,7 +580,7 @@
 			if (!this.hasDateFilter()) {
 				mosaicLayers.push('vrt-test')
 				console.log('mosaicLayers');
-				console.log(mosaicLayers);
+				console.log(mosaicL	ayers);
 			}
 			var mosaicLayersOLLayer = map['createWMSLayer'](mosaicLayers, position)*/
 			// map.olmap.addLayer(mosaicLayersOLLayer)
@@ -666,12 +677,14 @@
 			"block"===button.nextElementSibling.style.display&&(setTimeout(function(){button.click()},10),i+=1)})
 			, i},
 	  
-	  loadHotspotLayers: function(){
+	  loadHotspotLayers: function() {
 	    if (this.invalidDateFilter) {
 			return
 		}
 	    var _this = this
 		var vm = this
+		console.log("vm.showFlightFootprint");
+		console.log(vm.showFlightFootprint);		
 		vm._featurelist.clear()
 		vm.setExtentFeatureSize()
 		var cqlFilter = ""
@@ -700,7 +713,8 @@
 				// 	map.olmap.removeLayer(layer)
 				// }
 				if (layer.get("name").startsWith("Hotspot image") || layer.get("name").startsWith("Thermal Imaging Hotspots") || layer.get("name").startsWith("Thermal Imaging Flight Footprints") || layer.get("name").startsWith("Flight mosaics")){
-					map.olmap.removeLayer(layer)
+					 
+					// map.olmap.removeLayer(layer)
 				}
 			})
 			vm.hotspotLayer.hotspotFilter = cqlFilter
@@ -710,17 +724,21 @@
 			var footprintOLLayer = map.createWFSLayer(vm.flightFootprintLayer)
 			map.olmap.addLayer(footprintOLLayer)
 			footprintOLLayer.refresh()
+			
+
 			map.olmap.getLayers().getArray().slice().forEach(function(layer){
 				if (layer.get("name") == "Thermal Imaging Flight Footprints"){
-						map.olmap.removeLayer(layer)
-					}})
+						 map.olmap.removeLayer(layer)
+				}})
 			var insertPosition = map.olmap.getLayers().getArray().length
 			map.createWMSLayerHotspots(cqlFilter, insertPosition)
 			var mosaicPosition = insertPosition
-			if (vm.showFlightFootprint){
+		
+			if (vm.showFlightFootprint) {
 				//vm.flightFootprintLayer.style = vm.footprintStyle
 				map.olmap.addLayer(footprintOLLayer)
-				footprintOLLayer.refresh()}
+				footprintOLLayer.refresh()
+			}
 			
 			if(vm.showRawImageMosaic){
 			var dateInfo =_this.getDateInfoForMosaics(vm)
@@ -827,6 +845,7 @@
 				
 				//get extent of filtered features and set extent of map to this
 				if (!this.showFlightFootprint) {
+					console.log("updateFeatureFilter showFlightFootprint");
 					var extent = list[0].getGeometry().getExtent()	//.slice(0)
 					list.forEach(function(feature){ ol.extent.extend(extent,feature.getGeometry().getExtent())})
 					vm.$root.map.olmap.getView().fit(extent, vm.$root.map.olmap.getSize())
@@ -1212,45 +1231,46 @@
 	this.changeThermalDateRange()
 
 	thermalStatus.phaseBegin("load_hotspots", 30, "Load hotspots", false, true)
-	this.$root.fixedLayers.push({
-        type: 'WFSLayer',
-        name: 'Thermal Imaging Hotspots',
-        id: 'hotspots:hotspot_centroids',
-        features: vm._featurelist,
-        getFeatureInfo: function (f) {
-			return {flight_datetime: f.get("flight_datetime"), hotspot_no: f.get('hotspot_no'), images: f.get('images')}
-        },
-        onerror: function (status, message) {
-            thermalStatus.phaseFailed("load_hotspots", status + " : " + message)
-        },
-		onload: function (loadType, vectorSource, features, defaultOnload) {
-			vm.features.clear()
-			vm.updateFeatureFilter(0)
-			vm.features.extend(features.sort(vm.featureOrder))
-			/*var s = function(hotspot_no) {
-				return new ol.style.Style({
-						text: new ol.style.Text({
-						  text: hotspot_no,
-						  font: '16px Calibri,sans-serif',
-						  fill: new ol.style.Fill({ color: '#fff' }),
-						  stroke: new ol.style.Stroke({color: '#fff', width: 0.8})
-						}),
-						image : new ol.style.Circle({
-							fill: new ol.style.Fill({color: [0, 0, 255]}),
-							radius: 15
-						})
-					})
-			}*/
+	// this.$root.fixedLayers.push({
+    //     // type: 'WFSLayer',
+	// 	type: 'TileLayer',
+    //     name: 'Thermal Imaging Hotspots',
+    //     id: 'hotspots:hotspot_centroids',
+    //     features: vm._featurelist,
+    //     getFeatureInfo: function (f) {
+	// 		return {flight_datetime: f.get("flight_datetime"), hotspot_no: f.get('hotspot_no'), images: f.get('images')}
+    //     },
+    //     onerror: function (status, message) {
+    //         thermalStatus.phaseFailed("load_hotspots", status + " : " + message)
+    //     },
+	// 	onload: function (loadType, vectorSource, features, defaultOnload) {
+	// 		vm.features.clear()
+	// 		vm.updateFeatureFilter(0)
+	// 		vm.features.extend(features.sort(vm.featureOrder))
+	// 		/*var s = function(hotspot_no) {
+	// 			return new ol.style.Style({
+	// 					text: new ol.style.Text({
+	// 					  text: hotspot_no,
+	// 					  font: '16px Calibri,sans-serif',
+	// 					  fill: new ol.style.Fill({ color: '#fff' }),
+	// 					  stroke: new ol.style.Stroke({color: '#fff', width: 0.8})
+	// 					}),
+	// 					image : new ol.style.Circle({
+	// 						fill: new ol.style.Fill({color: [0, 0, 255]}),
+	// 						radius: 15
+	// 					})
+	// 				})
+	// 		}*/
 
-			$.each(features, function (index, feature){
-				//var hotspot_no = feature.get('hotspot_no').toString()
-				//feature.setStyle(s(hotspot_no))
-				var imagesString = feature.get('images')
-				var imagesArray = imagesString.split(',')
-				feature.shortImages = imagesArray
-			})
-		}
-      })
+	// 		$.each(features, function (index, feature){
+	// 			//var hotspot_no = feature.get('hotspot_no').toString()
+	// 			//feature.setStyle(s(hotspot_no))
+	// 			var imagesString = feature.get('images')
+	// 			var imagesArray = imagesString.split(',')
+	// 			feature.shortImages = imagesArray
+	// 		})
+	// 	}
+    //   })
 	  
 	 this.$root.fixedLayers.push({
         type: 'WFSLayer',
@@ -1273,7 +1293,7 @@
 					new ol.style.Style({
 						stroke: new ol.style.Stroke({
 							width: 5,
-							color: [0, 0, 255]
+							color: [0, 0, 255]							
 						})
 					})
 				)
