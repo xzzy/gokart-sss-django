@@ -33,7 +33,7 @@ urlpatterns = [
     path("", views.HomePage.as_view(), name="home"),
     path("outlookmetadata", api.outlookmetadata, name='api_outlookmetadata'),
     path("api/environment_config.js", api.environment_config, name='environment_config'),
-    path("api/catalogue_example.json", api.cataloguev2, name='catalogue_example'),
+    path("api/cataloguev2.json", api.cataloguev2, name='catalogue_example'),
     re_path('kmi-proxy/(?P<path>.*)', api.mapProxyView),
     re_path('kb-proxy/(?P<path>.*)', api.mapProxyView),
     re_path('hotspots-proxy/(?P<path>.*)', api.mapProxyView),
@@ -41,6 +41,5 @@ urlpatterns = [
     re_path('gdal/(?P<fmt>.*)', api.gdal),
     re_path('ogrinfo', api.gdal_ogrinfo),
     re_path('download/(?P<fmt>.*)', api.gdal_download),
-
     path("sso/profile", api.sso_profile)
 ]
