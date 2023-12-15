@@ -336,7 +336,7 @@ div.ol-previewmap.ol-uncollapsible {
           }
         }
 		    // req.open('GET', vm.env.cswService + "?format=json&application__name=" + getAppId(this.app.toLowerCase()))
-        req.open('GET', '/api/catalogue_example.json')
+        req.open('GET', '/api/cataloguev2.json')
         
         req.send()
 

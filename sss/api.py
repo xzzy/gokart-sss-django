@@ -272,7 +272,7 @@ def cataloguev2(request):
             catalogue_array.append(json_cs_csw)
 
         context = {'settings': conf.settings}
-        #template_date = render_to_string('sss/catalogue_example.json', context)    
+        #template_date = render_to_string('sss/cataloguev2.json', context)    
         return HttpResponse(json.dumps(catalogue_array), content_type='text/json')
 
 def sso_profile(request):
