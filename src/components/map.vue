@@ -1577,7 +1577,7 @@
         // })
 
         var tileSource = new ol.source.TileWMS({
-          url: options.map_server_url+'/geoserver/dbca/wms',
+          url: options.map_server_url+'/'+options.workspace+'/wms',
           params: { 'FORMAT': 'image/png', 
                     'VERSION': '1.1.1',
                     tiled: true,

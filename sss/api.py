@@ -157,7 +157,7 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
             #print ("CREATING CACHE")
             cache.set(query_string_remote_url, json.dumps(base64_json), CACHE_EXPIRY)
         else:
-            cache.set(query_string_remote_url, json.dumps(base64_json), 15)
+            cache.set(query_string_remote_url, json.dumps(base64_json), 5)
     else:
         print ("---- > USING CACHE < ----")
         print (query_string_remote_url)
@@ -234,6 +234,7 @@ def cataloguev2(request):
             catalogue_row['url'] = c.url
             catalogue_row['identifier'] = c.identifier
             catalogue_row['title'] = c.title
+            catalogue_row['workspace'] = c.workspace
             catalogue_row['any_text'] = c.any_text
             catalogue_row['abstract'] = c.abstract
             catalogue_row['keywords'] = c.keywords
