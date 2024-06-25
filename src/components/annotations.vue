@@ -228,7 +228,8 @@
             ["/static/dist/static/symbols/points/Fire_Advice.svg","FireAdvice",['#000000','#000000']],
         ],
         shape: null,
-        toolRevision:1
+        toolRevision:1,
+        icon_type: 'red'
       }
     },
     computed: {
@@ -357,13 +358,17 @@
         return selectedFeatures
       },
       restoreSelectedFeatures:function() {
+
         var selectedFeatures = this.getSelectedFeatures(this.activeMenu,this.activeSubmenu)
+
         if (this.selectedFeatures === selectedFeatures) return
         var vm = this
+      
         //untint the previous selected features
         this.selectedFeatures.forEach(function(feat){vm.tintUnselectedFeature(feat)})
+        
         //tint the current selected features
-        this.selectedFeatures = selectedFeatures
+        this.selectedFeatures = selectedFeatures        
         this.selectedFeatures.forEach(function(feat){vm.tintSelectedFeature(feat)})
       },
       importAnnotations:function() {
@@ -414,7 +419,7 @@
                 for(var i = features.length - 1;i >= 0;i--) {
                     feature = features[i]
                     if (!vm.getTool(feature.get("toolName"))) {
-                        //external feature.
+                        // external feature.
                         if (feature.getGeometry() instanceof ol.geom.Point) {
                             vm.map.clearFeatureProperties(feature)
                             feature.set('toolName','Custom Point',true)
@@ -531,7 +536,7 @@
 
         return inter
       },
-      linestringDrawFactory : function (options) {
+      linestringDrawFactory: function (options) {
         var vm = this
         return function(tool) {
             var draw =  new ol.interaction.Draw($.extend({
@@ -539,6 +544,7 @@
               features: (tool && tool.features) || vm.features,
             },(options && options.drawOptions)||{}))
             draw.on('drawend', function (ev) {
+
               // set parameters
               vm.drawingSequence += 1
               ev.feature.set('id',vm.drawingSequence)
@@ -563,18 +569,20 @@
               type: 'Polygon',
               features: (tool && tool.features) || vm.features,
             },(options && options.drawOptions)||{}))
+
             if (options && options.drawProperties) {
                 for (key in options.drawProperties) {
                     draw.set(key,options.drawProperties[key],true)
                 }
             }
+
             draw.drawing = false
             draw.on('addtomap', function (ev) {
               this.setActive(true)
               this.drawing = false
             })
 
-            draw.on('drawstart', function (ev) {
+            draw.on('drawstart', function (ev) {              
               this.drawing = true
               if (options && options.listeners && options.listeners.drawstart) options.listeners.drawstart(ev)
             })
@@ -591,7 +599,12 @@
               if (options && options.listeners && options.listeners.drawend) options.listeners.drawend(ev)
             })
 
-            draw.events = (options && options.events)||{}
+            // const source = new ol.source.Vector({wrapX: false});
+            // draw = new ol.interaction.Draw({
+            //   source: source,
+            //   type: "Polygon",
+            // });
+            // draw.events = (options && options.events)||{}
             return draw
         }
       },
@@ -603,14 +616,21 @@
                 var defaultFeat = new ol.Feature($.extend({'toolName': tool.name},options||{}))
                 sketchStyle = function(res) {return tool.sketchStyle.apply(defaultFeat,res);}
             }
+            //const source = new ol.source.Vector();
 
-            var draw =  new ol.interaction.Draw($.extend({
-              type: 'Point',
-              features: (options && options.features) || (tool && tool.features) || vm.features,
-              style: sketchStyle
-            },(options && options.drawOptions)||{}))
-
+            var draw =  new ol.interaction.Draw(
+              $.extend({
+                //source: source,
+                type: 'Point',
+                features: (options && options.features) || (tool && tool.features) || vm.features,                
+                style: sketchStyle
+                },
+                (options && options.drawOptions)||{}
+              )
+            )
+            // map.addInteraction(draw);
             draw.on('addtomap', function (ev) {
+              
               this.setActive(true)
             })
 
@@ -621,13 +641,13 @@
               ev.feature.set('toolName',tool.name)
               ev.feature.setStyle(tool.style)
               ev.feature.set('author',vm.whoami.email)
+              //ev.feature.set('shape',vm.shape)
               ev.feature.set('createTime',Date.now())
               if (tool.perpendicular) {
                 var coords = ev.feature.getGeometry().getCoordinates()
                 ev.feature.set('rotation', vm.getPerpendicular(coords))
               }
             })
-
             draw.events = (options && options.events)||{}
             return draw
         }
@@ -1243,6 +1263,7 @@
       icon: function (t) {
         var iconUrl = null
         if (typeof t.icon === "function") {
+            
             iconUrl = t.icon()
         } else {
             iconUrl = t.icon
@@ -1433,6 +1454,8 @@
       },
       setup: function() {
         var vm = this
+        var vm = this
+         
         //restore the selected features
         this.restoreSelectedFeatures()
 
@@ -1446,8 +1469,9 @@
         // runs on switch to this tab
         this.selectable.push(this.featureOverlay)
         this.setTool()
-        //add feature to place an point based on coordinate
+        // add feature to place an point based on coordinate
         this.search.setSearchPointFunc(function(searchMethod,coords,name){
+            
             if (vm.tool && ["DMS","MGA"].indexOf(searchMethod) >= 0 && ["Origin Point","Spot Fire","Road Closure","Custom Point"].indexOf(vm.tool.name) >= 0) {
                 var feat = null
                 vm.map.olmap.forEachFeatureAtPixel(vm.map.olmap.getPixelFromCoordinate(coords),function(f){
@@ -1460,6 +1484,9 @@
                         }
                     }
                 })
+                
+
+
                 if (feat) {
                     //already have a annotation point at that coordinate
                     return false
@@ -1513,6 +1540,7 @@
         if (tool && tool.typeIcon) {
             feature['typeIconTint'] = tool.typeIconSelectedTint || 'selected'
         }
+
         feature.changed()
       },
       tintUnselectedFeature:function(feature) {
@@ -1527,18 +1555,50 @@
         var result = f[property] || f.get(property) || (tool || this.getTool(f.get('toolName')) || {})[property] || ((defaultValue === undefined)?'default':defaultValue)
         return (typeof result === "function")?result(f):result
       },
-      getIconStyleFunction : function(tints) {
-        var vm = this
-        return function (res) {
-            var f = this
 
-            var selected = "none"
-            var keysufix = ""
-            if (f['tint'] === undefined || f['tint'] === "") {
+      getStylePropertyOLD:function(f, property, defaultValue, tool) {
+
+        
+        var result = 'default';
+      
+
+        var toolName = undefined;
+        if (f.hasOwnProperty("tool")) {
+           if (f.tool.hasOwnProperty("name")) {
+                      
+            toolName = f['tool']['name'];
+            result = this.getTool(f['tool']['name']);
+           }
+          } else  {
+            result = this.getTool(f.get('toolName'));          
+            toolName = f.get('toolName');
+            // } else if (property) {  
+            // result = this.getTool(property);;
+        }
+        // var result = f[property] || f.get(property) || (tool || this.getTool(f.get('toolName')) || {})[property] || ((defaultValue === undefined)?'default':defaultValue)
+        var result = f[property] ||  (tool || this.getTool(toolName) || {})[property] || ((defaultValue === undefined)?'default':defaultValue)
+        // var result = f[property] || (tool || {})[property] || ((defaultValue === undefined)?'default':defaultValue)
+        return (typeof result === "function")?result(f):result
+      },
+      getIconStyleFunction: function(tints) {
+        var vm = this;
+
+
+        return function (res) {
+            // var f = this;
+            var f = this;
+            if (res) { 
+                f = res;
+            }
+
+            
+            var selected = "none";
+            var keysufix = "";
+            if (f['tint'] === undefined || f['tint'] === "") {            
                 //not selected
                 selectMode = "none"
                 keySuffix = "none"
-            } else if (vm.tool.selectMode !== "geometry") {
+            } else if (vm.tool.selectMode !== "geometry") {            
                 //not in geometry selection mode
                 selectMode = "all"
                 keySuffix = "all"
@@ -1558,15 +1618,28 @@
             var style = vm.map.cacheStyle(function (f) {
                 var tint = null
                 var style = null
+
                 try {
                     if ((selectMode === "none" && f["tint"]) || selectMode === "partial") {
                         tint = f["tint"]
                         delete f["tint"]
                     }
-
+                    
                     var src = vm.map.getBlob(f, ['icon', 'tint'],tints || {})
-                    if (!src) { return false }
-                    var rot = f.get('rotation') || 0.0
+
+
+                    if (!src) { 
+                      console.log("Unable to find blob file 1");
+                      console.log(src);
+                      return false
+                   }
+
+                    var rot = 0.0;
+                    if (f.hasOwnProperty('rotation')) {
+                      rot = f.get('rotation')
+                    }
+                    // console.log("SRC vm.map.cacheStyle 1" +src);
+                    // console.log(src);
                     style = new ol.style.Style({
                       image: new ol.style.Icon({
                           src: src,
@@ -1581,17 +1654,24 @@
                         f["tint"] = tint
                     }
                 }
-
                 if (selectMode === "partial") {
                     var src = vm.map.getBlob(f, ['icon', 'tint'],tints || {})
-                    if (!src) { return false }
+                    // src = "/static/sss/img/redpin.png";
+                    if (!src) { 
+                      console.log("Unable to find blob file 2");
+                      return false 
+                    }
                     var rot = f.get('rotation') || 0.0
+                    // console.log("SRC vm.map.cacheStyle 2"+src);
+                    // console.log(src);                       
                     style = [
                         style,
                         new ol.style.Style({
                           geometry: function(f) {
                             return vm.getSelectedGeometry(f)
                           },
+
+                       
                           image: new ol.style.Icon({
                               src: src,
                               scale: 0.5,
@@ -1641,10 +1721,13 @@
         }
       },
       getVectorStyleFunc: function (tints) {
+        
         var vm = this
-        return function() {
-            var f = this
+        // return function() { console.log("getVectorStyleFunc function");};
+        return function(featone) {            
+            var f = featone;
             var tool = null
+
             if (f.get('toolName')) {
                 tool = vm.getTool(f.get('toolName')) || vm.tool
             } else {
@@ -1669,6 +1752,7 @@
             }
 
             var baseStyle = vm.map.cacheStyle(function (f) {
+
               if (  selectMode === "partial" ) {
                 return [
                     new ol.style.Style({
@@ -1741,6 +1825,9 @@
             }
             //draw typeSymbol along the line.
             //does not support geometry select mode
+
+
+            //f['typeIconStyle'] = '["/static/dist/static/symbols/fire/plus.svg","default",[20,20]]'
             if (f['typeIconStyle']) {
                 var diffs = vm.map.getScale() / f['typeIconMetadata']['points']['scale']
                 var typeIconTint = f['typeIconTint'] || f.get('typeIconTint') || tool['typeIconTint'] || 'default'
@@ -1889,15 +1976,22 @@
         }
       },
       initFeature:function(feature) {
+       
+        
         var tool = feature.get('toolName')?this.getTool(feature.get('toolName')):false
+
         if (tool) {
+          
+          
             feature.setStyle(tool.style)
         }
       }
     },
     ready: function () {
+     // this.setup();
 	  //alert("annotations ready start")
       var vm = this
+    
       var annotationStatus = this.loading.register("annotation","Annotation Component")
       annotationStatus.phaseBegin("initialize",20,"Initialize")
 
@@ -1906,12 +2000,15 @@
       vm.shape = vm.pointShapes[0][1]
 
       this._pointShapesMap = {}
+      
       $.each(this.pointShapes,function(index,shape){
+        console.log(shape);
         vm._pointShapesMap[shape[1]] = shape
       })
-
+      
       
       this._rotateAll = debounce(function(){
+
           $.each(vm.features.getArray(),function(index,f) {
               tool = vm.getTool(f.get('toolName'))
               if (tool.perpendicular) {
@@ -1923,8 +2020,11 @@
       var map = this.map
       // collection to store all annotation features
       this.features.on('add', function (ev) {
+
         tool = vm.getTool(ev.element.get('toolName'))
+
         if (tool.onAdd) {
+
           tool.onAdd(ev.element)
         }
         vm._rotateAll()
@@ -1933,12 +2033,21 @@
         vm._rotateAll()
       })
 
+      //var featureSource = new ol.source.Vector({
+          //features: this.features
+        //})
+        //featureSource.addFeatures(this.features)
       // layer/source for modifying annotation features
       this.featureOverlay = new ol.layer.Vector({
+        format: new ol.format.GeoJSON(),
         source: new ol.source.Vector({
           features: this.features
         })
+        //source: featureSource
       })
+     
+
+
       this.featureOverlay.set('id', 'annotations')
       this.featureOverlay.set('name', 'My Drawing')
       // collection for tracking selected features
@@ -2060,7 +2169,11 @@
 
       var noteStyleCache = {}
       var noteStyle = function (res) {
-        var f = this
+
+        var f = this;
+        if (res) {
+          f = res;
+        }
         var url = ''
         if (f) {
           url = vm.getNoteUrl(f.get('note'))
@@ -2091,7 +2204,7 @@
         interactions: [vm.pointDrawFactory()],
         showName: true,
         scope:["annotation"],
-        onAdd: function (f) {
+        onAdd: function (f) {      
           f.getGeometry().defaultGetExtent = f.getGeometry().defaultGetExtent || f.getGeometry().getExtent
           f.getGeometry().getExtent = function() {
               if (vm.selecting) {
@@ -2114,6 +2227,7 @@
       }
 
       var customAdd = function (f) {
+
         if (!f.get('size')) { 
           f.set('size', vm.size)
         }
@@ -2123,6 +2237,7 @@
       }
 
       var customPointAdd = function (f) {
+
         if (!f.get('shape')) {
             f.set('shape',vm.shape)
         }
@@ -2136,6 +2251,8 @@
         name: 'Custom Point',
         icon: function(feature){
             if (feature) {
+
+                //  console.log(vm.features);
                 return vm._pointShapesMap[feature.get('shape')][0]
             } else {
                 return '/static/dist/static/symbols/fire/custom_point.svg'
@@ -2147,7 +2264,9 @@
         onAdd: customPointAdd,
         style: vm.getIconStyleFunction(vm.tints),
         sketchStyle: function (res) {
+            
             var feat = this
+          
             feat.set('shape',vm.shape,true)
             feat.set('colour',vm.colour,true)
             var style = vm.map.cacheStyle(function (feat) {
@@ -2164,9 +2283,12 @@
                 })
               })
             }, feat, ['icon', 'tint', 'rotation'])
+
+
             return style
           },
           tint: function(feature) {
+           
             var shape = feature.get('shape')
             var colour = feature.get('colour')
             if (shape) {
@@ -2176,7 +2298,8 @@
             }
           },
           selectedTint: function(feature) {
-            var shape = feature.get('shape')
+            // console.log("Custom Point defaultPoint selectedTint");
+            // var shape = feature.get('shape')
             if (shape) {
                 return vm.getCustomPointTint(shape,['#2199e8','#2199e8'])
             } else {
@@ -2234,6 +2357,7 @@
       }
 
       var getFeatureInfo = function(feature) {
+
         var tool = vm.getTool(feature.get('toolName'))
         var icon = tool.icon
         if (typeof icon === "function") {
@@ -2276,7 +2400,9 @@
         annotationStatus.phaseBegin("import_features",10,"Import features")
         if (savedFeatures) {
           //set feature style
+          
           $.each(savedFeatures,function(index,feature){
+            
             if (!feature.get('id')) {
                 vm.drawingSequence += 1
                 feature.set('id',vm.drawingSequence)
@@ -2290,7 +2416,7 @@
 
         annotationStatus.phaseBegin("init_tools",20,"Initialize tools")
         //initialize tool's interaction
-        $.each(vm.tools,function(index, tool){
+        $.each(vm.tools,function(index, tool){          
             $.each(tool.interactions,function(subindex,interact){
                 if (typeof interact === 'function') {
                     tool.interactions[subindex] = interact(tool)
@@ -2307,7 +2433,14 @@
         })
         vm.setDefaultTool('annotations','Edit')
         annotationStatus.phaseEnd("init_tools")
+
+        
+
       })
+
+
+
+
     //alert("annotations ready done")
 	}
 

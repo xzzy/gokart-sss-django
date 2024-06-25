@@ -788,7 +788,8 @@
         for (var i = 0, ii = coordinates.length - 1; i < ii; ++i) {
           var c1 = ol.proj.transform(coordinates[i], sourceProj, 'EPSG:4326')
           var c2 = ol.proj.transform(coordinates[i + 1], sourceProj, 'EPSG:4326')
-          length += this.wgs84Sphere.haversineDistance(c1, c2)
+        //   length += this.wgs84Sphere.haversineDistance(c1, c2)
+          length += ol.sphere.getDistance(c1, c2, 6378137) 
         }
         return length
       },
@@ -1104,7 +1105,7 @@
 
       this.annotations.tools.push(measureArea)
 
-      this.wgs84Sphere = new ol.Sphere(6378137);
+      //this.wgs84Sphere = new ol.sphere(6378137);
       measureStatus.phaseEnd("initialize")
 
       measureStatus.phaseBegin("gk-init",30,"Listen 'gk-init' event",true,true)

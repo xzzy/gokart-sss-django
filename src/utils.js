@@ -185,7 +185,7 @@ Utils.prototype.checkPermission = function(url, method, callback) {
     }
     var ajaxSetting = {
         xhrFields:{
-            withCredentials: true
+            withCredentials: false
         },
         method:method,
         success:function(data, status, jqXHR) {
