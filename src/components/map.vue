@@ -2400,40 +2400,13 @@
         this.olmap.on('postrender', function () {
           vm.scale = vm.getScale()
         })
-        // vm.olmap.on("change",function(ev){
-        //     console.log("Property Change Event");
-
-        // });
-        vm.olmap.getLayers().on("propertychange", function(ev, ev2) {
 
 
-        })
 
-        // vm.olmap.on("add",function(ev){
-        //     console.log("add in Event");
-        //     console.log(ev)  
-        // });
-        vm.olmap.getLayers().on("add", function(ev, ev2) {
-            console.log("add Event");
-            console.log(ev);
-            console.log(ev2);
-
-        })
-        // vm.olmap.getLayers().on("remove", function(ev) {
-        //     console.log("remove Event");
-        //     console.log(ev)
-
-        // })
-
-        // vm.olmap.getLayers().on("addLayer", function(ev) {
-        //     console.log("addLayer Event");
-        //     console.log(ev)
-
-        // })
 
         vm.olmap.getLayers().on("remove", function(ev) {
         // vm.olmap.on("removeLayer",function(ev){
-          console.log("Remove Layer vm.olmap.on");
+          
             if (ev.element.postRemove) ev.element.postRemove()
             if (ev.layer.dependentLayers) {
               $.each(ev.layer.dependentLayers,function(index, dependentLayer){
@@ -2449,15 +2422,12 @@
               })
             }
         })
-        console.log("%cMAP LAYER OBJECT", "background-color: red; color: black;");
-        console.log(vm.olmap);
-        console.log(vm.olmap.on);
-        console.log(vm.olmap.on());
+
 
         vm.olmap.getLayers().on("add", function(ev) {    
            
         // vm.olmap.on("addLayer", function(ev) {
-            console.log("Add Layer vm.olmap.on");
+            
             if (ev.element.postAdd) ev.element.postAdd()
             if (ev.element.layer && ev.element.layer.dependentLayers) {
               var position = vm.olmap.getLayers().getArray().findIndex(function(l){return l === ev.element})
@@ -2699,8 +2669,7 @@
                 controls:new ol.control.Attribution()
             },
         })
-        console.log("%cmap.vue vm.mapControls", "background-color:green; color:#000;");
-        console.log(vm.mapControls);
+
         $.each(vm.mapControls,function(key,control){
             if (control.autoenable === undefined || control.autoenable) {
                 vm.enableControl(key,true)

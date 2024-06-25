@@ -319,7 +319,7 @@
         }
       },
       trackingLayer: function() {
-        console.log("Get tracker Layer");
+        
         return this.$root.catalogue.getLayer('dpaw:resource_tracking_live')
       },
       trackingMapLayer: function() {
@@ -623,9 +623,9 @@
           }
       },
       updateCQLFilter: function (wait) {
-        console.log("updateCQLFilter");       
+             
         var vm = this
-        console.log(vm._updateCQLFilter);
+        
 
         if (!vm._updateCQLFilter) {
             vm._updateCQLFilter = debounce(function(updateType){
@@ -791,7 +791,7 @@
       },
       //filter the loaded features based on report name and fire number
       setup: function() {
-        console.log("Tracking Setup");
+        
         //restore the selected features
         this.annotations.restoreSelectedFeatures()
 
@@ -816,7 +816,7 @@
       }
     },
     ready: function () {
-      console.log("Tracking: Ready");
+      
       var vm = this
       var trackingStatus = this.loading.register("tracking", "Resource Tracking Component")
       vm._featurelist = new ol.Collection()
@@ -1041,9 +1041,9 @@
       }
 
       trackingStatus.phaseBegin("load_resources", 30, "Load resources", false, true)
-      console.log("tracking: before addResourceFunc");
+      
       var _addResourceFunc = addResourceFunc(resourceTrackingStyleFunc('dpaw:resource_tracking_live'))
-      console.log("tracking: after addResourceFunc");
+      
 
       this.$root.fixedLayers.push({
         type: 'WFSLayer',
@@ -1064,10 +1064,10 @@
         },
         onload: function(loadType, vectorSource, features, defaultOnload) {
 
-            console.log("tracking onload: before processResources function");
+            
             function processResources() {
 
-                console.log("tracking onload: inside processResources function");
+                
                 $.each(features, function(index, f){
                     _addResourceFunc(f)
                 })
@@ -1099,23 +1099,23 @@
                 }
                 trackingStatus.phaseEnd("load_resources")
             }
-            console.log("tracking onload: after processResources function");
+            
 			
             if ((vm.whoami.editVehicle === null || vm.whoami.editVehicle === undefined ) && features.length > 0) {
-                console.log("tracking onload: vm.whoami.editVehicle if");
+                
                 var f = features.find(function(f) {return f.get('source_device_type') != "tracplus"})
                 if (f){
                     utils.checkPermission(vm.env.resourceTrackingService + "/sss_admin/tracking/device/" + f.get('id') + "/change/","GET",function(allowed){
                         vm.whoami.editVehicle = allowed
-                        console.log("tracking onload: vm.whoami.editVehicle checkpermissions");
+                        
                         processResources()
                     })
                 } else {
-                    console.log("tracking onload: vm.whoami.editVehicle if else 2");
+                    
                     processResources()
                 }
             } else {
-                console.log("tracking onload: vm.whoami.editVehicle else");
+                
                 processResources()
             }
         }

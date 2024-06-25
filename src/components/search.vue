@@ -49,7 +49,7 @@
         this._setSearchPointFunc = func
       },
       runSearch: function () {
-        console.log("%search.vue runSearch","background-color: purple; color: #000;")
+        
         var vm = this
         var map = this.$root.map
         $('#map-search, #map-search-button').removeClass('alert success')

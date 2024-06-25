@@ -843,7 +843,7 @@
 				
 				//get extent of filtered features and set extent of map to this
 				if (!this.showFlightFootprint) {
-					console.log("updateFeatureFilter showFlightFootprint");
+					
 					var extent = list[0].getGeometry().getExtent()	//.slice(0)
 					list.forEach(function(feature){ ol.extent.extend(extent,feature.getGeometry().getExtent())})
 					vm.$root.map.olmap.getView().fit(extent, vm.$root.map.olmap.getSize())
