@@ -535,8 +535,7 @@
 				var footprintOLLayer = map['createWFSLayer'](this.flightFootprintLayer)
 				var ThermalImagingFlightFootprintsExists = false;
 				map.olmap.getLayers().forEach(function (layer) {
-					console.log("LAYERS");
-					console.log(layer);
+
 					if (layer.get('name') === 'Thermal Imaging Flight Footprints') {
 					 		ThermalImagingFlightFootprintsExists = true;							
 					}
@@ -574,7 +573,7 @@
 			}
 		})
 		if (hotspotsLoaded && this.showRawImageMosaic) {
-			console.log("HOT SPOT IS LOADED mosaicLoaded");
+			
 			vm.removeImages();
 			/*var mosaicLayers = []
 			if (!this.hasDateFilter()) {
@@ -683,8 +682,7 @@
 		}
 	    var _this = this
 		var vm = this
-		console.log("vm.showFlightFootprint");
-		console.log(vm.showFlightFootprint);		
+	
 		vm._featurelist.clear()
 		vm.setExtentFeatureSize()
 		var cqlFilter = ""
@@ -707,7 +705,7 @@
 		setTimeout(function(){
 			map.olmap.getLayers().getArray().slice().forEach(function(layer){
 				var layer_name = layer.get("name");
-				console.log(layer_name);
+				
 				//"Thermal Imaging Flight Footprints"===layer.get("name")&&map.olmap.removeLayer(layer),"Flight mosaics"===layer.get("name")&&map.olmap.removeLayer(layer)
 				// if (layer.get("name") == "Thermal Imaging Hotspots"){
 				// 	map.olmap.removeLayer(layer)
@@ -845,7 +843,7 @@
 				
 				//get extent of filtered features and set extent of map to this
 				if (!this.showFlightFootprint) {
-					console.log("updateFeatureFilter showFlightFootprint");
+					
 					var extent = list[0].getGeometry().getExtent()	//.slice(0)
 					list.forEach(function(feature){ ol.extent.extend(extent,feature.getGeometry().getExtent())})
 					vm.$root.map.olmap.getView().fit(extent, vm.$root.map.olmap.getSize())
@@ -977,8 +975,11 @@
 		}
 		// Close any other single images for the same hotspot
 		map.olmap.getLayers().forEach(function (layer) {
-			if (layer.get('name') === 'Hotspot image ' + flight_datetime + ' ' + hotspot_no) {
-				map.olmap.removeLayer(layer)
+
+			if (layer) {
+				if (layer.get('name') === 'Hotspot image ' + flight_datetime + ' ' + hotspot_no) {
+					map.olmap.removeLayer(layer)
+				}
 			}
 		})
 		// Add new single image

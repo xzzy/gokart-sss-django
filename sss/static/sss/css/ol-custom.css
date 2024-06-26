@@ -1,0 +1,105 @@
+
+.ol-scale-line {
+    top: 128px;
+    left: auto;
+    right: 72px;
+    bottom: auto;
+    border: 1px solid transparent;
+}
+
+.ol-full-screen {
+    top: 16px;
+    right: 16px;
+    padding: 0;
+}
+
+.ol-zoom {
+    top: 72px;
+    left: auto;
+    right: 16px;
+    bottom: auto;
+    padding: 0;
+}
+
+.ol-zoom button,
+.ol-full-screen button {
+    width: 48px;
+    height: 48px;
+    margin: 0;
+}
+
+.ol-zoom button {
+    margin-bottom: 1px;
+}
+
+
+.ol-control,
+.ol-control:hover {
+    background-color: transparent;
+}
+
+.ol-control button,
+.ol-control button:focus,
+.ol-scale-line,
+.ol-mouse-position,
+.map-control {
+    background-color: rgba(37, 45, 51, 0.7);
+}
+
+.ol-control button:hover,
+.ol-scale-line:hover,
+.ol-mouse-position:hover,
+.map-control:hover {
+    background-color: rgba(37, 45, 51, 0.9);
+}
+
+.ol-control {
+    position: absolute;
+    border-radius: 4px;
+    padding: 2px;
+    background-color: rgba(255,255,255,0.4);
+}
+.ol-rotate-reset {
+    display:none;
+}
+
+.ol-control button {
+    display: block;
+    margin: 1px;
+    padding: 0;
+    color: white;
+    font-size: 1.14em;
+    font-weight: bold;
+    text-decoration: none;
+    text-align: center;
+    width: 48px;
+    height: 48px;    
+    line-height: .4em;
+    background-color: rgba(37, 45, 51, 0.7);
+    border: none;
+    border-radius: 2px;
+}
+.ol-mouse-position {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    top: auto;
+    right: auto;
+    text-align: left;
+    font-size: 0.8rem;
+    border: 0;
+    padding: 8px;
+    color: white;
+}
+
+#map-search {
+    position: absolute;
+    top: 16px;
+    right: 104px;
+    width: 192px;
+    height: 48px;
+    font-size: 0.8rem;
+    border: 0;
+    padding: 8px;
+    color: white;
+}

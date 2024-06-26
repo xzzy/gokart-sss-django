@@ -409,6 +409,7 @@
         return r?r.districts:[]
       },
       bushfireStyleFunc: function() {
+
         if (!this._bushfireStyleFunc) {
             this._bushfireStyleFunc = function () {
                 var vm = this
@@ -416,7 +417,14 @@
                 var boundaryStyleFunc = vm.annotations.getVectorStyleFunc(vm.tints)
                 var labelStyleFunc = vm.annotations.getLabelStyleFunc(vm.tints, 'fire_number')
                 return function(res) {
-                    var feat = this
+                    //var feat = this;
+                    var feat = res;
+                    
+                    console.log(res);
+                    //console.log(new ol.Feature().getGeometry().getGeometriesArray())
+                    if (typeof feat.getGeometry == "undefined") { 
+                        return 
+                    }
                     var geometries = feat.getGeometry().getGeometriesArray()
                     var pointStyle = (geometries.length > 0 || geometries[0] instanceof ol.geom.Point)?pointStyleFunc.call(feat, res):null
                     //show the fireboundary if showFireboudary is on or feat is selected
@@ -1794,6 +1802,7 @@
       },
       newFeature: function(feat) {
         var vm = this
+
         this._bushfireSequence = (this._bushfireSequence || 0)
         var featId = 0
         if (feat && feat.get('id')) {
@@ -1831,6 +1840,9 @@
             })
             feat.inViewport = true
         }
+        console.log("NEW FEATURE 2");
+        console.log(feat);
+
         feat.setStyle(this.bushfireStyleFunc)
         feat.set('modifyType',3,true)
         feat.set('fire_number',this.newFireNumber(featId),true)
@@ -1933,6 +1945,8 @@
             filter = filter + " and " + this.bushfireLayer.cql_filter
         }
         this.bushfireMapLayer.getSource().retrieveFeatures(filter,function(features){
+          console.log("BFRS retrieveFeatures");
+          console.log(features);
           if (features && features.length) {
             vm.initBushfire(features[0])
             features[0].inViewport = ol.extent.containsCoordinate(vm.map.extent,vm.originpointCoordinate(features[0]))
@@ -2850,16 +2864,14 @@
         this.endDate = ""
         this.statusFilter = "all_reports"
         this.updateCQLFilter(0)
-      },
-      
+      },      
 	  refreshBushfires: function() {
         this.bushfireMapLayer.getSource().loadSource("query")
         this.refreshFinalFireboundaryLayer()
         if (this.selectedFeatures.getLength() > 0) {
             this.refreshSelectedFinalFireboundaryLayer()
         }
-      },
-      
+      },      
 	  updateCQLFilter: function (wait, force, callback) {
         var vm = this
         if (!vm._updateCQLFilterFunc) {
@@ -3280,6 +3292,7 @@
     },
     ready: function () {
       var vm = this
+      
       this._download_cql_filter = ""
       this._changingDate = false
       this._statusFilters = {
@@ -3294,7 +3307,7 @@
       this._taskManager = utils.getFeatureTaskManager(function() {
         vm.revision++
       })
-
+      
       //init datepicker
       $('#bfrsStartDate').fdatepicker({
 		format: 'yyyy-mm-dd hh:ii',
@@ -3857,13 +3870,17 @@
         },
         onload: function(loadType, vectorSource, features, defaultOnload) {
             //combine the two spatial columns into one
-            $.each(features, function(index, feature){
+            $.each(features, function(index, feature) {
+                //console.log("BUSHFIRE FEATURES");
+                //console.log(feature);
                 vm.initBushfire(feature)
             })
+
             function processResources() {
-                //merge the current changes with the new features
+                // merge the current changes with the new features
                 var insertPosition = 0
-                var loadedFeature = null
+                var loadedFeature = null;
+
                 for (var index = vm.features.getLength() - 1; index >= 0; index--) {
                     f = vm.features.item(index)
                     if (f.get('status') === 'new') {
@@ -3873,7 +3890,7 @@
                             loadedFeature = features.find(function(f2){
                                 return f.get('sss_id') === f2.get('sss_id')
                             })
-                            if (!loadedFeature) {
+                            if (!loadedFeature) {                                
                                 //still not save, keep the current new bushfire (PWM: saved?)
                                 features.splice(insertPosition, 0, ff)
                                 insertPosition += 1

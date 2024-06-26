@@ -4,7 +4,7 @@
 import 'tether-shepherd/dist/css/shepherd-theme-dark.css'
 import 'foundation-sites/dist/foundation-flex.css'
 import 'foundation-datepicker/css/foundation-datepicker.css'
-import './apps/ol-debug.css'
+// import './apps/ol-debug.css'
 import 'dragula/dist/dragula.css'
 
 // jQuery v2, the krazy glue of the internet
@@ -82,24 +82,35 @@ ol.control.FullScreen.getChangeType_ = (function() {
     }
 })()
 
-ol.control.FullScreen.isFullScreenSupported = (function() {
-    var originFunc =  ol.control.FullScreen.isFullScreenSupported
+ol.control.FullScreen.isFullScreenSupportedLegacy = (function() {
+    var originFunc =  function() {
+      var body = document.body;
+      return !!(
+        body.webkitRequestFullscreen ||
+        (body.mozRequestFullScreen && document.mozFullScreenEnabled) ||
+        (body.msRequestFullscreen && document.msFullscreenEnabled) ||
+        (body.requestFullscreen && document.fullscreenEnabled)
+      );
+    };
+    
+
     return function() {
         return (env.appType == "cordova")?false:originFunc()
     }    
 })()
 
-ol.control.FullScreen.prototype.handleFullScreenChange_ = function() {
-    var originalFunc = ol.control.FullScreen.prototype.handleFullScreenChange_;
-    return function() {
-        originalFunc.call(this)
-        this.setMap(this.getMap())
-    }
-}()
+// ol.control.FullScreen.prototype.handleFullScreenChange_ = function() {
+//     var originalFunc = ol.control.FullScreen.prototype.handleFullScreenChange_;
+//     return function() {
+//         originalFunc.call(this)
+//         this.setMap(this.getMap())
+//     }
+// }()
 //improve freehand drawing by
 //1. Remove the consectuive same points.
 //2. Guarantee the pixels between two points must be not less than the value of the property 'minDistance' if configured
 ol.interaction.Draw.prototype.addToDrawing_ = function() {
+   
     var originFunc = ol.interaction.Draw.prototype.addToDrawing_;
     return function(event) {
         if (this.freehand_) {
@@ -126,28 +137,90 @@ ol.interaction.Draw.prototype.addToDrawing_ = function() {
 }();
 
 //Configure the snapTolerance for freehand drawing
-ol.interaction.Draw.prototype.atFinish_ = function(event) {
-  var at = false;
+// ol.interaction.Draw.prototype.OldatFinish_ = function(event) {
+//   var at = false;
+//   console.log("ol.interaction.Draw.prototype.atFinish_");
+//   console.log(event);
+//   console.log(this.sketchFeature_);
+//   if (this.sketchFeature_) {
+//     console.log("this.sketchFeature_");
+//     var potentiallyDone = false;
+//     var potentiallyFinishCoordinates = [this.finishCoordinate_];
+//     console.log(potentiallyFinishCoordinates);
+//     console.log(this.mode_);
+//     if (this.mode_ === ol.interaction.Draw.Mode_.LINE_STRING) {
+//       console.log("LINE_STRING");
+      
+//       potentiallyDone = this.sketchCoords_.length > this.minPoints_;
+//       console.log(potentiallyDone);
+//     } else if (this.mode_ === ol.interaction.Draw.Mode_.POLYGON) {
+//       potentiallyDone = this.sketchCoords_[0].length >
+//           this.minPoints_;
+//       potentiallyFinishCoordinates = [this.sketchCoords_[0][0],
+//         this.sketchCoords_[0][this.sketchCoords_[0].length - 2]];
+//    }
+//     console.log(potentiallyDone);
+//     if (potentiallyDone) {
+//       var map = event.map;
+//       console.log(map);
+//       for (var i = 0, ii = potentiallyFinishCoordinates.length; i < ii; i++) {
+//         var finishCoordinate = potentiallyFinishCoordinates[i];
+//         var finishPixel = map.getPixelFromCoordinate(finishCoordinate);
+//         var pixel = event.pixel;
+//         var dx = pixel[0] - finishPixel[0];
+//         var dy = pixel[1] - finishPixel[1];
+//         var snapTolerance = this.freehand_ ? (this.get('freehandSnapTolerance') || 1) : this.snapTolerance_;
+//         at = Math.sqrt(dx * dx + dy * dy) <= snapTolerance;
+//         if (at) {
+//           this.finishCoordinate_ = finishCoordinate;
+//           break;
+//         }
+//       }
+//     }
+//   }
+  
+//   return at;
+// };
+
+ol.interaction.Draw.prototype.atFinish_ = function(pixel, tracing) {
+  
+  let at = false;
   if (this.sketchFeature_) {
-    var potentiallyDone = false;
-    var potentiallyFinishCoordinates = [this.finishCoordinate_];
-    if (this.mode_ === ol.interaction.Draw.Mode_.LINE_STRING) {
-      potentiallyDone = this.sketchCoords_.length > this.minPoints_;
-    } else if (this.mode_ === ol.interaction.Draw.Mode_.POLYGON) {
-      potentiallyDone = this.sketchCoords_[0].length >
-          this.minPoints_;
-      potentiallyFinishCoordinates = [this.sketchCoords_[0][0],
-        this.sketchCoords_[0][this.sketchCoords_[0].length - 2]];
+    let potentiallyDone = false;
+    let potentiallyFinishCoordinates = [this.finishCoordinate_];
+    const mode = this.mode_;
+ 
+    if (mode === 'Point') {
+      at = true;
+    } else if (mode === 'Circle') {
+      at = this.sketchCoords_.length === 2;
+    } else if (mode === 'LineString') {
+      potentiallyDone =
+        !tracing && this.sketchCoords_.length > this.minPoints_;
+    } else if (mode === 'Polygon') {
+      const sketchCoords = /** @type {PolyCoordType} */ (this.sketchCoords_);
+      potentiallyDone = sketchCoords[0].length > this.minPoints_;
+      potentiallyFinishCoordinates = [
+        sketchCoords[0][0],
+        sketchCoords[0][sketchCoords[0].length - 2],
+      ];
+      if (tracing) {
+        potentiallyFinishCoordinates = [sketchCoords[0][0]];
+      } else {
+        potentiallyFinishCoordinates = [
+          sketchCoords[0][0],
+          sketchCoords[0][sketchCoords[0].length - 2],
+        ];
+      }
     }
     if (potentiallyDone) {
-      var map = event.map;
-      for (var i = 0, ii = potentiallyFinishCoordinates.length; i < ii; i++) {
-        var finishCoordinate = potentiallyFinishCoordinates[i];
-        var finishPixel = map.getPixelFromCoordinate(finishCoordinate);
-        var pixel = event.pixel;
-        var dx = pixel[0] - finishPixel[0];
-        var dy = pixel[1] - finishPixel[1];
-        var snapTolerance = this.freehand_ ? (this.get('freehandSnapTolerance') || 1) : this.snapTolerance_;
+      const map = this.getMap();
+      for (let i = 0, ii = potentiallyFinishCoordinates.length; i < ii; i++) {
+        const finishCoordinate = potentiallyFinishCoordinates[i];
+        const finishPixel = map.getPixelFromCoordinate(finishCoordinate);
+        const dx = pixel[0] - finishPixel[0];
+        const dy = pixel[1] - finishPixel[1];
+        const snapTolerance = this.freehand_ ? 1 : this.snapTolerance_;
         at = Math.sqrt(dx * dx + dy * dy) <= snapTolerance;
         if (at) {
           this.finishCoordinate_ = finishCoordinate;
@@ -158,6 +231,7 @@ ol.interaction.Draw.prototype.atFinish_ = function(event) {
   }
   return at;
 };
+
 
 
 //customize thie method to avoid cyclic object value

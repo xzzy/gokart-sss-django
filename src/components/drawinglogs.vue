@@ -207,11 +207,17 @@
             vm.settings.undoLimit = -1
         },
         addFeatures:function(features) {
+
             if (features instanceof ol.Collection) {
+                
                 features = features.getArray()
+                
+
             } else if (!Array.isArray(features)) {
+               
                 features = [features]
             } 
+
             this.addLog(["C",JSON.parse(this.$root.geojson.writeFeatures(features))])
         },
         removeFeatures:function(features) {

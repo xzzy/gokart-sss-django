@@ -180,8 +180,8 @@ div.ol-previewmap.ol-uncollapsible {
         this.adjustHeight()
       },
       preview: function (l) {
-        console.log("preview");
-        console.log("l.type");
+        // console.log("preview");
+        // console.log("l.type");
         if (this.layer === l) {
           return
         }
@@ -205,6 +205,8 @@ div.ol-previewmap.ol-uncollapsible {
             })
           })
         }
+        // console.log("(this.$root.map.olmap)")
+        // console.log(this.$root.map.olmap);
         l.preview.setMap(this.$root.map.olmap)
         var previewEl = $(l.preview.getOverviewMap().getViewport())
         this.layer = l
@@ -228,8 +230,8 @@ div.ol-previewmap.ol-uncollapsible {
       //return true if layer's state is changed; otherwise return false
       onLayerChange: function (layer, checked) {
 
-        console.log("onLayerChange");
-        console.log(layer);
+        // console.log("onLayerChange");
+        // console.log(layer);
 	 
         var vm = this
         var active = this.$root.active
@@ -240,8 +242,7 @@ div.ol-previewmap.ol-uncollapsible {
         }
         // make the layer match the state
         if (checked) {
-        console.log("onLayerChange CHECKED");
-        console.log(layer.type);
+
 		    var olLayer = map['create' + layer.type](layer)
           olLayer.setOpacity(layer.opacity || 1)
           if (layer.base) {
@@ -260,7 +261,7 @@ div.ol-previewmap.ol-uncollapsible {
             // add new base layer to bottom
             map.olmap.getLayers().insertAt(0, olLayer)
           } else {
-            console.log("ADDING LAYER")
+
             map.olmap.addLayer(olLayer)
           }
           this.map.olmap.dispatchEvent(this.map.createEvent(this.map, "addLayer", {mapLayer:olLayer}))
@@ -281,8 +282,8 @@ div.ol-previewmap.ol-uncollapsible {
             var layers = []
             
             JSON.parse(this.responseText).forEach(function (l) {
-                    console.log("JSON LAYERS");
-                    console.log(l);
+                    // console.log("JSON LAYERS");
+                    // console.log(l);
                     // overwrite layers in the catalogue with the same identifier
                     i = 0
                     if (vm.getLayer(l.identifier)) {
@@ -360,8 +361,8 @@ div.ol-previewmap.ol-uncollapsible {
       var catalogueStatus = vm.loading.register("catalogue", "Catalogue Component")
       this.catalogue.on('add', function (event) {
         var l = event.element
-        console.log ("MY L.TYPE");
-        console.log(l.type + ":" + l.identifier);
+        // console.log ("MY L.TYPE");
+        // console.log(l.type + ":" + l.identifier);
         l.id = l.id || l.identifier
         l.name = l.name || l.title
         l.type = l.type || 'TileLayer'
