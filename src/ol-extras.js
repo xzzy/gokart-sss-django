@@ -304,5 +304,40 @@ ol.Map.prototype.simulateEvent = function(type, x, y, opt_shiftKey) {
     POLYGON : "Polygon",
   }
 
+/**
+ * @private
+ * @param {number} degrees Degrees.
+ * @param {string} hemispheres Hemispheres.
+ * @param {number=} opt_fractionDigits The number of digits to include
+ *    after the decimal point. Default is `0`.
+ * @return {string} String.
+ */
+ol.coordinate.degreesToStringHDMS_ = function(degrees, hemispheres, opt_fractionDigits) {
+  var normalizedDegrees = ol.math.modulo(degrees + 180, 360) - 180;
+  var x = Math.abs(3600 * normalizedDegrees);
+  var dflPrecision = opt_fractionDigits || 0;
+  var precision = Math.pow(10, dflPrecision);
+
+  var deg = Math.floor(x / 3600);
+  var min = Math.floor((x - deg * 3600) / 60);
+  var sec = x - (deg * 3600) - (min * 60);
+  sec = Math.ceil(sec * precision) / precision;
+
+  if (sec >= 60) {
+    sec = 0;
+    min += 1;
+  }
+
+  if (min >= 60) {
+    min = 0;
+    deg += 1;
+  }
+
+  return deg + '\u00b0 ' + ol.string.padNumber(min, 2) + '\u2032 ' +
+    ol.string.padNumber(sec, 2, dflPrecision) + '\u2033 ' +
+    hemispheres.charAt(normalizedDegrees < 0 ? 1 : 0);
+};
+
+
 export default ol
 
