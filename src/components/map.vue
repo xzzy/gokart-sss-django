@@ -755,11 +755,6 @@
       },
       // force OL to approximate a fixed scale (1:1K increments)
       setScale: function (scale) {
-        // console.log("setScale");
-        // console.log(scale);
-        // console.log(this.getScale());
-        // console.log(this.olmap.getView().getResolution());
-        // console.log(this.olmap.getView().getResolution() * scale / this.getScale());
         // while (Math.abs(this.getScale() - scale) > 0.001) {
           this.olmap.getView().setResolution(this.olmap.getView().getResolution() * scale / this.getScale())
         // }
@@ -767,19 +762,16 @@
       },
       // return the scale (1:1K increments)
       getScale: function () {
-        // var size = this.olmap.getSize()
-        // var center = this.getCenter()
-        // var extent = this.olmap.getView().calculateExtent(size)
         var size = this.olmap.getSize()              
         var center = this.getCenter()        
         var extent = this.olmap.getView().calculateExtent(size)        
-        var center_lat_lon = ol.proj.transform(this.getCenter(), 'EPSG:3857', 'EPSG:4326')        
-        var extent_lat_lon = ol.proj.transform(extent, 'EPSG:3857', 'EPSG:4326')        
+      // var center_lat_lon = ol.proj.transform(this.getCenter(), 'EPSG:3857', 'EPSG:4326')        
+      // var extent_lat_lon = ol.proj.transform(extent, 'EPSG:3857', 'EPSG:4326')        
 
         // var distance = this.$root.wgs84Sphere.haversineDistance([extent[0], center[1]], center) * 2
-        var distance = ol.sphere.getDistance(extent_lat_lon, center_lat_lon, 6378137) * 2;
+        var distance = ol.sphere.getDistance([extent[0], center[1]], center) * 2;
         
-        return distance * this.dpmm / size[0]
+        return distance * this.dpmm / size[0] 
       },
       // get the fixed scale (1:1K increments) closest to specified or the current scale
       getFixedScale: function (scale) {
