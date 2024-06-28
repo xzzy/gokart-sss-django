@@ -25,20 +25,22 @@
 .ol-scale-line {
   background: var(--ol-partial-background-color);
   border-radius: 4px;
-  bottom: 8px;
-  left: 8px;
+  top:128px;
+  bottom: auto;
+  left: auto;
+  right: 72px;
   padding: 2px;
   position: absolute;
 }
 
 .ol-scale-line-inner {
-  border: 1px solid var(--ol-subtle-foreground-color);
+  width:85;
+  border: 1px solid #eee;
   border-top: none;
-  color: var(--ol-foreground-color);
+  color: #eee;
   font-size: 10px;
   text-align: center;
   margin: 1px;
-  will-change: contents, width;
   transition: all 0.25s;
 }
 
