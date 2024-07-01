@@ -716,43 +716,30 @@
         }
         return new ol.layer.Vector().getStyleFunction()()
       },
-      animate: function (args) {
-        // pan from the current center
-        // this.olmap.getView().animate.apply(this.olmap.getView(),arguments)
 
+      animate: function (location){
+        const duration = 2000;
         var mapView = this.olmap.getView();
-        var targetCenter =  [args[0], args[1]];
+        const zoom = mapView.getZoom();
 
-        // // Animation for panning to the target center
-        // var panAnimation = ol.animation.pan({
-        //   duration: 1000,
-        //   source: mapView.getCenter(),
-        //   start: +new Date()
-        // });
-
-        // // Apply the pan animation before rendering the map
-        // this.olmap.beforeRender(panAnimation);
-
-        // Set the target center
-        mapView.setCenter(targetCenter);
-
-        // After panning animation is complete, start the zoom animation
-        setTimeout(() => {
-          // Animation for zooming to the target zoom level
-          // var zoomAnimation = ol.animation.zoom({
-          //   resolution: mapView.getResolution(),
-          //   duration: 500,
-          //   start: +new Date()
-          // });
-
-          // // Apply the zoom animation before rendering the map
-          // this.olmap.beforeRender(zoomAnimation);
-
-          // Set the target zoom level
-          mapView.setZoom(12);
-        }, 1000);
-       
+        mapView.animate(
+          {
+            center: location,
+            duration: duration,
+          }
+        );
+        mapView.animate(
+          {
+            zoom: zoom - 1,
+            duration: duration / 2,
+          },
+          {
+            zoom: 13,
+            duration: duration / 2,
+          }
+        );
       },
+
       // force OL to approximate a fixed scale (1:1K increments)
       setScale: function (scale) {
         // while (Math.abs(this.getScale() - scale) > 0.001) {
@@ -770,6 +757,7 @@
 
         // var distance = this.$root.wgs84Sphere.haversineDistance([extent[0], center[1]], center) * 2
         var distance = ol.sphere.getDistance([extent[0], center[1]], center) * 2;
+        console.log(distance)
         
         return distance * this.dpmm / size[0] 
       },
