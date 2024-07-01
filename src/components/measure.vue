@@ -736,21 +736,27 @@
       getArea:function(polygon) {
         var area = 0
         var vm = this
+
+        function calculateArea(coordinates) {
+            const polygon = new ol.geom.Polygon([coordinates]);
+            const transformedPolygon = polygon.transform('EPSG:4326', 'EPSG:3857');
+            return Math.abs(ol.sphere.getArea(polygon));
+        }
         if (Array.isArray(polygon)) {
             //coodinates array
             $.each(polygon,function(index,linearRing){
                 if (index === 0) {
-                    area = Math.abs(vm.wgs84Sphere.geodesicArea(linearRing))
+                    area = calculateArea(linearRing);
                 } else {
-                    area -= Math.abs(vm.wgs84Sphere.geodesicArea(linearRing))
+                    area -= calculateArea(linearRing);
                 }
             })
         } else {
             $.each(polygon.getLinearRings(),function(index,linearRing){
                 if (index === 0) {
-                    area = Math.abs(vm.wgs84Sphere.geodesicArea(linearRing.getCoordinates()))
+                    area = calculateArea(linearRing.getCoordinates())
                 } else {
-                    area -= Math.abs(vm.wgs84Sphere.geodesicArea(linearRing.getCoordinates()))
+                    area -= calculateArea(linearRing.getCoordinates())
                 }
             })
         }
