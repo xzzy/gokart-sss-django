@@ -21,18 +21,6 @@
     padding: 0;
 }
 
-.ol-zoom button,
-.ol-full-screen button {
-    width: 48px;
-    height: 48px;
-    margin: 0;
-}
-
-.ol-zoom button {
-    margin-bottom: 1px;
-}
-
-
 .ol-control,
 .ol-control:hover {
     background-color: transparent;
@@ -50,13 +38,13 @@
 .ol-scale-line:hover,
 .ol-mouse-position:hover,
 .map-control:hover {
+    text-decoration: none;
     background-color: rgba(37, 45, 51, 0.9);
 }
 
 .ol-control {
     position: absolute;
     border-radius: 4px;
-    padding: 2px;
     background-color: rgba(255,255,255,0.4);
 }
 .ol-rotate-reset {
@@ -72,8 +60,8 @@
     font-weight: bold;
     text-decoration: none;
     text-align: center;
-    width: 48px;
-    height: 48px;    
+    height: 1.375em;
+    width: 1.375em;
     line-height: .4em;
     background-color: rgba(37, 45, 51, 0.7);
     border: none;
@@ -102,4 +90,21 @@
     border: 0;
     padding: 8px;
     color: white;
+}
+
+
+.ol-zoom button,
+.ol-full-screen button {
+    width: 48px;
+    height: 48px;
+    margin: 0;
+}
+.ol-zoom button{
+    margin: 1px;
+}
+.ol-custom-overviewmap:not(.ol-collapsed) button {
+    bottom: auto;
+    left: auto;
+    right: 1px;
+    top: 1px;
 }

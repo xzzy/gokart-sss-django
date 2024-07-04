@@ -214,8 +214,6 @@
 .ol-control button:hover,
 .ol-control button:focus {
   text-decoration: none;
-  outline: 1px solid var(--ol-subtle-foreground-color);
-  color: var(--ol-foreground-color);
 }
 
 .ol-zoom .ol-zoom-in {
@@ -319,13 +317,13 @@
 
 .ol-overviewmap .ol-overviewmap-map,
 .ol-overviewmap button {
-  display: block;
+  display: inline-block;
 }
 
 .ol-overviewmap .ol-overviewmap-map {
-  border: 1px solid var(--ol-subtle-foreground-color);
   height: 150px;
-  width: 150px;
+  margin: 2px;
+  width: 300px;
 }
 
 .ol-overviewmap:not(.ol-collapsed) button {
@@ -340,11 +338,18 @@
 }
 
 .ol-overviewmap:not(.ol-collapsed) {
-  background: var(--ol-subtle-background-color);
+  background: rgba(255,255,255,0.8);
+}
+
+.ol-custom-overviewmap, .ol-custom-overviewmap.ol-uncollapsible {
+  bottom: 0;
+  left: auto;
+  right: 0;
+  top: auto;
 }
 
 .ol-overviewmap-box {
-  border: 1.5px dotted var(--ol-subtle-foreground-color);
+  box-sizing: border-box;
 }
 
 .ol-overviewmap .ol-overviewmap-box:hover {
