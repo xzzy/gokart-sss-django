@@ -23,9 +23,9 @@
     }
 
     .ol-custom-overviewmap .ol-overviewmap-map {
-        border: none;
-        width: 300px;
-        height:150px;
+      border: none;
+    width: 300px;
+    height: 150px;
     }
 
     .ol-custom-overviewmap .ol-overviewmap-box {
@@ -65,7 +65,18 @@
       return {
         scale: 0,
         mapControls: {},
-        graticule: new ol.LabelGraticule(),
+        graticule : new ol.layer.Graticule({
+          map: this.olmap,
+          strokeStyle: new ol.style.Stroke({
+            color: 'rgba(0, 0, 0, 0.4)', 
+            width: 0.5, 
+            lineDash: null // Solid line style
+          }),
+          targetSize: 100,
+          showLabels: true,
+          lonLabelPosition: 0.02,
+          latLabelPosition: 0.98,
+        }),
         dragPanInter: new ol.interaction.DragPan({
           condition: function (mapBrowserEvent) {
             if (mapBrowserEvent.pointerEvent && (mapBrowserEvent.pointerEvent.button === 1)) {
@@ -757,7 +768,6 @@
 
         // var distance = this.$root.wgs84Sphere.haversineDistance([extent[0], center[1]], center) * 2
         var distance = ol.sphere.getDistance([extent[0], center[1]], center) * 2;
-        console.log(distance)
         
         return distance * this.dpmm / size[0] 
       },
@@ -2103,7 +2113,7 @@
                       layer: getLayerId(options.timeline[event.target.get(event.key)][1]),
                       matrixSet: matrixSet.name,
                       format: layer.format,
-                      style: layer.style,
+                      style: layer.style, 
                       projection: layer.projection,
                       wrapX: true,
                       tileGrid: tileGrid
@@ -2392,7 +2402,7 @@
         vm.olmap.getLayers().on("remove", function(ev) {
         // vm.olmap.on("removeLayer",function(ev){
           
-            if (ev.element.postRemove) ev.element.postRemove()
+            if (ev.element.postRemove) ev.element.postRemove();
             if (ev.layer.dependentLayers) {
               $.each(ev.layer.dependentLayers,function(index, dependentLayer){
                   if (!dependentLayer["element"]) {
@@ -2404,8 +2414,7 @@
                   } else if (dependentLayer["element"].postRemove) {
                     dependentLayer["element"].postRemove()
                   }
-              })
-            }
+              })}
         })
 
 
@@ -2950,8 +2959,7 @@
         if ($("#map .ol-viewport canvas").attr("height")) {
             vm.displayResolution[1] = Math.round(($("#map .ol-viewport canvas").attr("height") /  $("#map .ol-viewport canvas").height()) * 100) / 100
         }
-
-        //vm.showGraticule(vm.displayGraticule)
+        // vm.showGraticule(vm.displayGraticule)
 
         mapStatus.phaseEnd("post-init")
         return true
