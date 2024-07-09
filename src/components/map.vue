@@ -2401,9 +2401,8 @@
 
         vm.olmap.getLayers().on("remove", function(ev) {
         // vm.olmap.on("removeLayer",function(ev){
-          
             if (ev.element.postRemove) ev.element.postRemove();
-            if (ev.layer.dependentLayers) {
+            if (ev.element.layer && ev.element.layer.dependentLayers) {
               $.each(ev.layer.dependentLayers,function(index, dependentLayer){
                   if (!dependentLayer["element"]) {
                     return
@@ -2901,8 +2900,8 @@
               clearInterval(olLayer.autoRefresh)
               delete olLayer.autoRefresh
           }
-          if (olLayer.layer.dependentLayers) {
-            $.each(olLayer.layer.dependentLayers,function(index,dependentLayer){
+          if (olLayer.dependentLayers) {
+            $.each(olLayer.dependentLayers,function(index,dependentLayer){
                 if (dependentLayer["mapLayer"]) {
                     dependentLayer["mapLayer"].stopAutoRefresh()
                 }
@@ -2911,13 +2910,13 @@
       }
 
       this._startAutoRefresh = function(olLayer) {
-          if (olLayer.layer.refresh && !olLayer.autoRefresh ) {
+          if (olLayer.refresh && !olLayer.autoRefresh ) {
               olLayer.autoRefresh = setInterval(function () {
                   olLayer.refresh()
-              }, olLayer.layer.refresh * 1000)
+              }, olLayer.refresh * 1000)
           }
-          if (olLayer.layer.dependentLayers) {
-            $.each(olLayer.layer.dependentLayers,function(index,dependentLayer){
+          if (olLayer.dependentLayers) {
+            $.each(olLayer.dependentLayers,function(index,dependentLayer){
                 if (dependentLayer["mapLayer"] && dependentLayer["mapLayer"].show) {
                     dependentLayer["mapLayer"].startAutoRefresh()
                 }
@@ -2932,7 +2931,7 @@
             olLayer.autoTimelineRefresh = null
           }
           if (!olLayer.dependentLayer) {
-            delete olLayer.layer["mapLayer"]
+            delete olLayer["mapLayer"]
             delete olLayer["layer"]
           }
       }
