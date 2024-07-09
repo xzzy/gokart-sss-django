@@ -2910,8 +2910,6 @@
       }
 
       this._startAutoRefresh = function(olLayer) {
-          console.log("ollayer refresh")
-          console.log(olLayer)
           if (olLayer.refresh && !olLayer.autoRefresh ) {
               olLayer.autoRefresh = setInterval(function () {
                   olLayer.refresh()
