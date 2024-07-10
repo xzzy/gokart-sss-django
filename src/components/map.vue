@@ -2910,11 +2910,12 @@
       }
 
       this._startAutoRefresh = function(olLayer) {
-          if (olLayer.refresh && !olLayer.autoRefresh ) {
+        if(olLayer.layer){
+           if (olLayer.layer.refresh && !olLayer.autoRefresh) {
               olLayer.autoRefresh = setInterval(function () {
                   olLayer.refresh()
-              }, olLayer.refresh * 1000)
-          }
+              }, olLayer.layer.refresh*1000)
+           }}
           if (olLayer.dependentLayers) {
             $.each(olLayer.dependentLayers,function(index,dependentLayer){
                 if (dependentLayer["mapLayer"] && dependentLayer["mapLayer"].show) {

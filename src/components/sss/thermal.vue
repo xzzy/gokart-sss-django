@@ -1232,47 +1232,49 @@
 	this.changeThermalDateRange()
 
 	thermalStatus.phaseBegin("load_hotspots", 30, "Load hotspots", false, true)
-	// this.$root.fixedLayers.push({
-    //     // type: 'WFSLayer',
-	// 	type: 'TileLayer',
-    //     name: 'Thermal Imaging Hotspots',
-    //     id: 'hotspots:hotspot_centroids',
-    //     features: vm._featurelist,
-    //     getFeatureInfo: function (f) {
-	// 		return {flight_datetime: f.get("flight_datetime"), hotspot_no: f.get('hotspot_no'), images: f.get('images')}
-    //     },
-    //     onerror: function (status, message) {
-    //         thermalStatus.phaseFailed("load_hotspots", status + " : " + message)
-    //     },
-	// 	onload: function (loadType, vectorSource, features, defaultOnload) {
-	// 		vm.features.clear()
-	// 		vm.updateFeatureFilter(0)
-	// 		vm.features.extend(features.sort(vm.featureOrder))
-	// 		/*var s = function(hotspot_no) {
-	// 			return new ol.style.Style({
-	// 					text: new ol.style.Text({
-	// 					  text: hotspot_no,
-	// 					  font: '16px Calibri,sans-serif',
-	// 					  fill: new ol.style.Fill({ color: '#fff' }),
-	// 					  stroke: new ol.style.Stroke({color: '#fff', width: 0.8})
-	// 					}),
-	// 					image : new ol.style.Circle({
-	// 						fill: new ol.style.Fill({color: [0, 0, 255]}),
-	// 						radius: 15
-	// 					})
-	// 				})
-	// 		}*/
-
-	// 		$.each(features, function (index, feature){
-	// 			//var hotspot_no = feature.get('hotspot_no').toString()
-	// 			//feature.setStyle(s(hotspot_no))
-	// 			var imagesString = feature.get('images')
-	// 			var imagesArray = imagesString.split(',')
-	// 			feature.shortImages = imagesArray
-	// 		})
-	// 	}
-    //   })
-	  
+	  console.log("this.$root.fixedLayers")
+	  console.log(this.$root.fixedLayers)
+	  this.$root.fixedLayers.push({
+		  // type: 'WFSLayer',
+		  type: 'TileLayer',
+		  name: 'Thermal Imaging Hotspots',
+		  id: 'hotspots:hotspot_centroids',
+		  features: vm._featurelist,
+		  getFeatureInfo: function (f) {
+			  return {flight_datetime: f.get("flight_datetime"), hotspot_no: f.get('hotspot_no'), images: f.get('images')}
+		  },
+		  onerror: function (status, message) {
+			  thermalStatus.phaseFailed("load_hotspots", status + " : " + message)
+		  },
+		  onload: function (loadType, vectorSource, features, defaultOnload) {
+			  vm.features.clear()
+			  vm.updateFeatureFilter(0)
+			  vm.features.extend(features.sort(vm.featureOrder))
+			  /*var s = function(hotspot_no) {
+				  return new ol.style.Style({
+						  text: new ol.style.Text({
+							text: hotspot_no,
+							font: '16px Calibri,sans-serif',
+							fill: new ol.style.Fill({ color: '#fff' }),
+							stroke: new ol.style.Stroke({color: '#fff', width: 0.8})
+						  }),
+						  image : new ol.style.Circle({
+							  fill: new ol.style.Fill({color: [0, 0, 255]}),
+							  radius: 15
+						  })
+					  })
+			  }*/
+  
+			  $.each(features, function (index, feature){
+				  //var hotspot_no = feature.get('hotspot_no').toString()
+				  //feature.setStyle(s(hotspot_no))
+				  var imagesString = feature.get('images')
+				  var imagesArray = imagesString.split(',')
+				  feature.shortImages = imagesArray
+			  })
+		  }
+		})
+		
 	 this.$root.fixedLayers.push({
         type: 'WFSLayer',
         name: 'Thermal Imaging Flight Footprints',
