@@ -115,5 +115,5 @@ RUN chmod 777 /app/tmp/
 
 EXPOSE 8080
 HEALTHCHECK --interval=1m --timeout=5s --start-period=10s --retries=3 CMD ["wget", "-q", "-O", "-", "http://localhost:8080/"]
-CMD ["/bin/bash", "-c", "/pre_startup.sh"]
+CMD ["/bin/bash", "-c", "/startup.sh"]
 
