@@ -558,11 +558,13 @@
       toggleRawImageMosaic: function() {
 		this.showRawImageMosaic = !this.showRawImageMosaic
      		this.export.saveState()
+
+
 		var vm = this
 		var map = this.$root.map			
 		// Check if mosaic layer already loaded
 		var mosaicLoaded = false
-		var hotspotsLoaded = false
+		var hotspotsLoaded = this.isFeatureSelected
 		map.olmap.getLayers().forEach(function (layer) {
 			if (layer.get('name') === 'Flight mosaics') {
 					mosaicLoaded = true
@@ -592,10 +594,13 @@
  			
 		}
 		else if (hotspotsLoaded && !this.showRawImageMosaic) {
+			
 			map.olmap.getLayers().forEach(function (layer) {
+				if(layer){
 				if (layer.get('name') === 'Flight mosaics') {
 						map.olmap.removeLayer(layer)
 				}
+			}
 			})
 		}
       },
@@ -941,8 +946,10 @@
 			  var map = this.$root.map
 				// Close any single images for this hotspot
 				map.olmap.getLayers().forEach(function (layer) {
-					if (layer.get('name') === 'Hotspot image ' + hotspotID) {
-						map.olmap.removeLayer(layer)
+					if(layer){
+						if (layer.get('name') === 'Hotspot image ' + hotspotID) {
+							map.olmap.removeLayer(layer)
+						}
 					}
 				})
 				this.isHotspotImageON = false;
@@ -1232,8 +1239,6 @@
 	this.changeThermalDateRange()
 
 	thermalStatus.phaseBegin("load_hotspots", 30, "Load hotspots", false, true)
-	  console.log("this.$root.fixedLayers")
-	  console.log(this.$root.fixedLayers)
 	  this.$root.fixedLayers.push({
 		  // type: 'WFSLayer',
 		  type: 'TileLayer',

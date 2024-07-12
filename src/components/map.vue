@@ -1455,7 +1455,7 @@
 		  var layerNames = []		// Will be used to hold names of all layers in geoserver hotspots.dbca.wa.gov.au
 		  var mosaicLayersString = ""	// Will be used to form string of layers passed in (mosaicLayers) which exist on geoserver
 		  // Fill layerNames (all geoserver layer names)
-		  $.get(this.env.hotspotService + '/hotspots/ows/wms?service=WMS&version=1.1.0&request=GetCapabilities').then(function(response) {
+		  $.get(this.env.hotspotService + '/hotspots/ows?service=WMS&version=1.1.1&request=GetCapabilities').then(function(response) {
 			  var capabilities = parser.read(response)
 			  $.each(Object.keys(capabilities.Capability.Layer.Layer), function(index) {		//Object.keys(capabilities.Capability.Layer.Layer) gives array of indices of layers e.g. [0,1,2,3]
 				  layerNames.push(capabilities.Capability.Layer.Layer[index].Name)
