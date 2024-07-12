@@ -36,7 +36,6 @@ RUN chmod +x install_node.sh && ./install_node.sh
 RUN apt-get update
 RUN apt-get install -y nodejs
 RUN apt-get install -y uglifyjs
-RUN pip install npm
 RUN npm install -g browserify
 RUN npm install -g npm-run-all
 RUN npm install -g closure-util
@@ -89,7 +88,8 @@ COPY --chown=oim:oim package.json ./
 # COPY --chown=oim:oim package-lock.json ./
 COPY --chown=oim:oim profile.py ./
 RUN ls -al /app/
-RUN /app/venv/pip install -r requirements.txt
+RUN /app/venv/pip3 install -r requirements.txt
+RUN /app/venv/pip3 install npm
 #\ && rm -rf /var/lib/{apt,dpkg,cache,log}/ /tmp/* /var/tmp/*
 
 RUN npm install --loglevel verbose
