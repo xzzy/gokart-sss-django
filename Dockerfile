@@ -1,7 +1,7 @@
 # Prepare the base environment.
 FROM ubuntu:22.04 as builder_base_govapp
 MAINTAINER asi@dbca.wa.gov.au
-
+SHELL ["/bin/bash", "-c"]
 ENV DEBIAN_FRONTEND=noninteractive
 #ENV DEBUG=True
 ENV TZ=Australia/Perth
