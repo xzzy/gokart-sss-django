@@ -80,7 +80,9 @@ FROM builder_base_govapp as python_libs_govapp
 
 USER oim
 RUN virtualenv /app/venv
-RUN PATH=/app/.local/bin:$PATH
+
+ENV PATH=/app/venv/bin:$PATH
+RUN whereis python
 COPY --chown=oim:oim requirements.txt ./
 COPY --chown=oim:oim src src
 COPY --chown=oim:oim .git .git
