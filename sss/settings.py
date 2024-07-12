@@ -45,9 +45,9 @@ else:
 
 GIT_COMMIT_HASH = ''
 GIT_COMMIT_DATE = ''
-if  os.path.isdir(BASE_DIR+'/.git/') is True:
-    GIT_COMMIT_DATE = os.popen('cd '+BASE_DIR+' ; git log -1 --format=%cd').read()
-    GIT_COMMIT_HASH = os.popen('cd  '+BASE_DIR+' ; git log -1 --format=%H').read()
+if  os.path.isdir(str(BASE_DIR)+'/.git/') is True:
+    GIT_COMMIT_DATE = os.popen('cd '+str(BASE_DIR)+' ; git log -1 --format=%cd').read()
+    GIT_COMMIT_HASH = os.popen('cd  '+str(BASE_DIR)+' ; git log -1 --format=%H').read()
 if len(GIT_COMMIT_HASH) == 0:
     GIT_COMMIT_HASH = os.popen('cat /app/git_hash').read()
     if len(GIT_COMMIT_HASH) == 0:
