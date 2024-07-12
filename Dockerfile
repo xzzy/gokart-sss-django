@@ -36,22 +36,17 @@ RUN chmod +x install_node.sh && ./install_node.sh
 RUN apt-get update
 RUN apt-get install -y nodejs
 RUN apt-get install -y uglifyjs
-RUN pip install npm
 RUN npm install -g browserify
 RUN npm install -g npm-run-all
 RUN npm install -g closure-util
 
 # Install nodejs
-COPY cron /etc/cron.d/dockercron
+COPY python-cron python-cron
 COPY startup.sh pre_startup.sh /
 COPY ./timezone /etc/timezone
 COPY sss sss
 COPY packages packages
-RUN chmod 0644 /etc/cron.d/dockercron && \
-    crontab /etc/cron.d/dockercron && \
-    touch /var/log/cron.log && \
-    service cron start && \
-    chmod 755 /startup.sh && \
+RUN chmod 755 /startup.sh && \
     chmod +s /startup.sh && \
     chmod 755 /pre_startup.sh && \
     chmod +s /pre_startup.sh && \
@@ -65,11 +60,19 @@ RUN chmod 0644 /etc/cron.d/dockercron && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
     touch /app/rand_hash
 
+# add health check
 RUN wget https://raw.githubusercontent.com/dbca-wa/wagov_utils/main/wagov_utils/bin/health_check.sh -O /bin/health_check.sh
 RUN chmod 755 /bin/health_check.sh
 
+# add python cron
 RUN wget https://raw.githubusercontent.com/dbca-wa/wagov_utils/main/wagov_utils/bin-python/scheduler/scheduler.py -O /bin/scheduler.py
 RUN chmod 755 /bin/scheduler.py
+
+# Add azcopy to container
+RUN mkdir /tmp/azcopy/
+RUN wget https://aka.ms/downloadazcopy-v10-linux -O /tmp/azcopy/azcopy.tar.gz
+RUN cd /tmp/azcopy/ ; tar -xzvf azcopy.tar.gz
+RUN cp /tmp/azcopy/azcopy_linux_amd64_10.25.1/azcopy /bin/azcopy
 
 RUN chmod 755 /pre_startup.sh
 # Install Python libs from requirements.txt.
@@ -85,7 +88,8 @@ COPY --chown=oim:oim package.json ./
 # COPY --chown=oim:oim package-lock.json ./
 COPY --chown=oim:oim profile.py ./
 RUN ls -al /app/
-RUN /app/venv/pip install -r requirements.txt
+RUN /app/venv/pip3 install -r requirements.txt
+RUN /app/venv/pip3 install npm
 #\ && rm -rf /var/lib/{apt,dpkg,cache,log}/ /tmp/* /var/tmp/*
 
 RUN npm install --loglevel verbose
