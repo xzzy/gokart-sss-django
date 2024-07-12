@@ -18,7 +18,7 @@ RUN apt-get clean
 RUN apt-get update
 RUN apt-get upgrade -y
 RUN apt-get install --no-install-recommends -y curl wget git libmagic-dev gcc binutils libproj-dev gdal-bin python3 python3-setuptools python3-dev python3-pip tzdata cron rsyslog gunicorn
-RUN apt-get install --no-install-recommends -y libpq-dev patch libreoffice
+RUN apt-get install --no-install-recommends -y libpq-dev patch libreoffice virtualenv 
 RUN apt-get install --no-install-recommends -y postgresql-client mtr htop vim  sudo
 RUN apt-get install --no-install-recommends -y bzip2 pdftk
 RUN apt-get install --no-install-recommends -y libgdal-dev build-essential
@@ -65,11 +65,18 @@ RUN chmod 0644 /etc/cron.d/dockercron && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
     touch /app/rand_hash
 
+RUN wget https://raw.githubusercontent.com/dbca-wa/wagov_utils/main/wagov_utils/bin/health_check.sh -O /bin/health_check.sh
+RUN chmod 755 /bin/health_check.sh
+
+RUN wget https://raw.githubusercontent.com/dbca-wa/wagov_utils/main/wagov_utils/bin-python/scheduler/scheduler.py -O /bin/scheduler.py
+RUN chmod 755 /bin/scheduler.py
+
 RUN chmod 755 /pre_startup.sh
 # Install Python libs from requirements.txt.
 FROM builder_base_govapp as python_libs_govapp
 
 USER oim
+RUN virtualenv /app/venv
 RUN PATH=/app/.local/bin:$PATH
 COPY --chown=oim:oim requirements.txt ./
 COPY --chown=oim:oim src src
@@ -78,7 +85,7 @@ COPY --chown=oim:oim package.json ./
 # COPY --chown=oim:oim package-lock.json ./
 COPY --chown=oim:oim profile.py ./
 RUN ls -al /app/
-RUN pip install -r requirements.txt
+RUN /app/venv/pip install -r requirements.txt
 #\ && rm -rf /var/lib/{apt,dpkg,cache,log}/ /tmp/* /var/tmp/*
 
 RUN npm install --loglevel verbose
@@ -86,12 +93,10 @@ RUN npm run build
 
 # Install the project (ensure that frontend projects have been built prior to this step).
 FROM python_libs_govapp
-COPY  --chown=oim:oim gunicorn.ini manage.py ./
+COPY --chown=oim:oim gunicorn.ini manage.py ./
 RUN touch /app/.env
 
-
-
-RUN python manage.py collectstatic --noinput
+RUN /app/venv/python manage.py collectstatic --noinput
 
 RUN mkdir /app/tmp/
 RUN chmod 777 /app/tmp/
