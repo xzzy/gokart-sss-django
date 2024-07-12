@@ -89,9 +89,8 @@ COPY --chown=oim:oim .git .git
 COPY --chown=oim:oim package.json ./
 # COPY --chown=oim:oim package-lock.json ./
 COPY --chown=oim:oim profile.py ./
-RUN ls -al /app/venv/bin
-RUN /app/venv/bin/pip3 install -r requirements.txt
-RUN /app/venv/bin/pip3 install npm
+RUN pip3 install -r requirements.txt
+RUN pip3 install npm
 #\ && rm -rf /var/lib/{apt,dpkg,cache,log}/ /tmp/* /var/tmp/*
 
 RUN npm install --loglevel verbose
@@ -102,7 +101,7 @@ FROM python_libs_govapp
 COPY --chown=oim:oim gunicorn.ini manage.py ./
 RUN touch /app/.env
 
-RUN /app/venv/python manage.py collectstatic --noinput
+RUN python manage.py collectstatic --noinput
 
 RUN mkdir /app/tmp/
 RUN chmod 777 /app/tmp/
