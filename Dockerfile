@@ -72,14 +72,24 @@ FROM builder_base_govapp as python_libs_govapp
 USER oim
 RUN PATH=/app/.local/bin:$PATH
 COPY --chown=oim:oim requirements.txt ./
-
+COPY --chown=oim:oim src src
+COPY --chown=oim:oim .git .git
+COPY --chown=oim:oim package.json ./
+COPY --chown=oim:oim package-lock.json ./
+COPY --chown=oim:oim profile.py ./
+RUN ls -al /app/
 RUN pip install -r requirements.txt
 #\ && rm -rf /var/lib/{apt,dpkg,cache,log}/ /tmp/* /var/tmp/*
+
+RUN npm install
+RUN npm run build
 
 # Install the project (ensure that frontend projects have been built prior to this step).
 FROM python_libs_govapp
 COPY  --chown=oim:oim gunicorn.ini manage.py ./
 RUN touch /app/.env
+
+
 
 RUN python manage.py collectstatic --noinput
 
