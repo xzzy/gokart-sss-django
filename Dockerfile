@@ -87,9 +87,9 @@ COPY --chown=oim:oim .git .git
 COPY --chown=oim:oim package.json ./
 # COPY --chown=oim:oim package-lock.json ./
 COPY --chown=oim:oim profile.py ./
-RUN ls -al /app/
-RUN /app/venv/pip3 install -r requirements.txt
-RUN /app/venv/pip3 install npm
+RUN ls -al /app/venv/bin
+RUN /app/venv/bin/pip3 install -r requirements.txt
+RUN /app/venv/bin/pip3 install npm
 #\ && rm -rf /var/lib/{apt,dpkg,cache,log}/ /tmp/* /var/tmp/*
 
 RUN npm install --loglevel verbose
