@@ -73,6 +73,7 @@ RUN mkdir /tmp/azcopy/
 RUN wget https://aka.ms/downloadazcopy-v10-linux -O /tmp/azcopy/azcopy.tar.gz
 RUN cd /tmp/azcopy/ ; tar -xzvf azcopy.tar.gz
 RUN cp /tmp/azcopy/azcopy_linux_amd64_10.25.1/azcopy /bin/azcopy
+RUN chmod 755 /bin/azcopy
 
 RUN chmod 755 /pre_startup.sh
 # Install Python libs from requirements.txt.
