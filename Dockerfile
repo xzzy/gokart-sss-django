@@ -75,7 +75,7 @@ COPY --chown=oim:oim requirements.txt ./
 COPY --chown=oim:oim src src
 COPY --chown=oim:oim .git .git
 COPY --chown=oim:oim package.json ./
-COPY --chown=oim:oim package-lock.json ./
+# COPY --chown=oim:oim package-lock.json ./
 COPY --chown=oim:oim profile.py ./
 RUN ls -al /app/
 RUN pip install -r requirements.txt
