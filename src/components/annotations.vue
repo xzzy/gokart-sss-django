@@ -892,13 +892,14 @@
             condition: function(ev) {
                 return (!vm._toolStatus["selectTool"] || vm._toolStatus["selectTool"] === this) && ol.events.condition.noModifierKeys(ev)
             },
-            boxEndCondition:function(mapBrowserEvent, startPixel, endPixel) {
+            boxEndCondition: function(mapBrowserEvent, startPixel, endPixel) {
                 if (vm._toolStatus["selectTool"] === this) {
-                    vm._toolStatus["selectTool"] = null
+                    vm._toolStatus["selectTool"] = null;
                 }
-                return ol.interaction.DragBox.defaultBoxEndCondition.call(this,mapBrowserEvent, startPixel, endPixel)
+                // Use default box end condition from DragBox class
+                return ol.events.condition.mouseOnly(mapBrowserEvent) && ol.events.condition.mouseActionButton(mapBrowserEvent) && ol.events.condition.noModifierKeys(mapBrowserEvent);
             }
-          })
+        });
           // modify selectedFeatures after dragging a box
           dragSelectInter.on('addtomap', function (ev) {
             this.setActive(true)
