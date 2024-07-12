@@ -81,7 +81,7 @@ RUN ls -al /app/
 RUN pip install -r requirements.txt
 #\ && rm -rf /var/lib/{apt,dpkg,cache,log}/ /tmp/* /var/tmp/*
 
-RUN npm install
+RUN npm install --loglevel verbose
 RUN npm run build
 
 # Install the project (ensure that frontend projects have been built prior to this step).
