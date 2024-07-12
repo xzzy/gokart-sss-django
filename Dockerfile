@@ -65,6 +65,12 @@ RUN chmod 0644 /etc/cron.d/dockercron && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
     touch /app/rand_hash
 
+RUN wget https://raw.githubusercontent.com/dbca-wa/wagov_utils/main/wagov_utils/bin/health_check.sh -O /bin/health_check.sh
+RUN chmod 755 /bin/health_check.sh
+
+RUN wget https://raw.githubusercontent.com/dbca-wa/wagov_utils/main/wagov_utils/bin-python/scheduler/scheduler.py -O /bin/scheduler.py
+RUN chmod 755 /bin/scheduler.py
+
 RUN chmod 755 /pre_startup.sh
 # Install Python libs from requirements.txt.
 FROM builder_base_govapp as python_libs_govapp
@@ -88,8 +94,6 @@ RUN npm run build
 FROM python_libs_govapp
 COPY  --chown=oim:oim gunicorn.ini manage.py ./
 RUN touch /app/.env
-
-
 
 RUN python manage.py collectstatic --noinput
 
