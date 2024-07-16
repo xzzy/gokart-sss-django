@@ -115,7 +115,28 @@ class MapServer(models.Model):
 
         def __str__(self):
             return self.name     
-        
+
+class Proxy(models.Model):
+    request_path = models.CharField(max_length=255)
+    proxy_url = models.CharField(max_length=255)
+    basic_auth_enabled = models.BooleanField(default=False)
+    username = models.CharField(max_length=255, blank=False)
+    password = models.CharField(max_length=255, blank=False)
+    active = models.BooleanField(default=True)
+
+    class Meta:
+        app_label = "sss"
+        ordering = ["request_path"]
+        verbose_name = "Proxy"
+        verbose_name_plural = "Proxies"
+
+    def save(self, *args, **kwargs):
+        if self.basic_auth_enabled:
+            if self.username == "" or self.password == "":
+                raise ValueError("Username and password are required for basic auth")
+        super().save(*args, **kwargs)
+
+
 CATALOGUE_TYPE = (
     ('', "None"),
     ('TileLayer','TileLayer'),
@@ -165,4 +186,6 @@ class CatalogueSyncCSW(models.Model):
         created = models.DateTimeField(default=timezone.now)        
 
         def __str__(self):
-            return self.identifier          
+            return self.identifier     
+
+     
