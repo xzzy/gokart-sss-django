@@ -44,3 +44,23 @@ class MapServer(admin.ModelAdmin):
 
 admin.site.register(models.Region)
 
+@admin.register(models.Proxy)
+class ProxyAdmin(admin.ModelAdmin):
+    list_display = ("request_path", "username", "basic_auth_enabled", "active")
+    search_fields = ("request_path",)
+    ordering = ("request_path",)
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "request_path",
+                    "proxy_url",
+                    "basic_auth_enabled",
+                    "username",
+                    "password",
+                    "active",
+                )
+            },
+        ),
+    )

@@ -1,4 +1,4 @@
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, Http404
 from django import conf
 from django.views.decorators.csrf import csrf_exempt
 from wagov_utils.components.proxy.views import proxy_view
@@ -13,7 +13,7 @@ import datetime
 import json
 import pathlib
 from io import BytesIO
-from sss.models import UserProfile
+from sss.models import UserProfile, Proxy
 from sss import models as sss_models
 from sss.serializers import ProfileSerializer, AccountDetailsSerializer
 from rest_framework import serializers
@@ -169,33 +169,53 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
     return http_response
 
 
+def proxy_object(request_path):
+    proxy_dict = {}
+
+    if not proxy_dict:
+        try:
+            proxy = Proxy.objects.get(
+                active=True,
+                request_path=request_path,
+            )
+        except Proxy.DoesNotExist:
+            raise
+        else:
+            proxy_dict = {
+                "proxy_url": proxy.proxy_url,
+                "basic_auth_enabled": proxy.basic_auth_enabled,
+                "username": proxy.username,
+                "password": proxy.password,
+            }
+    return proxy_dict
+
+
+
 @csrf_exempt
-def mapProxyView(request, path):
-    if request.user.is_authenticated:
-        queryString = request.META['QUERY_STRING']
-        remoteurl = None
-        auth_user = None
-        auth_password = None
+def mapProxyView(request, request_path, path):
+    if not request.user.is_authenticated:
+        raise ValidationError("User is not authenticated")
 
-        if 'kmi-proxy' in request.path:
-            remoteurl = conf.settings.KMI_API_URL + '/' + path 
-            auth_user = conf.settings.KMI_AUTH2_BASIC_AUTH_USER
-            auth_password = conf.settings.KMI_AUTH2_BASIC_AUTH_PASSWORD
-        
-        elif 'kb-proxy' in request.path:
-            remoteurl = conf.settings.KB_API_URL + '/' + path 
-            auth_user = conf.settings.KB_AUTH2_BASIC_AUTH_USER
-            auth_password = conf.settings.KB_AUTH2_BASIC_AUTH_PASSWORD
-        
-        elif 'hotspots-proxy' in request.path:
-            remoteurl = conf.settings.HOTSPOT_API_URL + '/' + path
+    queryString = request.META["QUERY_STRING"]
+    username = request.user.username
+    auth_user = None
+    auth_password = None
 
-        response = process_proxy(request, remoteurl, queryString, auth_user, auth_password)
-        return response
+    try:
+        proxy = proxy_object(request_path)
+    except Proxy.DoesNotExist:
+        raise Http404(f"No active Proxy entry found for {username} and {request_path}")
     else:
-        raise ValidationError('User is not authenticated')
+        if proxy.get("basic_auth_enabled"):
+            auth_user = proxy.get("username")
+            auth_password = proxy.get("password")
+        remoteurl = proxy.get("proxy_url") +"/"+ path
+    response = process_proxy(request, remoteurl, queryString, auth_user, auth_password)
+
+    return response
+
     
-   
+
 
 # @csrf_exempt
 # def kbProxyView(request, path):
@@ -269,7 +289,7 @@ def cataloguev2(request):
         for c_csw in catalogue_csw:
             json_cs_csw = json.loads(c_csw.json_data)
             json_cs_csw['map_server_name'] = "kmi"
-            json_cs_csw['map_server_url'] = "/kmi-proxy/geoserver"
+            json_cs_csw['map_server_url'] = "/geoproxy/kmi-proxy/geoserver"
             catalogue_array.append(json_cs_csw)
 
         context = {'settings': conf.settings}

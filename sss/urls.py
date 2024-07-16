@@ -34,9 +34,10 @@ urlpatterns = [
     path("outlookmetadata", api.outlookmetadata, name='api_outlookmetadata'),
     path("api/environment_config.js", api.environment_config, name='environment_config'),
     path("api/cataloguev2.json", api.cataloguev2, name='catalogue_example'),
-    re_path('kmi-proxy/(?P<path>.*)', api.mapProxyView),
-    re_path('kb-proxy/(?P<path>.*)', api.mapProxyView),
-    re_path('hotspots-proxy/(?P<path>.*)', api.mapProxyView),
+    re_path(
+        "geoproxy/(?P<request_path>[A-Za-z0-9-]+)/(?P<path>.*)",
+        api.mapProxyView,
+    ),
     re_path('weatheroutlook/(?P<fmt>.*)', api.weatheroutlook),
     re_path('gdal/(?P<fmt>.*)', api.gdal),
     re_path('ogrinfo', api.gdal_ogrinfo),
