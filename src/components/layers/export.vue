@@ -886,11 +886,7 @@ print: function (format) {
         var whiteout = vm.olmap.on('precompose', function (event) {
           var mapElement = document.getElementById('map');
           var canvas = mapElement.querySelector('canvas');
-          console.log("canvas")
-          console.log(canvas)
           var ctx = canvas.getContext('2d')
-          console.log("ctx")
-          console.log(ctx)
           ctx.beginPath()
           ctx.rect(0, 0, canvas.width, canvas.height)
           ctx.fillStyle = "white"
@@ -989,7 +985,6 @@ print: function (format) {
       }
 ,
       download: function (key) {
-        console.log("download function")
         if (key) {
           // download JSON blob from the state store
           localforage.getItem('sssStateStore').then(function (store) {
