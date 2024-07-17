@@ -875,15 +875,22 @@
         }
       },
       // make a printable raster from the map
-      print: function (format) {
+
+
+print: function (format) {
         // rig the viewport to have printing dimensions
         this.prepareMapForPrinting()
         var timer
         var vm = this
         // wait until map is rendered before continuing
         var whiteout = vm.olmap.on('precompose', function (event) {
-          var canvas = event.context.canvas
+          var mapElement = document.getElementById('map');
+          var canvas = mapElement.querySelector('canvas');
+          console.log("canvas")
+          console.log(canvas)
           var ctx = canvas.getContext('2d')
+          console.log("ctx")
+          console.log(ctx)
           ctx.beginPath()
           ctx.rect(0, 0, canvas.width, canvas.height)
           ctx.fillStyle = "white"
@@ -891,15 +898,16 @@
         })
         var mainmap_composing = null
         var overviewmap_composing = null
-        var canvas = null
+        var mapElement = document.getElementById('map');
+        var canvas = mapElement.querySelector('canvas');
         var overviewmap_canvas = null
         var postcomposeFunc = function() {
           timer && clearTimeout(timer)
           timer = setTimeout(function () {
             // remove composing watcher
-            vm.olmap.unByKey(whiteout)
-            vm.olmap.unByKey(mainmap_composing)
-            vm.map.getControl("overviewMap").getOverviewMap().unByKey(overviewmap_composing)
+            ol.Observable.unByKey(whiteout);
+            ol.Observable.unByKey(mainmap_composing);
+            ol.Observable.unByKey(overviewmap_composing);
             var ctx = canvas.getContext('2d')
 
             var img = new window.Image()
@@ -967,18 +975,21 @@
           }, 5000)
         }
         mainmap_composing = vm.olmap.on('postcompose', function (event) {
-            canvas = event.context.canvas
+          var mapElement = document.getElementById('map');
+          var canvas = mapElement.querySelector('canvas');
             if (!overviewmap_composing) {
                 overviewmap_composing = vm.map.getControl("overviewMap").getOverviewMap().on('postcompose', function (event) {
-                    overviewmap_canvas = event.context.canvas
+                    overviewmap_canvas = canvas
                     postcomposeFunc()
                 })
                 vm.map.getControl("overviewMap").getOverviewMap().renderSync()
             }
         })
         vm.olmap.renderSync()
-      },
+      }
+,
       download: function (key) {
+        console.log("download function")
         if (key) {
           // download JSON blob from the state store
           localforage.getItem('sssStateStore').then(function (store) {
