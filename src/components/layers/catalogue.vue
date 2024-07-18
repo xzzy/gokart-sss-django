@@ -15,7 +15,7 @@
           </div>
         </div>
         <div v-show="search.length > 0 && search !== 'basemap'" class="row">
-          {{ search }}
+          
           <div class="columns text-right">
             <label for="switchBaseLayers" class="side-label">Toggle all</label>
           </div>
