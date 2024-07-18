@@ -10,7 +10,7 @@ python-decouple==3.8
 pytz==2023.3
 #git+https://github.com/xzzy/django-proxy#egg=django-proxy
 django-cors-headers==4.2.0
-#GDAL==3.6.3 <-- install from whl file
+GDAL==3.8.4
 affine==2.1.0
 ./packages/GDAL-3.6.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 djangorestframework==3.14.0
@@ -23,3 +23,4 @@ shapely>=1.6.0
 django-cron==0.6.0
 psycopg2==2.9.7
 psycopg==3.1.10
+
