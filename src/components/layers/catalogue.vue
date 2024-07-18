@@ -15,6 +15,7 @@
           </div>
         </div>
         <div v-show="search.length > 0 && search !== 'basemap'" class="row">
+          {{ search }}
           <div class="columns text-right">
             <label for="switchBaseLayers" class="side-label">Toggle all</label>
           </div>
@@ -41,7 +42,7 @@
     <div class="layers-flexibleframe scroller row collapse" id="catalogue-list-container">
       <div class="columns">
         <div id="layers-catalogue-list">
-          <div v-for="l in catalogue.getArray() | filterBy search in searchAttrs | orderBy 'name'" class="row layer-row" @mouseover="preview(l)" track-by="mapLayerId" @mouseleave="preview(false)" style="margin-left:0px;margin-right:0px">
+          <div v-for="l in catalogue.getArray()  | orderBy 'name'" class="row layer-row" @mouseover="preview(l)" v-if="l.name.indexOf(search) !== -1  || l.id.indexOf(search) !== -1 || l.tags.indexOf(search) !== -1 " track-by="mapLayerId" @mouseleave="preview(false)" style="margin-left:0px;margin-right:0px">                        
             <div class="small-10">
               <a v-if="editable(l)" @click.stop.prevent="utils.editResource($event)" title="Edit catalogue entry" href="{{env.catalogueAdminService}}/admin/catalogue/record/{{l.systemid}}/change/" target="{{env.catalogueAdminService}}" class="button tiny secondary float-right short"><i class="fa fa-pencil"></i></a>
               <div class="layer-title">{{ l.name || l.id }}</div>
@@ -56,18 +57,12 @@
                   </label>
                 </div>
               </div>
+            
+            </div>
             </div>
           </div>
-        </div>
-        <div v-el:layerdetails class="hide">
-          <div class="layerdetails row">
-            <div class="columns small-12">
-              <h5>{{ layer.name }}</h5>
-              <img v-if="layer.legend" v-bind:src="layer.legend" class="cat-legend"/>
-              <p>{{ layer.abstract }}</p>
-            </div>
-          </div>
-        </div>
+        
+
       </div>
     </div>
   </div>
@@ -150,7 +145,7 @@ div.ol-previewmap.ol-uncollapsible {
         catalogue: new ol.Collection(),
         swapBaseLayers: true,
         search: '',
-        searchAttrs: ['name', 'id', 'tags'],
+        searchAttrs: ['name',],
         overview: false,
         layerDetails: false
       }
