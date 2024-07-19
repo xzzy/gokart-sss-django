@@ -194,8 +194,6 @@ HOTSPOT_AUTH2_BASIC_AUTH_USER=decouple.config("HOTSPOT_AUTH2_BASIC_AUTH_USER", d
 HOTSPOT_AUTH2_BASIC_AUTH_PASSWORD=decouple.config("HOTSPOT_AUTH2_BASIC_AUTH_PASSWORD", default=None)
 
 CSW_SERVICE_URL=decouple.config("CSW_SERVICE_URL", default="/api/catalogue.json")
-KMI_SERVICE_URL=decouple.config("KMI_SERVICE_URL", default="/geoproxy/kmi-proxy/geoserver")
-HOTSPOT_SERVICE_URL=decouple.config("HOTSPOT_SERVICE_URL", default="/geoproxy/hotspots-proxy/geoserver")
 SSS_SERVICE_URL=decouple.config("SSS_SERVICE_URL", default="https://sss-uat.dbca.wa.gov.au")
 RESOURCE_TRACKING_SERVICE_URL=decouple.config("RESOURCE_TRACKING_SERVICE_URL", default="https://resourcetracking.dbca.wa.gov.au")
 BFRS_SERVICE_URL=decouple.config("BFRS_SERVICE_URL", default="https://bfrs-uat.dbca.wa.gov.au")
