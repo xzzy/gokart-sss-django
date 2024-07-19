@@ -25,5 +25,8 @@ var env = {
     layerMapping:{
     },
     overviewLayer:"{{ settings.OVERVIEW_LAYER }}",
+
+    kmiUrl:"{{ mapserver.kmi }}",
+    hotspotsUrl:"{{mapserver.hotspots}}"
 };
 

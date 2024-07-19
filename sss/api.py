@@ -13,7 +13,7 @@ import datetime
 import json
 import pathlib
 from io import BytesIO
-from sss.models import UserProfile, Proxy
+from sss.models import UserProfile, Proxy, MapServer
 from sss import models as sss_models
 from sss.serializers import ProfileSerializer, AccountDetailsSerializer
 from rest_framework import serializers
@@ -241,7 +241,11 @@ def mapProxyView(request, request_path, path):
 
 def environment_config(request):
     context = {'settings': conf.settings}
-    template_date = render_to_string('sss/environment_config.js', context)    
+    mapServer = {}
+    for object in MapServer.objects.all():
+        mapServer[object.name] = object.url
+    context['mapserver'] = mapServer
+    template_date = render_to_string('sss/environment_config.js', context)   
     return HttpResponse(template_date, content_type='text/javascript')
 
 def cataloguev2(request):
@@ -289,7 +293,8 @@ def cataloguev2(request):
         for c_csw in catalogue_csw:
             json_cs_csw = json.loads(c_csw.json_data)
             json_cs_csw['map_server_name'] = "kmi"
-            json_cs_csw['map_server_url'] = "/geoproxy/kmi-proxy/geoserver"
+            kmi_url = MapServer.objects.get(name='kmi').url
+            json_cs_csw['map_server_url'] = kmi_url
             catalogue_array.append(json_cs_csw)
 
         context = {'settings': conf.settings}

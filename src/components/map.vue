@@ -1281,11 +1281,11 @@
 
         if (options.mapLayer) return options.mapLayer
         var vm = this
-        var url = this.env.kmiService + "/wfs"
+        var url = this.env.kmiUrl + "/wfs"
         var withCredentialsSetting = true
         if (options.id.startsWith('hotspots:')) {
           withCredentialsSetting = false
-          var url = this.env.hotspotService  + "/wfs"
+          var url = this.env.hotspotsUrl  + "/wfs"
         }
        
         // default overridable params sent to the WFS source
@@ -1455,7 +1455,8 @@
 		  var layerNames = []		// Will be used to hold names of all layers in geoserver hotspots.dbca.wa.gov.au
 		  var mosaicLayersString = ""	// Will be used to form string of layers passed in (mosaicLayers) which exist on geoserver
 		  // Fill layerNames (all geoserver layer names)
-		  $.get(this.env.hotspotService + '/hotspots/ows?service=WMS&version=1.1.1&request=GetCapabilities').then(function(response) {
+
+      $.get(this.env.hotspotsUrl + '/hotspots/ows?service=WMS&version=1.1.1&request=GetCapabilities').then(function(response) {
 			  var capabilities = parser.read(response)
 			  $.each(Object.keys(capabilities.Capability.Layer.Layer), function(index) {		//Object.keys(capabilities.Capability.Layer.Layer) gives array of indices of layers e.g. [0,1,2,3]
 				  layerNames.push(capabilities.Capability.Layer.Layer[index].Name)
@@ -1526,7 +1527,7 @@
       const layerId = 'hotspots: ' + flight_datetime + '_img_' + image_name;
       const layerName = 'Hotspot image ' + flight_datetime + ' ' + hotspot_no;
 		  var imgSource = new ol.source.ImageWMS({
-			  url: this.env.hotspotService + '/wms',
+			  url: this.env.hotspotsUrl + '/wms',
 			  serverType: 'geoserver',			  
 			  crossOrigin : 'anonymous',
 			  params: {
@@ -1556,7 +1557,7 @@
 		  //position is the position within the map layers array in which the mosaic layers should be loaded (immediately below hotspots and footprints)
 		  var vm = this
 		  var imgSource = new ol.source.ImageWMS({
-			  url: this.env.hotspotService + '/wms',
+			  url: this.env.hotspotsUrl + '/wms',
 			  serverType: 'geoserver',
 			  crossOrigin : 'anonymous',
 			  params: {
