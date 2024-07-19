@@ -41,8 +41,8 @@
     </div>
     <div class="layers-flexibleframe scroller row collapse" id="catalogue-list-container">
       <div class="columns">
-        <div id="layers-catalogue-list">
-          <div v-for="l in catalogue.getArray()  | orderBy 'name'" class="row layer-row" @mouseover="preview(l)" v-if="l.name.indexOf(search) !== -1  || l.id.indexOf(search) !== -1 || l.tags.indexOf(search) !== -1 " track-by="mapLayerId" @mouseleave="preview(false)" style="margin-left:0px;margin-right:0px">                        
+        <div id="layers-catalogue-list">          
+          <div v-for="l in catalogue.getArray()  | orderBy 'name'" class="row layer-row" @mouseover="preview(l)" v-if="l.name.toLowerCase().indexOf(search.toLowerCase()) !== -1  || l.id.toLowerCase().indexOf(search.toLowerCase()) !== -1 || containsTag(l.tags, search.toLowerCase())"  track-by="mapLayerId" @mouseleave="preview(false)" style="margin-left:0px;margin-right:0px">                        
             <div class="small-10">
               <a v-if="editable(l)" @click.stop.prevent="utils.editResource($event)" title="Edit catalogue entry" href="{{env.catalogueAdminService}}/admin/catalogue/record/{{l.systemid}}/change/" target="{{env.catalogueAdminService}}" class="button tiny secondary float-right short"><i class="fa fa-pencil"></i></a>
               <div class="layer-title">{{ l.name || l.id }}</div>
@@ -56,16 +56,14 @@
                     <span class="show-for-sr">Toggle layer</span>
                   </label>
                 </div>
-              </div>
-            
+              </div>          
             </div>
             </div>
+          </div>       
           </div>
-        
-
       </div>
     </div>
-  </div>
+
 </template>
 
 <style>
@@ -126,6 +124,8 @@ div.ol-previewmap.ol-uncollapsible {
 </style>
 
 <script>
+
+
   import { $, ol, Vue, utils } from 'src/vendor.js'
   Vue.filter('lessThan', function(value, length) {
     return value.length < length
@@ -264,6 +264,15 @@ div.ol-previewmap.ol-uncollapsible {
           active.removeLayer(map.getMapLayer(layer))
         }
         return true
+      },
+
+      containsTag(tags, search) {
+        for (let tag of tags) {
+            if (tag.name.toLowerCase().includes(search)) {
+                return true; 
+            }
+        }
+        return false; 
       },
 
       // helper to populate the catalogue from a remote service
