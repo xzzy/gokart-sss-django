@@ -262,8 +262,18 @@
         },
         cleanLogs: function() {
             if (window.confirm('This will clear all change logs, and you can\'t undo/redo previous drawings anymore. Are you sure?')) {
+                this.annotations.setTool('Pan')
                 this.drawingLogs.splice(0,this.drawingLogs.length)
+                allFeatures = this.annotations.features.getArray()
+                for (let index = 0; index < allFeatures.length; index++) {
+                    if (index >= 0 && index < allFeatures.length) {
+                        this.annotations.features.removeAt(index);
+                        index--;
+                    }
+                }
                 this.redoPointer = 0
+                this.redoSteps = 0
+                this.drawingLogs.length = 0
             }
         },
         undo:function() {
