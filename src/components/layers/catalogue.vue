@@ -200,6 +200,13 @@ div.ol-previewmap.ol-uncollapsible {
             })
           })
         }
+        let previewMap = l.preview.element.getElementsByClassName("ol-overviewmap-map");
+        if (previewMap.length > 0) {
+            previewMap[0].style.width = '100%';
+            previewMap[0].style.height = '100%';
+            previewMap[0].style.border = '0';
+            previewMap[0].style.margin = '0';
+        } 
         // console.log("(this.$root.map.olmap)")
         // console.log(this.$root.map.olmap);
         l.preview.setMap(this.$root.map.olmap)
