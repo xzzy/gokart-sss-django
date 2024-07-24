@@ -399,7 +399,14 @@
                             }
                             f.setGeometry(feature.getGeometry())
                             f.getGeometry().on("change",vm._eventHandlers["geometry:change"](f,feature.get('id')))
-                            vm.annotations.ui.modifyInter.dispatchEvent(new ol.interaction.Modify.Event("featuresmodified",new ol.Collection([f]),null))
+
+                            var modifiedFeatures = new ol.Collection([f]);
+                            var event = {
+                            type: 'featuresmodified',
+                            features: modifiedFeatures,
+                            originalEvent: null
+                            };
+                            vm.annotations.ui.modifyInter.dispatchEvent(event);
                         }
                     })
                 } else if (vm.drawingLogs[vm.redoPointer][0] === 'P') {
