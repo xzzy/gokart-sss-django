@@ -61,7 +61,7 @@
             </div>
           </div>          
           <div v-el:layerdetails class="hide">
-          <div class="layerdetails row">
+          <div class="layerdetails row" style="z-index:2;">
             <div class="columns small-12">
               <h5>{{ layer.name }}</h5>
               <img v-if="layer.legend" v-bind:src="layer.legend" class="cat-legend"/>
