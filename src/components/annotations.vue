@@ -1244,7 +1244,12 @@
                     }
               })
             }
-            modifyInter.dispatchEvent(new ol.interaction.Modify.Event("featuresmodified",modifiedFeatures,ev))
+            var event = {
+                type: 'featuresmodified',
+                features: modifiedFeatures,
+                originalEvent: ev
+              };
+              modifyInter.dispatchEvent(event)
           })
           modifyInter.on("featuresmodified",function(ev){
             ev.features.forEach(function(f){
