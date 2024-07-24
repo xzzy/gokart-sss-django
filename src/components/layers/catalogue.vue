@@ -11,7 +11,7 @@
             </select>
           </div>
           <div class="small-6 columns">
-            <input id="find-layer" type="search" v-model="search" placeholder="Find a layer">
+            <input id="find-layer" type="search" v-model="search" placeholder="Find a layer" autocomplete="off">
           </div>
         </div>
         <div v-show="search.length > 0 && search !== 'basemap'" class="row">
@@ -59,7 +59,16 @@
               </div>          
             </div>
             </div>
-          </div>       
+          </div>          
+          <div v-el:layerdetails class="hide">
+          <div class="layerdetails row">
+            <div class="columns small-12">
+              <h5>{{ layer.name }}</h5>
+              <img v-if="layer.legend" v-bind:src="layer.legend" class="cat-legend"/>
+              <p>{{ layer.abstract }}</p>
+            </div>
+          </div>
+        </div>
           </div>
       </div>
     </div>
@@ -110,10 +119,10 @@ div.ol-previewmap.ol-uncollapsible {
 }
 
 .layerdetails {
-    position: absolute;
-    background-color: rgba(39,48,55,0.7);
-    width: 100%;
-    padding-bottom: 0.5em;
+  position: absolute;
+  background-color: rgba(39,48,55,0.7);
+  width: 100%;
+  padding-bottom: 0.5em;
 }
 
 .layerdetails p {
@@ -206,6 +215,7 @@ div.ol-previewmap.ol-uncollapsible {
             previewMap[0].style.height = '100%';
             previewMap[0].style.border = '0';
             previewMap[0].style.margin = '0';
+
         } 
         // console.log("(this.$root.map.olmap)")
         // console.log(this.$root.map.olmap);
@@ -216,6 +226,10 @@ div.ol-previewmap.ol-uncollapsible {
           this.$nextTick(function() {
             previewEl.prepend(this.$els.layerdetails.innerHTML)
           })
+        }
+        let stopeventElement = document.getElementsByClassName("ol-overlaycontainer-stopevent");
+        if(stopeventElement.length>0){
+          stopeventElement[0].style.zIndex = ""
         }
       },
       toggleAll: function (checked, event) {
