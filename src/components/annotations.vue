@@ -1081,7 +1081,7 @@
       selectInterFactory:function(options) {
         var vm = this
         return function(tool) {
-          var selectedFeatures = (tool && tool.selectedFeatures) || vm.selectedAnnotations
+          var selectedFeatures = vm.selectedFeatures
           // allow selecting multiple features by clicking
           var selectInter = new ol.interaction.Select({
             layers: function(layer) { 
