@@ -813,11 +813,11 @@
                 }
             }()
 
-            drawInter.on("addtomap",function(ev){
+            drawInter.on("drawend",function(ev){
                 vm._overlay4Selection.setMap(vm.map.olmap)
-                if (vm._listener4Selection) {
-                    vm._features4Selection.unByKey(vm._listener4Selection)
-                }
+                // if (vm._listener4Selection) {
+                //     vm._features4Selection.unByKey(vm._listener4Selection)
+                // }
                 vm._listener4Selection = vm._features4Selection.on("add",function(ev){
                     var selectedFeatures = selectedFeatures_ || vm.selectedFeatures
                     try{
