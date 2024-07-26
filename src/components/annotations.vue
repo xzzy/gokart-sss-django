@@ -1098,36 +1098,44 @@
             this.setActive(true)
           })
 
-          selectInter.defaultHandleEvent = selectInter.defaultHandleEvent || selectInter.handleEvent
-          selectInter.handleEvent = function(event) {
-            if (this.condition_(event)) {
-                try {
-                    vm.selecting = true
-                    var result = this.defaultHandleEvent(event)
-                    if (tool && tool.selectMode === "geometry") {
-                        selectedFeatures.forEach(function(f){
-                            var indexes = vm.getSelectedGeometryIndex(f.getGeometry(),event)
-                            if (indexes) {
-                                f['selectedIndex'] = indexes
-                            } else {
-                                delete f['selectedIndex']
-                            }
-                            f.changed()
-                        })
-                    } else {
-                        if (options && options.listeners && options.listeners.selected) {
-                            options.listeners.selected(selectedFeatures)
-                        }
-                    }
-                    return result
-                } finally {
-                    vm.selecting = false
-                }
-            } else {
-                vm.selecting = false
-                return this.defaultHandleEvent(event)
+          selectInter.on('select', function (ev) {
+            selectedFeatures.clear()
+            vm.selectedFeatures.clear()
+
+            if(ev.selected.length>0){
+            vm.selectedFeatures.push(ev.selected[0])
             }
-          }
+          })
+          // selectInter.defaultHandleEvent = selectInter.defaultHandleEvent || selectInter.handleEvent
+          // selectInter.handleEvent = function(event) {
+          //   if (this.condition_(event)) {
+          //       try {
+          //           vm.selecting = true
+          //           var result = this.defaultHandleEvent(event)
+          //           if (tool && tool.selectMode === "geometry") {
+          //               selectedFeatures.forEach(function(f){
+          //                   var indexes = vm.getSelectedGeometryIndex(f.getGeometry(),event)
+          //                   if (indexes) {
+          //                       f['selectedIndex'] = indexes
+          //                   } else {
+          //                       delete f['selectedIndex']
+          //                   }
+          //                   f.changed()
+          //               })
+          //           } else {
+          //               if (options && options.listeners && options.listeners.selected) {
+          //                   options.listeners.selected(selectedFeatures)
+          //               }
+          //           }
+          //           return result
+          //       } finally {
+          //           vm.selecting = false
+          //       }
+          //   } else {
+          //       vm.selecting = false
+          //       return this.defaultHandleEvent(event)
+          //   }
+          // }
           selectInter.setMulti = function(multi) {
             this.multi_ = multi
           }
@@ -1853,7 +1861,7 @@
                                   src: src,
                                   rotation: item.getImage().getRotation(),
                                   rotateWithView: item.getImage().getRotateWithView(),
-                                  snapToPixel: item.getImage().getSnapToPixel()
+                                 // snapToPixel: item.getImage().getSnapToPixel()
                                 })
                             }))
                         })
@@ -2305,7 +2313,7 @@
           },
           selectedTint: function(feature) {
             // console.log("Custom Point defaultPoint selectedTint");
-            // var shape = feature.get('shape')
+            var shape = feature.get('shape')
             if (shape) {
                 return vm.getCustomPointTint(shape,['#2199e8','#2199e8'])
             } else {
