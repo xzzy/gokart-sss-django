@@ -7,7 +7,7 @@ var env = {
     catalogueAdminService:"{{ settings.CATALOGUE_URL }}",
 
     //kmiService:"https://kmi.dbca.wa.gov.au/geoserver",
-    kmiService:"{{ settings.KMI_SERVICE_URL }}",
+    kmiService:"{{ mapserver.kmi }}",
     kmiApiService: "{{ settings.KMI_API_URL }}",
     legendSrc:"https://kmi.dbca.wa.gov.au/geoserver/gwc/service/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&legend_options=fontName:Times%20New%20Roman;fontAntiAliasing:true;fontSize:14;bgColor:0xFFFFEE;dpi:120;labelMargin:10&LAYER=",
 
@@ -25,8 +25,6 @@ var env = {
     layerMapping:{
     },
     overviewLayer:"{{ settings.OVERVIEW_LAYER }}",
-
-    kmiUrl:"{{ mapserver.kmi }}",
     hotspotsUrl:"{{mapserver.hotspots}}"
 };
 

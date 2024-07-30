@@ -1281,7 +1281,7 @@
 
         if (options.mapLayer) return options.mapLayer
         var vm = this
-        var url = this.env.kmiUrl + "/wfs"
+        var url = this.env.kmiService + "/wfs"
         var withCredentialsSetting = true
         if (options.id.startsWith('hotspots:')) {
           withCredentialsSetting = false
