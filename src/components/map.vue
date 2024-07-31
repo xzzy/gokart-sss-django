@@ -1491,9 +1491,8 @@
 			  // Create map layer NB this.env.hotSpotService does not work inside $get so URL is created from the GetCapabilities run above
         const layerId = 'hotspots: flight_mosaics';
         const layerName = 'Flight mosaics';
-			  var url = vm.env.hotSpotService + '/wms'
 			  var imgSource = new ol.source.ImageWMS({
-				  url: capabilities.Service.OnlineResource + '/hotspots/wms',
+				  url: vm.env.hotspotsUrl + '/hotspots/wms',
 				  serverType: 'geoserver',
 				  crossOrigin :'anonymous',
 				  params: {
