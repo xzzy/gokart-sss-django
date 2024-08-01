@@ -12,6 +12,7 @@ import base64
 import datetime
 import json
 import pathlib
+import re
 from io import BytesIO
 from sss.models import UserProfile, Proxy, MapServer
 from sss import models as sss_models
@@ -486,3 +487,59 @@ def gdal_download(request, fmt):
         return response    
     else:
         raise ValidationError('User is not authenticated')    
+    
+def himawari8(request, target):
+    last_updatetime = request.GET.get('updatetime')
+    request_url = request.build_absolute_uri()
+    baseUrl = request_url[0:request_url.find("/hi8")]
+    key = "himawari8.{}".format(target)
+    result = None
+    getcaps = None
+    FIREWATCH_HTTPS_VERIFY = True
+    firewatch_caps_url = conf.settings.SRSS_URL + "/mapproxy/firewatch/service?service=wms&request=getcapabilities"
+
+    if cache.get("himware18") is not None:
+        if cache.get(key) is not None:
+            result = json.loads(cache.get(key))
+        else:
+            getcaps = cache.get("himware18")
+    else:
+        resp = requests.get(firewatch_caps_url, verify=FIREWATCH_HTTPS_VERIFY)
+        resp.raise_for_status()
+        getcaps = resp.content
+        getcaps = getcaps.decode("utf-8")
+        cache.set("himawari8", getcaps, 60 * 10)  # cache for 10 mins
+
+    if not result:
+    #     # Oct-2023: Himarwari layer names updated from *_HI8_* to *_HI9_*
+        layernames = re.findall("\w+HI9\w+{}\.\w+".format(target), getcaps)
+        layers = []
+
+        for layer in layernames:
+            layers.append([settings.PERTH_TIMEZONE.localize(datetime.datetime.strptime(re.findall("\w+_(\d+)_\w+", layer)[0], "%Y%m%d%H%M")), layer])
+
+        layers = sorted(layers,key=lambda layer:layer[0])
+        for layer in layers:
+            layer[0] = (layer[0]).strftime("%a %b %d %Y %H:%M:%S AWST")
+
+        result = {
+            "servers": [baseUrl + conf.settings.FIREWATCH_SERVICE],
+            "layers": layers,
+            # "updatetime":layers[len(layers) - 1][0]
+        }
+        if len(layers) > 0:
+            result["updatetime"] = layers[len(layers) - 1][0]
+        else:
+            result["updatetime"] = None
+
+        cache.set(key, json.dumps(result), 60*10)  # cache for 10 mins
+    if len(result["layers"]) == 0:
+        return HttpResponse(status=404)
+    elif last_updatetime and last_updatetime == result["updatetime"]:
+        return "{}"
+    else:
+        content_type = 'application/json'
+        json_data = json.dumps(result)
+        print(json_data)
+        response = HttpResponse(json_data, content_type=content_type)
+        return response
