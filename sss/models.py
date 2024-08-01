@@ -120,8 +120,8 @@ class Proxy(models.Model):
     request_path = models.CharField(max_length=255)
     proxy_url = models.CharField(max_length=255)
     basic_auth_enabled = models.BooleanField(default=False)
-    username = models.CharField(max_length=255, blank=False)
-    password = models.CharField(max_length=255, blank=False)
+    username = models.CharField(max_length=255, blank=True, null=True)
+    password = models.CharField(max_length=255, blank=True, null=True)
     active = models.BooleanField(default=True)
 
     class Meta:
