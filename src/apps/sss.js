@@ -384,7 +384,7 @@ if (result) {
             },
             timelineRefresh:300,
             fetchTimelineUrl:function(lastUpdatetime){
-                return self.env.gokartService + '/hi8/AHI_TKY_FHS?updatetime=' + lastUpdatetime
+                return '/hi8/AHI_TKY_b321?updatetime=' + lastUpdatetime
             },
             setTimeIndex:function(layer, tileLayer, previousTimeline, defaultFunc) {
                 var timeIndex = null
@@ -413,7 +413,7 @@ if (result) {
             id: 'himawari8:bandtc',
             timelineRefresh:300,
             fetchTimelineUrl:function(lastUpdatetime){
-                return self.env.gokartService + '/hi8/AHI_TKY_b321?updatetime=' + lastUpdatetime
+              return '/hi8/AHI_TKY_b321?updatetime=' + lastUpdatetime
             },
             setTimeIndex:function(layer,tileLayer,previousTimeline,defaultFunc) {
                 var timeIndex = null
@@ -454,7 +454,7 @@ if (result) {
             id: 'himawari8:band7',
             timelineRefresh:300,
             fetchTimelineUrl:function(lastUpdatetime){
-                return self.env.gokartService + '/hi8/AHI_TKY_b7?updatetime=' + lastUpdatetime
+                return '/hi8/AHI_TKY_b7?updatetime=' + lastUpdatetime
             },
             setTimeIndex:function(layer,tileLayer,previousTimeline,defaultFunc) {
                 var timeIndex = null
