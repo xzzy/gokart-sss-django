@@ -458,7 +458,8 @@ def loadDatasource(session_cookie,workdir,loadedDatasources,options, request):
                 if not os.path.exists(os.path.dirname(datasource)):
                     os.makedirs(os.path.dirname(datasource))
                 with open(datasource,"wb") as f:
-                    f.write(request.POST.get(options["parameter"]))
+                    f.write(bytes(request.POST.get(options["parameter"]),'utf-8'))
+                    
                 loadedDatasources[options["parameter"]] = (datasource,getDatasourceFiles(os.path.dirname(datasource),datasource))
     
         options["file"] = loadedDatasources[options["parameter"]][0]
