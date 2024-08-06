@@ -1278,169 +1278,170 @@
 	  
       // loader for vector layers with hover querying
       createWFSLayer: function (options) {
-
-        if (options.mapLayer) return options.mapLayer
-        var vm = this
-        var url = this.env.kmiService + "/wfs"
-        var withCredentialsSetting = true
-        if (options.id.startsWith('hotspots:')) {
-          withCredentialsSetting = false
-          var url = this.env.hotspotsUrl  + "/wfs"
-        }
-       
-        // default overridable params sent to the WFS source
-        options.params = $.extend({
-          version: '1.1.0',
-          service: 'WFS',
-          request: 'GetFeature',
-          outputFormat: 'application/json',
-          srsname: 'EPSG:4326',
-          typename: getLayerId(options.id)
-		      //cql_filter: options.cqlFilter
-        }, options.params || {})
-
-        var vectorSource = new ol.source.Vector({
-            features: options.features || undefined,
-			      params: options.params
-        })
-       
-		    var vector = new ol.layer.Vector({
-          opacity: options.opacity || 1,
-          source: vectorSource,
-          style: options.style,
-		      getFeatureInfo: options.getFeatureInfo
-        })
+        if((options.id !== "dpaw:resource_tracking_history" || options.cql_filter !== false)){
+          if (options.mapLayer) return options.mapLayer
+          var vm = this
+          var url = this.env.kmiService + "/wfs"
+          var withCredentialsSetting = true
+          if (options.id.startsWith('hotspots:')) {
+            withCredentialsSetting = false
+            var url = this.env.hotspotsUrl  + "/wfs"
+          }
         
-        vector.progress = ''	// NB can add properties to object this way
-        vectorSource.retrieveFeatures = function (filter, onSuccess, onError) {
-          var params = $.extend({}, options.params)
+          // default overridable params sent to the WFS source
+          options.params = $.extend({
+            version: '1.1.0',
+            service: 'WFS',
+            request: 'GetFeature',
+            outputFormat: 'application/json',
+            srsname: 'EPSG:4326',
+            typename: getLayerId(options.id)
+            //cql_filter: options.cqlFilter
+          }, options.params || {})
+
+          var vectorSource = new ol.source.Vector({
+              features: options.features || undefined,
+              params: options.params
+          })
+        
+          var vector = new ol.layer.Vector({
+            opacity: options.opacity || 1,
+            source: vectorSource,
+            style: options.style,
+            getFeatureInfo: options.getFeatureInfo
+          })
           
-          if (filter) {
-            params.cql_filter = filter
-          } else if (params.cql_filter) {
-            delete params.cql_filter
-          }
-		  
-		      $.ajax({
-			      url: url + '?' + $.param(params),
-			      success: function (response, stat, xhr) {
-              var features = vm.$root.geojson.readFeatures(response)		
-              onSuccess(features)
-            },
-            error: function () {
-                if (onError) {
-                    onError(status, message)
-                }
-            },
-            dataType: 'json',
-            xhrFields: {
-              //withCredentials: true
-			        withCredentials: withCredentialsSetting
-            }
-          })
-        }
-       
-		
-        vectorSource.loadSource = function (loadType, onSuccess) {
-          if (options.cql_filter) {
-            options.params.cql_filter = options.cql_filter
-          } else if (options.params.cql_filter) {
-            delete options.params.cql_filter
-          }
-          vm.$root.active.refreshRevision += 1
-          vector.progress = 'loading'
-		      if (options.hotspotFilter) {
-		        options.params.cql_filter = options.hotspotFilter
-          }
-          $.ajax({
-            url: url + '?' + $.param(options.params),
-            success: function (response, stat, xhr) {
-              
-              var features = vm.$root.geojson.readFeatures(response)
-              var defaultOnload = function(loadType, source, features) {
-                  source.clear(true)
-                  source.addFeatures(features)
-              }
-			  
-              if (options.onload) {
-                
-                options.onload(loadType, vectorSource, features, defaultOnload)
-              } else {
-                defaultOnload(loadType, vectorSource, features)
-              }
-
-              vm.$root.active.refreshRevision += 1
-              vector.progress = 'idle'
-              if(options.getUpdatedTime) {
-                var time = options.getUpdatedTime(features)
-                if (time) {
-                    vector.set('updated', time.toLocaleString())
-                } else {
-                    vector.set('updated', "")
-                }
-              } else {
-                vector.set('updated', moment().toLocaleString())
-              }
-              vectorSource.dispatchEvent('loadsource')
-              if (onSuccess) {
-                onSuccess()
-              }
-            },            
-            error: function (jqXHR, status, message) {
-              vm.$root.active.refreshRevision += 1
-              vector.progress = 'error'
-              if (options.onerror) {
-                options.onerror(status, message)
-              }
-            },
-            dataType: 'json',
-            xhrFields: {
-              //withCredentials: true
-			        withCredentials: withCredentialsSetting
-            }
-          })
-        }
-        
-        if (options.onadd) {
-          vectorSource.on('addfeature', function (event) {
-            options.onadd(event.feature)
-          })
-        }
-        
-        vector.set('name', options.name)
-        vector.set('id', options.mapLayerId)
-        vector.layer = options
-        options.mapLayer = vector
-
-       
-        vector.stopAutoRefresh = function() {
-            vm._stopAutoRefresh(this)
-        }
-        
-        vector.refresh = function(type) {
-            vectorSource.loadSource(type || "auto")
-        }
-
-        vector.startAutoRefresh = function() {
-            vm._startAutoRefresh(this)
-        }
-
-        vector.postRemove = function () {
-          vm._postRemove(this)
-        }
-        
-        vector.postAdd = function() {
+          vector.progress = ''	// NB can add properties to object this way
+          vectorSource.retrieveFeatures = function (filter, onSuccess, onError) {
+            var params = $.extend({}, options.params)
             
-            // if the "refresh" option is set, set a timer
-            // to update the source
-            this.startAutoRefresh()
-            // populate the source with data
-            if (options.initialLoad === undefined || options.initialLoad === true) {
-                vectorSource.loadSource("initial")
+            if (filter) {
+              params.cql_filter = filter
+            } else if (params.cql_filter) {
+              delete params.cql_filter
             }
-        }
+        
+            $.ajax({
+              url: url + '?' + $.param(params),
+              success: function (response, stat, xhr) {
+                var features = vm.$root.geojson.readFeatures(response)		
+                onSuccess(features)
+              },
+              error: function () {
+                  if (onError) {
+                      onError(status, message)
+                  }
+              },
+              dataType: 'json',
+              xhrFields: {
+                //withCredentials: true
+                withCredentials: withCredentialsSetting
+              }
+            })
+          }
+        
+      
+          vectorSource.loadSource = function (loadType, onSuccess) {
+            if (options.cql_filter) {
+              options.params.cql_filter = options.cql_filter
+            } else if (options.params.cql_filter) {
+              delete options.params.cql_filter
+            }
+            vm.$root.active.refreshRevision += 1
+            vector.progress = 'loading'
+            if (options.hotspotFilter) {
+              options.params.cql_filter = options.hotspotFilter
+            }
+            $.ajax({
+              url: url + '?' + $.param(options.params),
+              success: function (response, stat, xhr) {
+                
+                var features = vm.$root.geojson.readFeatures(response)
+                var defaultOnload = function(loadType, source, features) {
+                    source.clear(true)
+                    source.addFeatures(features)
+                }
+          
+                if (options.onload) {
+                  
+                  options.onload(loadType, vectorSource, features, defaultOnload)
+                } else {
+                  defaultOnload(loadType, vectorSource, features)
+                }
 
-        return vector
+                vm.$root.active.refreshRevision += 1
+                vector.progress = 'idle'
+                if(options.getUpdatedTime) {
+                  var time = options.getUpdatedTime(features)
+                  if (time) {
+                      vector.set('updated', time.toLocaleString())
+                  } else {
+                      vector.set('updated', "")
+                  }
+                } else {
+                  vector.set('updated', moment().toLocaleString())
+                }
+                vectorSource.dispatchEvent('loadsource')
+                if (onSuccess) {
+                  onSuccess()
+                }
+              },            
+              error: function (jqXHR, status, message) {
+                vm.$root.active.refreshRevision += 1
+                vector.progress = 'error'
+                if (options.onerror) {
+                  options.onerror(status, message)
+                }
+              },
+              dataType: 'json',
+              xhrFields: {
+                //withCredentials: true
+                withCredentials: withCredentialsSetting
+              }
+            })
+          }
+          
+          if (options.onadd) {
+            vectorSource.on('addfeature', function (event) {
+              options.onadd(event.feature)
+            })
+          }
+          
+          vector.set('name', options.name)
+          vector.set('id', options.mapLayerId)
+          vector.layer = options
+          options.mapLayer = vector
+
+        
+          vector.stopAutoRefresh = function() {
+              vm._stopAutoRefresh(this)
+          }
+          
+          vector.refresh = function(type) {
+              vectorSource.loadSource(type || "auto")
+          }
+
+          vector.startAutoRefresh = function() {
+              vm._startAutoRefresh(this)
+          }
+
+          vector.postRemove = function () {
+            vm._postRemove(this)
+          }
+          
+          vector.postAdd = function() {
+              
+              // if the "refresh" option is set, set a timer
+              // to update the source
+              this.startAutoRefresh()
+              // populate the source with data
+              if (options.initialLoad === undefined || options.initialLoad === true) {
+                  vectorSource.loadSource("initial")
+              }
+          }
+
+          return vector
+        }
       },
 	  
 	  createWMSLayer: function (mosaicPosition, dateInfo) {

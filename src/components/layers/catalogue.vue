@@ -184,52 +184,52 @@ div.ol-previewmap.ol-uncollapsible {
         this.adjustHeight()
       },
       preview: function (l) {
-        // console.log("preview");
-        // console.log("l.type");
-        if (this.layer === l) {
-          return
-        }
-        if (this.layer.preview) {
-          this.layer.preview.setMap(null)
-        }
-        if (!l) {
-          this.layer = {}
-          return
-        }
-        if (!l.preview) {
-          l.preview = new ol.control.OverviewMap({
-            className: 'ol-overviewmap ol-previewmap',
-            layers: [this.$root.map['create' + l.type]($.extend({}, l, {refresh:0,previewLayer:true}))],
-            collapsed: false,
-            collapsible: false,
-            min_ratio:1,
-            max_ratio:1,
-            view: new ol.View({
-              projection: 'EPSG:4326'
+        if(l.mapLayerId !== "dpaw:resource_tracking_history"){
+          if (this.layer === l) {
+            return
+          }
+          if (this.layer.preview) {
+            this.layer.preview.setMap(null)
+          }
+          if (!l) {
+            this.layer = {}
+            return
+          }
+          if (!l.preview) {
+            l.preview = new ol.control.OverviewMap({
+              className: 'ol-overviewmap ol-previewmap',
+              layers: [this.$root.map['create' + l.type]($.extend({}, l, {refresh:0,previewLayer:true}))],
+              collapsed: false,
+              collapsible: false,
+              min_ratio:1,
+              max_ratio:1,
+              view: new ol.View({
+                projection: 'EPSG:4326'
+              })
             })
-          })
-        }
-        let previewMap = l.preview.element.getElementsByClassName("ol-overviewmap-map");
-        if (previewMap.length > 0) {
-            previewMap[0].style.width = '100%';
-            previewMap[0].style.height = '100%';
-            previewMap[0].style.border = '0';
-            previewMap[0].style.margin = '0';
+          }
+          let previewMap = l.preview.element.getElementsByClassName("ol-overviewmap-map");
+          if (previewMap.length > 0) {
+              previewMap[0].style.width = '100%';
+              previewMap[0].style.height = '100%';
+              previewMap[0].style.border = '0';
+              previewMap[0].style.margin = '0';
 
-        } 
-        // console.log("(this.$root.map.olmap)")
-        // console.log(this.$root.map.olmap);
-        l.preview.setMap(this.$root.map.olmap)
-        var previewEl = $(l.preview.getOverviewMap().getViewport())
-        this.layer = l
-        if (!previewEl.find('.layerdetails').length > 0) {
-          this.$nextTick(function() {
-            previewEl.prepend(this.$els.layerdetails.innerHTML)
-          })
-        }
-        let stopeventElement = document.getElementsByClassName("ol-overlaycontainer-stopevent");
-        if(stopeventElement.length>0){
-          stopeventElement[0].style.zIndex = ""
+          } 
+          // console.log("(this.$root.map.olmap)")
+          // console.log(this.$root.map.olmap);
+          l.preview.setMap(this.$root.map.olmap)
+          var previewEl = $(l.preview.getOverviewMap().getViewport())
+          this.layer = l
+          if (!previewEl.find('.layerdetails').length > 0) {
+            this.$nextTick(function() {
+              previewEl.prepend(this.$els.layerdetails.innerHTML)
+            })
+          }
+          let stopeventElement = document.getElementsByClassName("ol-overlaycontainer-stopevent");
+          if(stopeventElement.length>0){
+            stopeventElement[0].style.zIndex = ""
+          }
         }
       },
       toggleAll: function (checked, event) {
@@ -245,10 +245,9 @@ div.ol-previewmap.ol-uncollapsible {
       // toggle a layer in the Layer Catalogue
       //return true if layer's state is changed; otherwise return false
       onLayerChange: function (layer, checked) {
-
         // console.log("onLayerChange");
         // console.log(layer);
-	 
+
         var vm = this
         var active = this.$root.active
         var map = this.$root.map
@@ -256,36 +255,39 @@ div.ol-previewmap.ol-uncollapsible {
         if (checked === (map.getMapLayer(layer) !== undefined)) {
           return false
         }
+
         // make the layer match the state
         if (checked) {
-
-		    var olLayer = map['create' + layer.type](layer)
-          olLayer.setOpacity(layer.opacity || 1)
-          if (layer.base) {
-            // "Switch out base layers automatically" is enabled, remove
-            // all other layers with the "base" option set.
-            if (this.swapBaseLayers) {
-              active.olLayers.forEach(function (mapLayer) {
-                if (vm.getLayer(mapLayer)) {
-                  if (mapLayer.get('dependentLayer')) return
-                    if (vm.getLayer(mapLayer).base) {
-                      active.removeLayer(mapLayer)
-                    }
-                }
-                })
-            }
-            // add new base layer to bottom
-            map.olmap.getLayers().insertAt(0, olLayer)
+          if(layer.mapLayerId == "dpaw:resource_tracking_history" && layer.cql_filter == false) {
+            alert("Please add a resource to view the history.")
           } else {
-
-            map.olmap.addLayer(olLayer)
+            var olLayer = map['create' + layer.type](layer)
+            olLayer.setOpacity(layer.opacity || 1)
+            if (layer.base) {
+              // "Switch out base layers automatically" is enabled, remove
+              // all other layers with the "base" option set.
+              if (this.swapBaseLayers) {
+                active.olLayers.forEach(function (mapLayer) {
+                  if (vm.getLayer(mapLayer)) {
+                    if (mapLayer.get('dependentLayer')) return
+                      if (vm.getLayer(mapLayer).base) {
+                        active.removeLayer(mapLayer)
+                      }
+                  }
+                  })
+              }
+              // add new base layer to bottom
+              map.olmap.getLayers().insertAt(0, olLayer)
+            } else {
+              map.olmap.addLayer(olLayer)
+            }
+            this.map.olmap.dispatchEvent(this.map.createEvent(this.map, "addLayer", {mapLayer:olLayer}))
           }
-          this.map.olmap.dispatchEvent(this.map.createEvent(this.map, "addLayer", {mapLayer:olLayer}))
         } else {
           active.removeLayer(map.getMapLayer(layer))
         }
         return true
-      },
+        },
 
       containsTag(tags, search) {
         for (let tag of tags) {
