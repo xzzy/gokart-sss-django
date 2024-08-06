@@ -238,8 +238,6 @@
         return results
       },
       mapLayer: function (id) {
-	console.log("MAPLAYER");
-	console.log(id); 
         if (!this.$root.map) {
           return null
         }

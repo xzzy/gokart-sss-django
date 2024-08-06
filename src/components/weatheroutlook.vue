@@ -575,8 +575,8 @@
       setOutlookColumns:function(columns,toolid) {
         var outlookSetting = toolid?this.getOutlookSetting(toolid):this.outlookSetting
         toolid = toolid || this.outlookTool.tooid
-        console.log("toolID");
-        console.log(toolid);
+        // console.log("toolID");
+        // console.log(toolid);
         if (!columns || columns.length === 0) {
             if (toolid === "weather-outlook-default") {
                 columns = [

@@ -480,14 +480,14 @@
         // method to precache SVGs as raster (PNGs)
         // workaround for Firefox missing the SurfaceCache when blitting to canvas
         // returns a url or undefined if svg isn't baked yet
-        console.log("getBlob keys (many)");
-        console.log(keys)        
+        // console.log("getBlob keys (many)");
+        // console.log(keys)        
         var toolname = undefined;
         if (feature.hasOwnProperty("tool")) {
            if (feature.tool.hasOwnProperty("name")) {
             // console.log(feature['tool']['name']);            
             toolname = feature['tool']['name'];
-            console.log(vm.annotations.getTool(toolname));
+            // console.log(vm.annotations.getTool(toolname));
             }
         } else if (feature.hasOwnProperty("values_")) {
           // console.log(feature.get('toolName'))
@@ -503,8 +503,8 @@
         var key = JSON.stringify(keys.map(function(k) {
           return vm.annotations.getStyleProperty(feature, k, 'default', tool)
         }))
-        console.log("getBlob keys (one)");
-        console.log(key)
+        // console.log("getBlob keys (one)");
+        // console.log(key)
         
         // console.log("getBlob JSON.stringify");
         // console.log(key);
