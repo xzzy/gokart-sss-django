@@ -181,7 +181,7 @@ if (result) {
           delete store["activeLayers"]
       }
       var storedData = utils.extend(JSON.parse(JSON.stringify(persistentData)), store || {}, volatileData)
-    
+      storedData['activeLayers'] = storedData['activeLayers'].filter(layer => layer[0] !== 'dpaw:resource_tracking_history');
       global.gokart = new Vue({
         el: 'body',
         components: {

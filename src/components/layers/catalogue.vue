@@ -50,7 +50,7 @@
             <div class="small-2">
               <div class="text-right">
                 <div class="switch tiny" @click.stop v-bind:title="getMapLayer(l) === undefined?'Add to map':'Remove from map'">
-                  <input class="switch-input ctlgsw" id="ctlgsw{{ $index }}" @change="onLayerChange(l, $event.target.checked)" v-bind:checked="getMapLayer(l) !== undefined"
+                  <input class="switch-input ctlgsw" id="ctlgsw{{ $index }}" @change="onLayerChange(l, $event.target.checked, $event)" v-bind:checked="getMapLayer(l) !== undefined"
                     type="checkbox" />
                   <label class="switch-paddle" for="ctlgsw{{ $index }}">
                     <span class="show-for-sr">Toggle layer</span>
@@ -244,7 +244,7 @@ div.ol-previewmap.ol-uncollapsible {
 	  
       // toggle a layer in the Layer Catalogue
       //return true if layer's state is changed; otherwise return false
-      onLayerChange: function (layer, checked) {
+      onLayerChange: function (layer, checked, event) {
         // console.log("onLayerChange");
         // console.log(layer);
 
@@ -260,6 +260,8 @@ div.ol-previewmap.ol-uncollapsible {
         if (checked) {
           if(layer.mapLayerId == "dpaw:resource_tracking_history" && layer.cql_filter == false) {
             alert("Please add a resource to view the history.")
+            event.target.checked = false
+            return 
           } else {
             var olLayer = map['create' + layer.type](layer)
             olLayer.setOpacity(layer.opacity || 1)
