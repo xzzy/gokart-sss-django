@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     'sss',
     'rest_framework',
     'django_cron',
+    'appmonitor_client'
 ]
 
 MIDDLEWARE = [
@@ -88,7 +89,8 @@ CRON_CLASSES = [
     "sss.cron.FetchCatalogueDataCronJob",
     "sss.cron.FetchBfrsRegionDataCronJob",
     "sss.cron.SyncBOMDataCronJob",
-    "sss.cron.SyncCatalogueCSWDataCronJob"
+    "sss.cron.SyncCatalogueCSWDataCronJob",
+    'appmonitor_client.cron.CronJobAppMonitorClient'
 ]
 
 ROOT_URLCONF = 'sss.urls'
