@@ -2016,7 +2016,6 @@
       this._pointShapesMap = {}
       
       $.each(this.pointShapes,function(index,shape){
-        console.log(shape);
         vm._pointShapesMap[shape[1]] = shape
       })
       

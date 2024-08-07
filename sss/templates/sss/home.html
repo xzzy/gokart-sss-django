@@ -35,14 +35,14 @@
     <script>
       
       ol.inherits = function(childCtor, parentCtor) {
-         console.log("INHERITS");
-         console.log(parentCtor);
-         console.log(childCtor);
+        //  console.log("INHERITS");
+        //  console.log(parentCtor);
+        //  console.log(childCtor);
              // console.log(childCtor);
              // console.log(parentCtor);
-         console.log(parentCtor.prototype)
-         console.log(childCtor.prototype)
-         console.log(Object.create(parentCtor.prototype));
+        //  console.log(parentCtor.prototype)
+        //  console.log(childCtor.prototype)
+        //  console.log(Object.create(parentCtor.prototype));
          childCtor.prototype = Object.create(parentCtor.prototype);
          childCtor.prototype.constructor = childCtor;
      }
