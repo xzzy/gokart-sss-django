@@ -715,7 +715,7 @@
 				// if (layer.get("name") == "Thermal Imaging Hotspots"){
 				// 	map.olmap.removeLayer(layer)
 				// }
-				if (layer_name.startsWith("Hotspot image") || layer_name.startsWith("Thermal Imaging Hotspots") || layer_name("name").startsWith("Thermal Imaging Flight Footprints") || layer_name("name").startsWith("Flight mosaics")){
+				if (layer_name.startsWith("Hotspot image") || layer_name.startsWith("Thermal Imaging Hotspots") || layer_name.startsWith("Thermal Imaging Flight Footprints") || layer_name.startsWith("Flight mosaics")){
 					 
 					map.olmap.removeLayer(layer)
 				}
