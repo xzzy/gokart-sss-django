@@ -1015,7 +1015,15 @@ def download(request, fmt):
                         srss[layer["sourcename"]] = layer["srs"]
                         break
         del srss
-
+        
+        # changing coordinates to EPSG:4326
+        for layer in layers:
+            layer['srs'] = 'EPSG:4326'
+            if(layer['sourcelayers']):
+                for l in layer['sourcelayers']:
+                    l['meta']['srs'] = 'EPSG:4326'
+                    l['srs'] = 'EPSG:4326'
+                    
         #convert and union the layers
         outputdir = os.path.join(workdir,"output")
         os.mkdir(outputdir)
