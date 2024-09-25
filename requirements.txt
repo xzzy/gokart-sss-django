@@ -1,6 +1,6 @@
-Django==5.0.7
+Django==5.0.8
 git+https://github.com/dbca-wa/dbca-utils.git#egg=dbca-utils
-gunicorn==21.2.0
+gunicorn==23.0.0
 gevent==23.9.1
 git+https://github.com/dbca-wa/webtemplate2.git#egg=webtemplate_dbca
 git+https://github.com/dbca-wa/wagov_utils.git#egg=wagov_utils
@@ -14,7 +14,7 @@ django-cors-headers==4.2.0
 GDAL==3.8.4
 affine==2.1.0
 #./packages/GDAL-3.6.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
-djangorestframework==3.14.0
+djangorestframework==3.15.2
 Jinja2==3.1.2
 django-jinja==2.10.2
 jinja2-context-filters==1.0.0
