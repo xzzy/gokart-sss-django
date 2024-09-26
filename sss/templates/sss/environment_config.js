@@ -19,6 +19,9 @@ var env = {
     staticService:"{{ settings.DBCA_STATIC_URL }}",
 
     s3Service:"{{ settings.SSS_FILE_URL }}",
+    weatherForecastUrl:"{{ settings.WEATHERFORECAST_URL }}",
+    weatherForecastUser:"{{ settings.WEATHERFORECAST_USER }}",
+    weatherForecastPassword:"{{ settings.WEATHERFORECAST_PASSWORD }}",
 
     appMapping:{
     },
