@@ -25,4 +25,4 @@ django-cron==0.6.0
 psycopg2==2.9.7
 psycopg==3.1.10
 requests==2.32.3
-urllib==2.2.3
+urllib3==2.2.3
