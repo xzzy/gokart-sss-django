@@ -413,7 +413,7 @@ def loadDatasource(session_cookie,workdir,loadedDatasources,options, request):
             if not os.path.exists(os.path.dirname(datasource)):
                 os.makedirs(os.path.dirname(datasource))
             url = "{}&outputFormat=application%2Fjson&srsName=EPSG:4326".format(options["url"])
-            auth_request = requests.auth.HTTPBasicAuth(settings.AUTH2_BASIC_AUTH_USER,settings.KMI_AUTH2_BASIC_AUTH_PASSWORD)
+            auth_request = requests.auth.HTTPBasicAuth(settings.KMI_AUTH2_BASIC_AUTH_USER,settings.KMI_AUTH2_BASIC_AUTH_PASSWORD)
             r = requests.get(url,
                 verify=False,
                 #cookies=session_cookie
