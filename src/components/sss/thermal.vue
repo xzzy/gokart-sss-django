@@ -1032,7 +1032,7 @@
             		var vm = this
 			var map = this.$root.map			
 			// Remove layers if exist
-			map.olmap.getLayers().forEach(function (layer) {
+			map.active.olLayers.forEach(function (layer) {
 				if (layer.get('name') === 'Thermal Imaging Hotspots') {
 					map.olmap.removeLayer(layer)
 				}
