@@ -99,7 +99,7 @@ def getShapelyGeometry(feature):
         return shape(feature["geometry"])
 
 
-def transform(geometry,src_proj="EPSG:4326",target_proj='aea'):
+def transform(geometry,src_proj="EPSG:3857",target_proj='aea'):
     if src_proj == target_proj:
         return geometry
     else:
@@ -219,7 +219,7 @@ def extractPolygons(geom):
         return geom
     elif isinstance(geom,GeometryCollection):
         result = None
-        for g in geom:
+        for g in geom.geoms:
             p = extractPolygons(g)
             if not p:
                 continue
@@ -251,7 +251,7 @@ def extractPoints(geom):
         return geom
     elif isinstance(geom,GeometryCollection):
         result = None
-        for g in geom:
+        for g in geom.geoms:
             p = extractPoints(g)
             if not p:
                 continue
@@ -279,7 +279,7 @@ def extractPoints(geom):
         return None
 
 def retrieveFeatures(url,session_cookies):
-        auth_request = requests.auth.HTTPBasicAuth(settings.AUTH2_BASIC_AUTH_USER,settings.KMI_AUTH2_BASIC_AUTH_PASSWORD)
+        auth_request = requests.auth.HTTPBasicAuth(settings.KMI_AUTH2_BASIC_AUTH_USER,settings.KMI_AUTH2_BASIC_AUTH_PASSWORD)
         res = requests.get(url,
                            verify=False,
                            auth=auth_request,
@@ -463,7 +463,6 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
     total_area = 0
     total_layer_area = 0
     geometry = extractPolygons(getShapelyGeometry(feature))
-
     if not geometry :
         area_data["total_area"] = 0
         return result
@@ -475,7 +474,7 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
     #    status["invalid"] = msg
 
     geometry_aea = transform(geometry,target_proj='aea')
-
+    kmi_server = kmi.get_kmiserver()
     try:
         area_data["total_area"] = getGeometryArea(geometry_aea,unit,'aea')
     except:
@@ -505,8 +504,7 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
             layer["id"] = layer["layerid"]
         if not layer.get("kmiservice"):
             layer["kmiservice"] = kmi_server
-
-
+    
     area_data["layers"] = {}
     areas_map = {} if merge_result else None
     for layer in layers:
@@ -516,11 +514,10 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
             area_data["layers"][layer["id"]] = {"areas":layer_area_data}
 
             if layer.get('cqlfilter'):
-                layer_url="{}/wfs?service=wfs&version=2.0&request=GetFeature&typeNames={}&outputFormat=json&cql_filter=BBOX({},{},{},{},{}) AND {}".format(layer["kmiservice"],layer["layerid"],layerdefinition(layer)["geometry_property"]["name"],geometry.bounds[1],geometry.bounds[0],geometry.bounds[3],geometry.bounds[2],layer['cqlfilter'])
+                layer_url="{}/geoserver/wfs?service=wfs&version=2.0&request=GetFeature&typeNames={}&outputFormat=json&cql_filter=BBOX({},{},{},{},{}) AND {}".format(kmi_server,layer["layerid"],layerdefinition(layer)["geometry_property"]["name"],geometry.bounds[1],geometry.bounds[0],geometry.bounds[3],geometry.bounds[2],layer['cqlfilter'])
             else:
-                layer_url="{}/wfs?service=wfs&version=2.0&request=GetFeature&typeNames={}&outputFormat=json&bbox={},{},{},{}".format(layer["kmiservice"],layer["layerid"],geometry.bounds[1],geometry.bounds[0],geometry.bounds[3],geometry.bounds[2])
+                layer_url="{}/geoserver/wfs?service=wfs&version=2.0&request=GetFeature&typeNames={}&outputFormat=json&bbox={},{},{},{}".format(kmi_server,layer["layerid"],geometry.bounds[1],geometry.bounds[0],geometry.bounds[3],geometry.bounds[2])
 
-            #print(layer_url)
             layer_features = retrieveFeatures(layer_url,session_cookies)["features"]
 
             if settings.EXPORT_CALCULATE_AREA_FILES_4_DEBUG:
