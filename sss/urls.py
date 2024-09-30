@@ -34,6 +34,7 @@ urlpatterns = [
     path("outlookmetadata", api.outlookmetadata, name='api_outlookmetadata'),
     path("api/environment_config.js", api.environment_config, name='environment_config'),
     path("api/cataloguev2.json", api.cataloguev2, name='catalogue_example'),
+    path("weatherforecast", api.weatherforecast, name='weatherforecast'),
     re_path(
         "geoproxy/(?P<request_path>[A-Za-z0-9-]+)/(?P<path>.*)",
         api.mapProxyView,
