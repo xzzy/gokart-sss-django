@@ -4,9 +4,11 @@ from django.views.decorators.csrf import csrf_exempt
 from wagov_utils.components.proxy.views import proxy_view
 from django.core.cache import cache
 from django.template.loader import render_to_string
+from django.shortcuts import render 
 from sss import raster
 from sss import sss_gdal
 from sss import spatial as sss_spatial
+import os 
 import requests
 import base64
 import datetime
@@ -21,6 +23,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from sss import utils_cache
 from django.conf import settings
+from jinja2 import Template, Environment, FileSystemLoader
 
 def api_catalogue(request, *args, **kwargs):
     if request.user.is_authenticated:
@@ -543,3 +546,40 @@ def himawari8(request, target):
         print(json_data)
         response = HttpResponse(json_data, content_type=content_type)
         return response
+   
+@csrf_exempt
+def weatherforecast(request):
+    try:
+        if settings.WEATHERFORECAST_URL:
+            if request.method == 'POST':
+                requestData = request.POST.get("data")
+                if requestData:
+                    requestData = json.loads(requestData)
+                else:
+                    return JsonResponse({"error": "Request data is missing"}, status=400)
+
+                requestData["weatherforecast_url"] = settings.WEATHERFORECAST_URL
+                requestData["weatherforecast_user"] = settings.WEATHERFORECAST_USER
+                requestData["weatherforecast_password"] = settings.WEATHERFORECAST_PASSWORD
+
+                template_dir = os.path.join(settings.JINJA2_BASE_TEMPLATE, 'weather')
+                print(template_dir)
+                jinja_env = Environment(loader=FileSystemLoader(template_dir))
+                
+                template = jinja_env.get_template('weatherforecast.html')
+
+                rendered_template = template.render(
+                    envType=settings.ENV_TYPE,
+                    request_time=datetime.datetime.now(settings.PERTH_TIMEZONE),
+                    **requestData
+                )
+                return HttpResponse(rendered_template)
+
+            else:
+                return JsonResponse({"error": "Invalid request method"}, status=405)
+        else:
+            return HttpResponse("Path '/weatherforecast' Not Found", content_type="text/plain", status=404)
+
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return JsonResponse({"error": "An error occurred"}, status=500)
