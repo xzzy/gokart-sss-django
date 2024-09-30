@@ -420,8 +420,9 @@ def spatial(request):
         #     content_type = 'text/html'
         # else: 
         #     content_type = 'text/html'
-        content_type = 'text/html'
-        response = HttpResponse(data, content_type=content_type)    
+        
+        content_type = 'application/json'
+        response = HttpResponse(json.dumps(data), content_type=content_type)    
         return response    
     else:
         raise ValidationError('User is not authenticated')
