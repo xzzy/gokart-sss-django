@@ -7,6 +7,7 @@ import traceback
 import math
 #from datetime import datetime
 from multiprocessing import Process, Pipe
+import time
 
 from shapely.geometry import shape,MultiPoint,Point,mapping
 from shapely.geometry.polygon import Polygon
@@ -402,7 +403,9 @@ def calculateArea(feature,kmiserver,session_cookies,options):
     p.daemon = True
     p.start()
     parent_conn.send([feature,kmiserver,session_cookies,options])
+    time.sleep(5)
     result = parent_conn.recv()
+    # result = parent_conn.recv()
     parent_conn.close()
     #p.join()
     #print("{}:get the area result from other process".format(datetime.now()))
