@@ -214,12 +214,14 @@ ENV_DOMAIN="dbca"
 CSRF_TRUSTED_ORIGINS_STRING = decouple.config("CSRF_TRUSTED_ORIGINS", default='[]')
 CSRF_TRUSTED_ORIGINS = json.loads(str(CSRF_TRUSTED_ORIGINS_STRING))
 
+
 EMAIL_INSTANCE = decouple.config("EMAIL_INSTANCE", default="PROD")
 NON_PROD_EMAIL = decouple.config("NON_PROD_EMAIL", default="")
 PRODUCTION_EMAIL= decouple.config("PRODUCTION_EMAIL", default=False, cast=bool)
 EMAIL_DELIVERY = decouple.config("EMAIL_DELIVERY", default="off")
 SSS_FILE_URL = decouple.config("SSS_FILE_URL", default="http://sss-maps.dbca.wa.gov.au/")
 CALCULATE_AREA_IN_SEPARATE_PROCESS  = decouple.config("CALCULATE_AREA_IN_SEPARATE_PROCESS", default=False, cast=bool)
+DATA_UPLOAD_MAX_MEMORY_SIZE = decouple.config("DATA_UPLOAD_MAX_MEMORY_SIZE", default=51200000)
 EXPORT_CALCULATE_AREA_FILES_4_DEBUG = decouple.config("EXPORT_CALCULATE_AREA_FILES_4_DEBUG", default="true")
 
 NON_PROD_EMAIL = decouple.config("NON_PROD_EMAIL", default="")
