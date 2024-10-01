@@ -294,7 +294,7 @@ def checkOverlap(session_cookies,feature,options,logfile):
     # needs gdal 1.10+
     layers = options["layers"]
     geometry = extractPolygons(getShapelyGeometry(feature))
-
+    kmiserver = kmi.get_kmiserver()
     if not geometry :
         return
 
@@ -302,9 +302,9 @@ def checkOverlap(session_cookies,feature,options,logfile):
     #retrieve all related features from layers
     for layer in layers:
         if layer.get('cqlfilter'):
-            layer_url="{}/wfs?service=wfs&version=2.0&request=GetFeature&typeNames={}&outputFormat=json&cql_filter=BBOX({},{},{},{},{}) AND {}".format(layer["kmiservice"],layer["layerid"],layerdefinition(layer)["geometry_property"]["name"],geometry.bounds[1],geometry.bounds[0],geometry.bounds[3],geometry.bounds[2],layer['cqlfilter'])
+            layer_url="{}/geoserver/wfs?service=wfs&version=2.0&request=GetFeature&typeNames={}&outputFormat=json&cql_filter=BBOX({},{},{},{},{}) AND {}".format(kmiserver,layer["layerid"],layerdefinition(layer)["geometry_property"]["name"],geometry.bounds[1],geometry.bounds[0],geometry.bounds[3],geometry.bounds[2],layer['cqlfilter'])
         else:
-            layer_url="{}/wfs?service=wfs&version=2.0&request=GetFeature&typeNames={}&outputFormat=json&bbox={},{},{},{}".format(layer["kmiservice"],layer["layerid"],geometry.bounds[1],geometry.bounds[0],geometry.bounds[3],geometry.bounds[2])
+            layer_url="{}/geoserver/wfs?service=wfs&version=2.0&request=GetFeature&typeNames={}&outputFormat=json&bbox={},{},{},{}".format(kmiserver,layer["layerid"],geometry.bounds[1],geometry.bounds[0],geometry.bounds[3],geometry.bounds[2])
         features[layer["id"]] = retrieveFeatures(layer_url, session_cookies)["features"]
 
         for layer_feature in features[layer["id"]]:
@@ -667,6 +667,7 @@ def getFeature(feature,kmiserver,session_cookies,options):
     """
     # needs gdal 1.10+
     layers = options["layers"]
+    kmiserver = kmi.get_kmiserver()
     #check whether layers is not empty
     if not layers:
         raise Exception("Layers must not be empty.")
@@ -719,7 +720,7 @@ def getFeature(feature,kmiserver,session_cookies,options):
                     else:
                         #polygon or line
                         layer_features = retrieveFeatures(
-                            "{}/wfs?service=wfs&version=2.0&request=GetFeature&typeNames={}&outputFormat=json&cql_filter=CONTAINS({},POINT({} {}))".format(layer["kmiservice"],layer["layerid"],layerdefinition(layer)["geometry_property"]["name"],geometry.y,geometry.x),
+                            "{}/geoserver/wfs?service=wfs&version=2.0&request=GetFeature&typeNames={}&outputFormat=json&cql_filter=CONTAINS({},POINT({} {}))".format(kmiserver,layer["layerid"],layerdefinition(layer)["geometry_property"]["name"],geometry.y,geometry.x),
                             session_cookies
                         )["features"]
 
@@ -734,12 +735,12 @@ def getFeature(feature,kmiserver,session_cookies,options):
                         break
                     buff_polygon = Polygon(buffer(geometry.x,geometry.y,layer["buffer"]))
                     layer_features = retrieveFeatures(
-                        "{}/wfs?service=wfs&version=2.0&request=GetFeature&typeNames={}&outputFormat=json&cql_filter=INTERSECTS({},POLYGON(({})))".format(layer["kmiservice"],layer["layerid"],layerdefinition(layer)["geometry_property"]["name"],"%2C".join(["{} {}".format(coord[0],coord[1]) for coord in list(buff_polygon.exterior.coords)])),
+                        "{}/geoserver/wfs?service=wfs&version=2.0&request=GetFeature&typeNames={}&outputFormat=json&cql_filter=INTERSECTS({},POLYGON(({})))".format(kmiserver,layer["layerid"],layerdefinition(layer)["geometry_property"]["name"],"%2C".join(["{} {}".format(coord[0],coord[1]) for coord in list(buff_polygon.exterior.coords)])),
                         session_cookies
                     )["features"]
                 elif isinstance(geometry,Polygon):
                     layer_features = retrieveFeatures(
-                        "{}/wfs?service=wfs&version=2.0&request=GetFeature&typeNames={}&outputFormat=json&cql_filter=INTERSECTS({},POLYGON(({})))".format(layer["kmiservice"],layer["layerid"],layerdefinition(layer)["geometry_property"]["name"],"%2C".join(["{} {}".format(coord[0],coord[1]) for coord in list(geometry.exterior.coords)])),
+                        "{}/geoserver/wfs?service=wfs&version=2.0&request=GetFeature&typeNames={}&outputFormat=json&cql_filter=INTERSECTS({},POLYGON(({})))".format(kmiserver,layer["layerid"],layerdefinition(layer)["geometry_property"]["name"],"%2C".join(["{} {}".format(coord[0],coord[1]) for coord in list(geometry.exterior.coords)])),
                         session_cookies
                     )["features"]
                 else:
@@ -756,7 +757,7 @@ def getFeature(feature,kmiserver,session_cookies,options):
                 for buff in layer["buffer"] if isinstance(layer["buffer"],(list,tuple)) else [layer["buffer"]]:
                     buff_bbox = Polygon(buffer(geometry.x,geometry.y,buff)).bounds
                     layer_features = retrieveFeatures(
-                        "{}/wfs?service=wfs&version=2.0&request=GetFeature&typeNames={}&outputFormat=json&bbox={},{},{},{},urn:ogc:def:crs:EPSG:4326".format(layer["kmiservice"],layer["layerid"],buff_bbox[1],buff_bbox[0],buff_bbox[3],buff_bbox[2]),
+                        "{}/geoserver/wfs?service=wfs&version=2.0&request=GetFeature&typeNames={}&outputFormat=json&bbox={},{},{},{},urn:ogc:def:crs:EPSG:4326".format(kmiserver,layer["layerid"],buff_bbox[1],buff_bbox[0],buff_bbox[3],buff_bbox[2]),
                         session_cookies
                     )["features"]
 
