@@ -24,6 +24,7 @@ proj_aea = lambda geometry: pyproj.Proj("+proj=aea +lat_1=-17.5 +lat_2=-31.5 +la
 
 
 def exportGeojson(feat,fname):
+    print("export called")
     if isinstance(feat,BaseGeometry):
         geojson = {
             "type":"FeatureCollection",
@@ -403,9 +404,7 @@ def calculateArea(feature,kmiserver,session_cookies,options):
     p.daemon = True
     p.start()
     parent_conn.send([feature,kmiserver,session_cookies,options])
-    time.sleep(5)
     result = parent_conn.recv()
-    # result = parent_conn.recv()
     parent_conn.close()
     #p.join()
     #print("{}:get the area result from other process".format(datetime.now()))
