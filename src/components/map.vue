@@ -1591,12 +1591,18 @@
         if (options.base) {
           options.format = 'image/jpeg'
         }
+        if(!options.identifier){
+          layer_id = options.id
+        }
+        else{
+          layer_id = options.identifier
+        }
         var layer = $.extend({
           opacity: 1,
           //name: 'Mapbox Outdoors',
           //id: 'dpaw:mapbox_outdoors',
           name: options.title,
-          id: options.identifier,
+          id: layer_id,
           format: 'image/png',
           //tileSize: 1024,
           tileSize: 1024,
@@ -1700,7 +1706,7 @@
                     'VERSION': '1.1.1',
                     tiled: true,
                     STYLES: '',
-                    LAYERS: options.identifier,
+                    LAYERS: layer_id,
           }
         })
 
@@ -1827,18 +1833,23 @@
 
       // loader to create a WMTS layer from a kmi datasource
       createTileLayer: function (options) {
-
         if (options.mapLayer) return options.mapLayer
         var vm = this
         if (options.base) {
           options.format = 'image/jpeg'
+        }
+        if(!options.identifier){
+          layer_id = options.id
+        }
+        else{
+          layer_id = options.identifier
         }
         var layer = $.extend({
           opacity: 1,
           //name: 'Mapbox Outdoors',
           //id: 'dpaw:mapbox_outdoors',
           name: options.title,
-          id: options.identifier,
+          id: layer_id,
           format: 'image/png',
           //tileSize: 1024,
           tileSize: 1024,
@@ -1909,7 +1920,7 @@
               url: options.map_server_url+ "/gwc/service/wmts",
               format: "image/png",
               // layer: "public:mapbox-streets",
-              layer: options.identifier,              
+              layer: layer_id,              
               matrixSet: matrixSet,
               projection: projection,
               tileGrid: m,
@@ -2427,6 +2438,11 @@
               var position = vm.olmap.getLayers().getArray().findIndex(function(l){return l === ev.element})
               if (position >= 0) {
                   $.each(ev.element.layer.dependentLayers, function(index,l){
+                      if (!l.map_server_url){
+                          catalogue_layer = vm.$root.catalogue.getLayer(l.id)
+                          if(catalogue_layer && catalogue_layer.map_server_url){
+                            l['map_server_url'] = catalogue_layer.map_server_url}
+                        }
                       if (!l.element) {
                           l.element = vm['create' + l.type](l)
                           l.element.setOpacity(l.opacity || 1)
