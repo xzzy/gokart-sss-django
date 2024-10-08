@@ -3843,7 +3843,7 @@
                 type: 'ImageLayer',
                 name: 'Fire Boundary of Selected Bushfire Final Report',
                 id: "dpaw:bushfire_final_fireboundary_latest",
-                style: getLayerId("dpaw:bushfire_final_fireboundary_latest") + ".selected",
+                // style: getLayerId("dpaw:bushfire_final_fireboundary_latest") + ".selected",
                 mapLayerId:"dpaw:bushfire_final_fireboundary_latest" + "_selected",
                 autoAdd:false,
                 inheritRefresh: true

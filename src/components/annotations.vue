@@ -1102,8 +1102,15 @@
             selectedFeatures.clear()
             vm.selectedFeatures.clear()
 
-            if(ev.selected.length>0){
-            vm.selectedFeatures.push(ev.selected[0])
+            if (ev.selected.length > 0) {
+              vm.selectedFeatures.push(ev.selected[0]);
+              console.log(vm.selectedFeatures.getArray());
+              
+              vm.$nextTick(function() {
+                if (options && options.listeners && typeof options.listeners.selected === 'function') {
+                  options.listeners.selected(vm.selectedFeatures);
+                }
+              });
             }
           })
           // selectInter.defaultHandleEvent = selectInter.defaultHandleEvent || selectInter.handleEvent
