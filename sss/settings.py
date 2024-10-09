@@ -207,7 +207,7 @@ FIREWATCH_HTTPS_VERIFY=decouple.config("FIREWATCH_HTTPS_VERIFY", default=False)
 BFRS_SERVICE_URL=decouple.config("BFRS_SERVICE_URL", default="https://bfrs-uat.dbca.wa.gov.au")
 DBCA_STATIC_URL=decouple.config("DBCA_STATIC_URL", default="https://static.dbca.wa.gov.au")
 MAPBOX_URL=decouple.config("MAPBOX_URL", default="https://api.mapbox.com")
-OVERVIEW_LAYER=decouple.config("OVERVIEW_LAYER", default="dbca:mapbox-outdoors")
+OVERVIEW_LAYER=decouple.config("OVERVIEW_LAYER", default="dbca:mapbox-streets-satellite")
 ACCOUNT_DETAILS_URL=decouple.config("ACCOUNT_DETAILS_URL", default="/api/account.json")
 BOM_HOME=decouple.config("BOM_HOME", default="/var/www/bom_data/.data/")
 ENV_DOMAIN="dbca"
