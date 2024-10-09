@@ -315,14 +315,9 @@
   border-radius: 0 4px 0 0;
 }
 
-.ol-overviewmap .ol-overviewmap-map,
-.ol-overviewmap button {
-  display: inline-block;
-}
-
 .ol-overviewmap .ol-overviewmap-map {
   height: 150px;
-  margin: 2px;
+  margin: 0px;
   width: 300px;
 }
 

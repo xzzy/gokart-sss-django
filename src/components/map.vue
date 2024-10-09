@@ -2584,8 +2584,8 @@
                 preenable:function(enable){
                     if (enable) {
                         if (vm._overviewLayer) {
-                          // this.controls.getOverviewMap().addLayer(vm['create' + vm._overviewLayer.type](vm._overviewLayer))   
-                          new ol.Map().addLayer(vm['create' + vm._overviewLayer.type](vm._overviewLayer))                     
+                          this.controls.getOverviewMap().addLayer(vm['create' + vm._overviewLayer.type](vm._overviewLayer))   
+                          // new ol.Map().addLayer(vm['create' + vm._overviewLayer.type](vm._overviewLayer))                     
                           vm._overviewLayer.mapLayer.postAdd()
                         }
                     } else {
