@@ -26,6 +26,15 @@ var env = {
     appMapping:{
     },
     layerMapping:{
+        "dpaw:bushfirelist_latest"                  : "{{ settings.BUSHFIRELIST_LATEST_LAYER }}",
+        "dpaw:bushfire_latest"                      : "{{ settings.BUSHFIRE_LATEST_LAYER }}",
+        "dpaw:bushfire_final_fireboundary_latest"   : "{{ settings.BUSHFIRE_FINAL_FIREBOUNDARY_LATEST_LAYER }}",
+        "dpaw:bushfire_fireboundary_latest"         : "{{ settings.BUSHFIRE_FIREBOUNDARY_LATEST_LAYER }}",
+        "dpaw:bushfire"                             : "{{ settings.BUSHFIRE_LAYER }}",
+        "dpaw:bushfire_fireboundary"                : "{{ settings.BUSHFIRE_FIREBOUNDARY_LAYER }}",
+        "dpaw:resource_tracking_live"               : "{{ settings.RESOURCE_TRACKING_LIVE_LAYER }}",
+        //"dpaw:resource_tracking_history"            : "dpaw:resource_tracking_history_uat"
+
     },
     overviewLayer:"{{ settings.OVERVIEW_LAYER }}",
     hotspotsUrl:"{{mapserver.hotspots}}"
