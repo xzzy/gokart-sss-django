@@ -213,7 +213,7 @@ BOM_HOME=decouple.config("BOM_HOME", default="/var/www/bom_data/.data/")
 ENV_DOMAIN="dbca"
 CSRF_TRUSTED_ORIGINS_STRING = decouple.config("CSRF_TRUSTED_ORIGINS", default='[]')
 CSRF_TRUSTED_ORIGINS = json.loads(str(CSRF_TRUSTED_ORIGINS_STRING))
-SSS_SERVICE_URL=decouple.config("SSS_SERVICE_URL", default="https://sss-uat.dbca.wa.gov.au")
+
 BUSHFIRELIST_LATEST_LAYER=decouple.config("BUSHFIRELIST_LATEST_LAYER", default="dpaw:bushfirelist_latest")
 BUSHFIRE_LATEST_LAYER=decouple.config("BUSHFIRE_LATEST_LAYER", default="dpaw:bushfire_latest")
 BUSHFIRE_FINAL_FIREBOUNDARY_LATEST_LAYER=decouple.config("BUSHFIRE_FINAL_FIREBOUNDARY_LATEST_LAYER", default="dpaw:bushfire_final_fireboundary_latest")
