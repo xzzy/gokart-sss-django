@@ -99,7 +99,7 @@ RUN npm run build
 
 # Install the project (ensure that frontend projects have been built prior to this step).
 FROM python_libs_govapp
-COPY --chown=oim:oim gunicorn.ini manage.py ./
+COPY --chown=oim:oim gunicorn.ini manage.py uwsgi_prod.ini ./
 RUN touch /app/.env
 
 RUN python manage.py collectstatic --noinput
