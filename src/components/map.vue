@@ -1671,12 +1671,10 @@
         //   opacity: layer.opacity || 1,
         //   source: tileSource
         // })
-        var projection = ol.proj.get("EPSG:3857");
+        var projection = ol.proj.get("EPSG:4326");
         var projectionExtent = projection.getExtent();
-        // console.log("projectionExtent");
-        // console.log(projectionExtent);
 
-        var s = ol.extent.getWidth(projectionExtent) / 256;
+        var s = ol.extent.getWidth(projectionExtent) / 1024;
         var matrixSet = "mercator";
         var resolutions = new Array(21);
         var matrixIds = new Array(21);
@@ -1686,7 +1684,8 @@
         var m = new ol.tilegrid.WMTS({
               origin: ol.extent.getTopLeft(projectionExtent),
               resolutions: resolutions,
-              matrixIds: matrixIds
+              matrixIds: matrixIds,
+              tileSize: [1024,1024],
         });
 
         // var tileSource = new ol.source.WMTS({
@@ -1707,7 +1706,8 @@
                     tiled: true,
                     STYLES: '',
                     LAYERS: layer_id,
-          }
+          },
+          tileGrid: m,
         })
 
 
@@ -1846,16 +1846,13 @@
         }
         var layer = $.extend({
           opacity: 1,
-          //name: 'Mapbox Outdoors',
-          //id: 'dpaw:mapbox_outdoors',
-          name: options.title,
-          id: layer_id,
+          name: 'Mapbox Outdoors',
+          id: 'dpaw:mapbox_outdoors',
           format: 'image/png',
-          //tileSize: 1024,
           tileSize: 1024,
-          //style: '',
+          style: '',
           projection: 'EPSG:4326',
-          wmts_url: options.map_server_url+ "/gwc/service/wmts"
+          wmts_url: this.env.kmiService + "/gwc/service/wmts"
         }, options)
         // // wmts_url: this.env.kmiService+ "/gwc/service/wmts"
         // create a tile grid using the stock KMI resolutions
@@ -1900,31 +1897,50 @@
 
 
 
-        var projection = ol.proj.get("EPSG:3857");
-        var projectionExtent = projection.getExtent();        
-        var s = ol.extent.getWidth(projectionExtent) / 256;
-        var matrixSet = "mercator";
-        var resolutions = new Array(21);
-        var matrixIds = new Array(21);
-        for (var c = 0; c < 21; ++c)
-            resolutions[c] = s / Math.pow(2, c),
-            matrixIds[c] = matrixSet + ":" + c;
-        var m = new ol.tilegrid.WMTS({
-              origin: ol.extent.getTopLeft(projectionExtent),
-              resolutions: resolutions,
-              matrixIds: matrixIds
-        });
+        // var projection = ol.proj.get("EPSG:3857");
+        // var projectionExtent = projection.getExtent();        
+        // var s = ol.extent.getWidth(projectionExtent) / 256;
+        // var matrixSet = "mercator";
+        // var resolutions = new Array(21);
+        // var matrixIds = new Array(21);
+        // for (var c = 0; c < 21; ++c)
+        //     resolutions[c] = s / Math.pow(2, c),
+        //     matrixIds[c] = matrixSet + ":" + c;
+        // var m = new ol.tilegrid.WMTS({
+        //       origin: ol.extent.getTopLeft(projectionExtent),
+        //       resolutions: resolutions,
+        //       matrixIds: matrixIds
+        // });
+
+        // create a tile grid using the stock KMI resolutions
+        var matrixSet = this.matrixSets[layer.projection][layer.tileSize]
+        var tileGrid = new ol.tilegrid.WMTS({
+          origin: ol.extent.getTopLeft([-180, -90, 180, 90]),
+          resolutions: this.resolutions,
+          matrixIds: matrixSet.matrixIds,
+          tileSize: layer.tileSize
+        })
+
+
+        // override getZForResolution on tile grid object;
+        // for weird zoom levels, the default is to round up or down to the
+        // nearest integer to determine which tiles to use.
+        // because we want the printing rasters to contain as much detail as
+        // possible, we rig it here to always round up.
+        tileGrid.origGetZForResolution = tileGrid.getZForResolution
+        tileGrid.getZForResolution = function (resolution, optDirection) {
+          return tileGrid.origGetZForResolution(resolution*1.4, -1)
+        }
 
         var tileSource = new ol.source.WMTS({
-             // url: "https://kmi.dpaw.wa.gov.au/geoserver/gwc/service/wmts",
-              url: options.map_server_url+ "/gwc/service/wmts",
-              format: "image/png",
-              // layer: "public:mapbox-streets",
-              layer: layer_id,              
-              matrixSet: matrixSet,
-              projection: projection,
-              tileGrid: m,
-              version : '1.1.1'
+          url: layer.wmts_url,
+          layer: getLayerId(layer.id),
+          matrixSet: matrixSet.name,
+          format: layer.format,
+          style: layer.style,
+          projection: layer.projection,
+          wrapX: true,
+          tileGrid: tileGrid
         })
 
         var tileLayer =  new ol.layer.Tile({
