@@ -301,7 +301,7 @@ def getLayers(datasource,layer=None,srs=None,defaultSrs=None,featureType=None):
         for m in layer_info_re.finditer(layerInfo):
             key = m.group("key")
             lkey = key.lower()
-            value = m.group("value").strip()
+            value = m.group("value")
             if lkey in ("info","metadata","layer srs wkt","ogrinfo"): 
                 continue
             if lkey == "layer name":
