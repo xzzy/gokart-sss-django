@@ -301,7 +301,7 @@ def getLayers(datasource,layer=None,srs=None,defaultSrs=None,featureType=None):
         for m in layer_info_re.finditer(layerInfo):
             key = m.group("key")
             lkey = key.lower()
-            value = m.group("value")
+            value = m.group("value").strip()
             if lkey in ("info","metadata","layer srs wkt","ogrinfo"): 
                 continue
             if lkey == "layer name":
@@ -1097,7 +1097,10 @@ def download(request, fmt):
                         cmd.insert(index,arg)
                         index += 1
                 #print " ".join(cmd)
-                subprocess.check_call(cmd) 
+                # subprocess.check_call(cmd)
+                result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+                if result.stderr:
+                    raise Exception(str(result.stderr))
             else:
                 #get all geometry types in the source layer list
                 srcTypes = []
@@ -1222,12 +1225,12 @@ def download(request, fmt):
         resp = {'outputfile': outputfile, 'outputfilename': outputfilename,'filemime':filemime, "output": output}
         return resp
         #return output
-    except:
+    except Exception as e:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         #bottle.response.status = 400
         #bottle.response.set_header("Content-Type","text/plain")
         traceback.print_exc()
-        resp = {'output' :  traceback.format_exception_only(exc_type,exc_value) , 'filemime': 'text/plain' , 'outputfile': None, "outputfilename": "traceback_error.html"}
+        resp = {'output' :  str(e) , 'filemime': 'text/plain' , 'outputfile': None, "outputfilename": "traceback_error.html"}
         return resp
         #eturn traceback.format_exception_only(exc_type,exc_value)
     finally:
