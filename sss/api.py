@@ -426,7 +426,7 @@ def spatial(request):
         response = HttpResponse(json.dumps(data), content_type=content_type)    
         return response    
     else:
-        raise ValidationError('User is not authenticated')
+        return HttpResponse('User is not authenticated', content_type='text/plain', status=500)
 
 @csrf_exempt
 def gdal(request,fmt):
@@ -453,7 +453,7 @@ def gdal(request,fmt):
         return response
        
     else:
-        raise ValidationError('User is not authenticated')
+        return HttpResponse('User is not authenticated', content_type='text/plain', status=500)
 
 @csrf_exempt
 def gdal_ogrinfo(request):
@@ -463,6 +463,8 @@ def gdal_ogrinfo(request):
         resp = sss_gdal.ogrinfo(request) 
         content_type='text/plain'
         output = ""
+        if (isinstance(resp['output'], str)):
+            return HttpResponse(resp['output'], content_type=content_type, status=500)
         if resp['format'] == 'json':
             content_type=resp['content_type']
             output = json.dumps(resp['output'])
@@ -473,7 +475,7 @@ def gdal_ogrinfo(request):
         response = HttpResponse(output, content_type=content_type)    
         return response    
     else:
-        raise ValidationError('User is not authenticated')
+        return HttpResponse('User is not authenticated', content_type=content_type, status=500)
 @csrf_exempt
 def gdal_download(request, fmt):
 
@@ -481,17 +483,17 @@ def gdal_download(request, fmt):
         if settings.EMAIL_INSTANCE == "UAT" or settings.EMAIL_INSTANCE == "DEV":
             instance_format = settings.EMAIL_INSTANCE+'_'    
         resp = sss_gdal.download(request,fmt)
-        print (resp)
         output = resp['output']
         if resp['outputfile']:
             with open(pathlib.Path(resp['outputfile']), 'rb') as f:
                 output = f.read()
-        
+        else:
+            return HttpResponse(output, content_type='text/plain', status=500)
         response = HttpResponse(output, content_type=resp['filemime'])  
         response["Content-Disposition"] = "attachment;filename='{}'".format(resp["outputfilename"])
         return response    
     else:
-        raise ValidationError('User is not authenticated')    
+        return HttpResponse('User is not authenticated', content_type='text/plain', status=500)    
     
 def himawari8(request, target):
     last_updatetime = request.GET.get('updatetime')
