@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 import requests
+import subprocess
 from django import conf
 from django.core.cache import cache
 import ftplib
@@ -58,6 +59,14 @@ class Command(BaseCommand):
                         print (str(current_time)+ " : Retreiving File : "+ file.file_name)
                         try: 
                             ftp_session.retrbinary("RETR " + file.file_name ,open(local_file, 'wb').write)
+                            try:
+                                #Unzipping .gz file
+                                if(file.file_name.lower().endswith('.nc.gz')):
+                                    subprocess.check_call(["gzip","-k","-f","-q","-d",local_file])
+                                    local_unzip_file = local_file[:-3]
+                                    os.utime(local_unzip_file,(remote_timestamp,remote_timestamp))
+                            except:
+                                print (str(current_time)+ " : ERROR: Unable to Unzip File: "+ file.file_name )
                             os.utime(local_file, (remote_timestamp, remote_timestamp))
                         except Exception as e:
                             print (str(current_time)+ " : ERROR: Unable to retreive file : "+ file.file_name )
