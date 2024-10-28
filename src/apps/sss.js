@@ -477,6 +477,7 @@ if (result) {
                     }
                 }
             }
+          },
             //base: true
          /*
           }, {
@@ -510,48 +511,48 @@ if (result) {
             fetchTimelineUrl:function(lastUpdatetime){
                 return "/bom/IDZ71117?basetimelayer=bom:IDZ71117_datetime&timelinesize=72&layertimespan=3600&updatetime=" + lastUpdatetime
             }*/
-		  }, {
-            type: 'TileLayer',
-            name: 'Forest Fire Danger Index',
-            id: 'bom:forest_fire_danger_index',
-            timelineRefresh: 300,
-            fetchTimelineUrl: function(lastUpdatetime){
-                //return "/bom/IDZ71117?basetimelayer=bom:IDZ71117_datetime&timelinesize=72&layertimespan=3600&updatetime=" + lastUpdatetime
-				return "/bom/IDZ71117?basetimelayer=bom:IDZ71117_datetime&timelinesize=72&layertimespan=3600&updatetime=" + lastUpdatetime
-            }
-          }, {
-            type: 'TileLayer',
-            name: 'Maximum Forest Fire Danger Index',
-            id: 'bom:maximum_forest_fire_danger_index',
-            timelineRefresh:300,
-            fetchTimelineUrl:function(lastUpdatetime){
-                return "/bom/IDZ71118?basetimelayer=bom:IDZ71118_datetime&timelinesize=4&layertimespan=86400&updatetime=" + lastUpdatetime
-            }
-          }, {
-            type: 'TileLayer',
-            name: 'Grassland Fire Danger Index',
-            id: 'bom:grass_fire_danger_index',
-            timelineRefresh:300,
-            fetchTimelineUrl:function(lastUpdatetime){
-                return "/bom/IDZ71122?basetimelayer=bom:IDZ71122_datetime&timelinesize=72&layertimespan=3600&updatetime=" + lastUpdatetime
-            }
-          }, {
-            type: 'TileLayer',
-            name: 'Maximum Grassland Fire Danger Index',
-            id: 'bom:maximum_grass_fire_danger_index',
-            timelineRefresh:300,
-            fetchTimelineUrl:function(lastUpdatetime){
-                return "/bom/IDZ71123?basetimelayer=bom:IDZ71123_datetime&timelinesize=4&layertimespan=86400&updatetime=" + lastUpdatetime
-            }
-          }, {
-            type: 'TileLayer',
-            name: 'Continuous Haines',
-            id: 'bom:continuous_haines',
-            timelineRefresh:300,
-            fetchTimelineUrl:function(lastUpdatetime){
-                return "/bom/IDZ71115?basetimelayer=bom:IDZ71115_datetime&timelinesize=56&layertimespan=10800&updatetime=" + lastUpdatetime
-            }
-          }
+      // {
+      //       type: 'TileLayer',
+      //       name: 'Forest Fire Danger Index',
+      //       id: 'bom:forest_fire_danger_index',
+      //       timelineRefresh: 300,
+      //       fetchTimelineUrl: function(lastUpdatetime){
+      //           //return "/bom/IDZ71117?basetimelayer=bom:IDZ71117_datetime&timelinesize=72&layertimespan=3600&updatetime=" + lastUpdatetime
+			// 	return "/bom/IDZ71117?basetimelayer=bom:IDZ71117_datetime&timelinesize=72&layertimespan=3600&updatetime=" + lastUpdatetime
+      //       }
+      //     }, {
+      //       type: 'TileLayer',
+      //       name: 'Maximum Forest Fire Danger Index',
+      //       id: 'bom:maximum_forest_fire_danger_index',
+      //       timelineRefresh:300,
+      //       fetchTimelineUrl:function(lastUpdatetime){
+      //           return "/bom/IDZ71118?basetimelayer=bom:IDZ71118_datetime&timelinesize=4&layertimespan=86400&updatetime=" + lastUpdatetime
+      //       }
+      //     }, {
+      //       type: 'TileLayer',
+      //       name: 'Grassland Fire Danger Index',
+      //       id: 'bom:grass_fire_danger_index',
+      //       timelineRefresh:300,
+      //       fetchTimelineUrl:function(lastUpdatetime){
+      //           return "/bom/IDZ71122?basetimelayer=bom:IDZ71122_datetime&timelinesize=72&layertimespan=3600&updatetime=" + lastUpdatetime
+      //       }
+      //     }, {
+      //       type: 'TileLayer',
+      //       name: 'Maximum Grassland Fire Danger Index',
+      //       id: 'bom:maximum_grass_fire_danger_index',
+      //       timelineRefresh:300,
+      //       fetchTimelineUrl:function(lastUpdatetime){
+      //           return "/bom/IDZ71123?basetimelayer=bom:IDZ71123_datetime&timelinesize=4&layertimespan=86400&updatetime=" + lastUpdatetime
+      //       }
+      //     }, {
+      //       type: 'TileLayer',
+      //       name: 'Continuous Haines',
+      //       id: 'bom:continuous_haines',
+      //       timelineRefresh:300,
+      //       fetchTimelineUrl:function(lastUpdatetime){
+      //           return "/bom/IDZ71115?basetimelayer=bom:IDZ71115_datetime&timelinesize=56&layertimespan=10800&updatetime=" + lastUpdatetime
+      //       }
+      //     }
 		  /*, {
             type: 'TileLayer',
             name: 'mslp',

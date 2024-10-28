@@ -28,7 +28,7 @@ class CatalogueTagInline(admin.TabularInline):
 
 @admin.register(models.Catalogue)
 class Catalogue(admin.ModelAdmin):
-    list_display = ('id', 'identifier', 'type', 'updated', 'created')
+    list_display = ('id', 'identifier', 'type', 'updated', 'created', 'active')
     readonly_fields = ['updated', 'created',]  
     inlines = [CatalogueTagInline,]  
     
