@@ -2,6 +2,7 @@ from django.contrib import auth
 from django.db import models
 from django.core.cache import cache
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 UserModel = auth.get_user_model()
 
@@ -187,5 +188,24 @@ class CatalogueSyncCSW(models.Model):
 
         def __str__(self):
             return self.identifier     
-
-     
+        
+class SpatialDataCalculation(models.Model):
+    CALCULATION_STATUS = (
+    ('Imported', "Imported"),
+    ('Calculating', "Calculating"),
+    ('Processing Finalised', "Processing Finalised"),
+    ('Failed', "Failed"),
+    ('Completed', "Completed"),
+)
+    bfrs = models.CharField(max_length=500)
+    calculation_status = models.CharField('Calculation Status', 
+        max_length=40, choices=CALCULATION_STATUS,
+        default=CALCULATION_STATUS[0][0])
+    features = models.TextField(null=True, blank=True)
+    options = models.TextField(null=True, blank=True)
+    output = models.TextField(null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    updated = models.DateTimeField(auto_now=True, blank=True)
+    created = models.DateTimeField(default=timezone.now)
+    error = models.TextField(null=True, blank=True)
+    email_sent = models.BooleanField(default=False)

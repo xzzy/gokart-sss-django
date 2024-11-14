@@ -5,6 +5,8 @@ from wagov_utils.components.proxy.views import proxy_view
 from django.core.cache import cache
 from django.template.loader import render_to_string
 from django.shortcuts import render 
+from django.db.models import Q
+from django.contrib.auth.models import User
 from sss import raster
 from sss import sss_gdal
 from sss import spatial as sss_spatial
@@ -16,7 +18,7 @@ import json
 import pathlib
 import re
 from io import BytesIO
-from sss.models import UserProfile, Proxy, MapServer
+from sss.models import UserProfile, Proxy, MapServer, SpatialDataCalculation
 from sss import models as sss_models
 from sss.serializers import ProfileSerializer, AccountDetailsSerializer
 from rest_framework import serializers
@@ -587,3 +589,70 @@ def weatherforecast(request):
     except Exception as e:
         print(f"Error: {str(e)}")
         return JsonResponse({"error": "An error occurred"}, status=500)
+
+@csrf_exempt    
+def bfrs_calculation_queue(request):
+    if request.user.is_authenticated:
+        bfrs = request.POST.get('bfrs')
+        features = request.POST.get("features")
+        options = request.POST.get("options")
+        user_email = request.user.email
+        user = User.objects.get(email=user_email)
+        caculation_queue_object = SpatialDataCalculation.objects.create(bfrs=bfrs, features=features, options=options, calculation_status=SpatialDataCalculation.CALCULATION_STATUS[0][0], user=user)
+        content_type = 'application/json'
+        data = {"bfrs": bfrs, "calculation_status": caculation_queue_object.calculation_status}
+        response = HttpResponse(json.dumps(data), content_type=content_type)    
+        return response    
+    else:
+        return HttpResponse('User is not authenticated', content_type='text/plain', status=500)
+
+
+def spatial_calculation_progress(request, *args, **kwargs):
+    if request.user.is_authenticated:
+        bfrs = request.GET.get('bfrs')
+        calculation_object = SpatialDataCalculation.objects.filter(bfrs=bfrs, user__email=request.user.email).last()
+        last_uploaded_date = calculation_object.created.astimezone(conf.settings.PERTH_TIMEZONE).strftime('%a %b %d %Y %H:%M:%S AWST')
+        if(calculation_object.output):
+            result = json.loads(calculation_object.output.replace("'", '"'))
+        else:
+            result = ""
+        output = {"status": calculation_object.calculation_status, "result": result, "last_uploaded_date":last_uploaded_date}
+        
+        if(calculation_object.calculation_status == SpatialDataCalculation.CALCULATION_STATUS[3][0]):
+            output["error"] = calculation_object.error
+        
+        output = json.dumps(output)
+        return HttpResponse(output, content_type='application/json')
+    else:
+        raise ValidationError('User is not authenticated') 
+
+@csrf_exempt
+def load_bfrs_status(request, *args, **kwargs):
+    if request.user.is_authenticated:
+        bfrs_in_queue = SpatialDataCalculation.objects.filter(
+            Q(calculation_status=SpatialDataCalculation.CALCULATION_STATUS[0][0]) | 
+            Q(calculation_status=SpatialDataCalculation.CALCULATION_STATUS[1][0]) |
+            Q(calculation_status=SpatialDataCalculation.CALCULATION_STATUS[2][0]) |
+            Q(calculation_status=SpatialDataCalculation.CALCULATION_STATUS[3][0]), 
+            user__email=request.user.email
+        )
+        
+        bfrs_list = [{'bfrs': obj.bfrs, 'feature': obj.features} for obj in bfrs_in_queue]
+        return JsonResponse({'bfrs_list': bfrs_list})
+    else:
+        return JsonResponse({'status': 'error', 'message': 'User not authenticated'}, status=401)  
+
+@csrf_exempt
+def clear_queue(request, *args, **kwargs):
+    if request.user.is_authenticated:
+        bfrs = request.POST.get('bfrs')
+        bfrs_in_queue = SpatialDataCalculation.objects.filter(
+            bfrs = bfrs,
+            user__email=request.user.email
+        ).last()
+        bfrs_in_queue.calculation_status = SpatialDataCalculation.CALCULATION_STATUS[4][0]
+        bfrs_in_queue.save()
+        return JsonResponse({'bfrs': bfrs})
+    else:
+        return JsonResponse({'status': 'error', 'message': 'User not authenticated'}, status=401)
+    

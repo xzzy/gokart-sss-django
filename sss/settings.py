@@ -225,13 +225,15 @@ RESOURCE_TRACKING_LIVE_LAYER=decouple.config("RESOURCE_TRACKING_LIVE_LAYER", def
 EMAIL_INSTANCE = decouple.config("EMAIL_INSTANCE", default="PROD")
 NON_PROD_EMAIL = decouple.config("NON_PROD_EMAIL", default="")
 PRODUCTION_EMAIL= decouple.config("PRODUCTION_EMAIL", default=False, cast=bool)
-EMAIL_DELIVERY = decouple.config("EMAIL_DELIVERY", default="off")
+EMAIL_DELIVERY = decouple.config("EMAIL_DELIVERY", default="on")
+EMAIL_BACKEND = "wagov_utils.components.utils.email_backend.EmailBackend"
+DEFAULT_FROM_EMAIL = decouple.config("DEFAULT_FROM_EMAIL", default="")
+EMAIL_FROM = DEFAULT_FROM_EMAIL
+EMAIL_HOST = decouple.config("EMAIL_HOST", default="")
 SSS_FILE_URL = decouple.config("SSS_FILE_URL", default="http://sss-maps.dbca.wa.gov.au/")
 CALCULATE_AREA_IN_SEPARATE_PROCESS  = decouple.config("CALCULATE_AREA_IN_SEPARATE_PROCESS", default=False, cast=bool)
 DATA_UPLOAD_MAX_MEMORY_SIZE = decouple.config("DATA_UPLOAD_MAX_MEMORY_SIZE", default=51200000)
 EXPORT_CALCULATE_AREA_FILES_4_DEBUG = decouple.config("EXPORT_CALCULATE_AREA_FILES_4_DEBUG", default="true")
-
-NON_PROD_EMAIL = decouple.config("NON_PROD_EMAIL", default="")
 
 # BOM FTP Login Details
 BOM_FTP_SERVER = decouple.config("BOM_FTP_SERVER", default="")
