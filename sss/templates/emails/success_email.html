@@ -1,0 +1,6 @@
+{% extends '/data/data/projects/gokart-sss-django/sss/templates/emails/base_email.html' %}
+
+{% block content_body %}
+<p>Hi{% if first_name %} {{ first_name }}{% endif %}</p>
+<p>Your spatial data calculation for {{ bfrs }} has now been completed.</p>
+{% endblock %}

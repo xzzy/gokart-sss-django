@@ -16,6 +16,7 @@ from shapely.geometry.collection import GeometryCollection
 from shapely.geometry.base import BaseGeometry
 from shapely import ops
 from functools import partial
+from sss.models import SpatialDataCalculation
 
 from django.conf import settings
 from sss import kmi
@@ -822,8 +823,12 @@ def getFeature(feature,kmiserver,session_cookies,options):
 def spatial(request):
     # needs gdal 1.10+
     try:
-        features = json.loads(request.POST.get("features"))
-        options = request.POST.get("options")
+        if isinstance(request, SpatialDataCalculation):
+            features = json.loads(request.features)
+            options = request.options
+        else:
+            features = json.loads(request.POST.get("features"))
+            options = request.POST.get("options")
         if options:
             options = json.loads(options)
         else:
@@ -850,9 +855,17 @@ def spatial(request):
 
         #bottle.response.set_header("Content-Type", "application/json")
         #print("{}:return response to client.{}".format(datetime.now(),results))
+        output = {"total_features": len(results), "features": results}
+        if isinstance(request, SpatialDataCalculation):
+            request.output = output
+            request.save()
+            return
+        
         return {"total_features": len(results), "features": results}
-    except:
+    except Exception as e:
         exc_type, exc_value, exc_traceback = sys.exc_info()
+        if isinstance(request, SpatialDataCalculation):
+            raise e
         # if bottle.response.status < 400 :
         #     bottle.response.status = 400
         #bottle.response.set_header("Content-Type", "text/plain")

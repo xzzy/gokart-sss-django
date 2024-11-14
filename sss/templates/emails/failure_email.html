@@ -1,0 +1,7 @@
+{% extends 'emails/base_email.html' %}
+
+{% block content_body %}
+<p>Hi{% if first_name %} {{ first_name }}{% endif %}</p>
+<p>Your spatial data calculation for {{ bfrs }} has been failed with error.</p>
+<pre>{{error}}</pre>
+{% endblock %}
