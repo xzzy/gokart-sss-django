@@ -206,7 +206,7 @@
 
             <div class="small reveal" id="progressInfo" data-close-on-click="false">
             <h3>Progress</h3>
-            <p>Last Uploaded: {{last_uploaded_date}}</p>
+            <p>Last Uploaded: {{last_uploaded_date}}  {{calculation_status}}</p>
             <div v-for="(index, task) in feature_tasks" :key="index">
                 <div class="small-12 columns">
                 <a class="task_status float-right" :title="revision && task.statusText">
@@ -307,6 +307,7 @@
         search: '',
         statusFilter: "all_reports",
         target_feature: null,
+        calculation_status: '',
         feature_tasks: [],
         region: '',
         district: '',
@@ -2362,7 +2363,7 @@
         this._taskManager.addTask(targetFeature,"save","save","Save spatial data",utils.RUNNING)
         this._taskManager.addTask(targetFeature,"getSpatialData","tenure_area","Calculate fire boundary areas",utils.RUNNING)
       }
-
+      this.calculation_status = ''
       $.ajax({
         url: "/api/spatial_calculation_progress.json",
         method: "GET",
@@ -2382,6 +2383,13 @@
 
             if(tenure_area_task.status === 3){
                 this.completeButtonDisabled = false
+            }
+            
+            if (status === "Imported"){
+                this.calculation_status = "(Waiting)"
+            }
+            if (status === "Calculating"){
+                this.calculation_status = "(Calculating)"
             }
 
             if (status === "Failed"){
