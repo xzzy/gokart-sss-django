@@ -90,6 +90,7 @@ CRON_CLASSES = [
     "sss.cron.FetchBfrsRegionDataCronJob",
     "sss.cron.SyncBOMDataCronJob",
     "sss.cron.SyncCatalogueCSWDataCronJob",
+    "sss.cron.SpatialDataCalculationJob",
     'appmonitor_client.cron.CronJobAppMonitorClient'
 ]
 
