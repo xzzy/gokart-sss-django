@@ -56,9 +56,9 @@ class SpatialDataCalculationJob(CronJobBase):
     RUN_EVERY_MINS = 5
 
     schedule = Schedule(run_every_mins=RUN_EVERY_MINS)
-    code = 'sss.cron.spatial_data_calculation'
+    code = 'sss.cron.spatial_data_calculations'
 
     def do(self):
         log.info("CRON JOB: Calculating Spatial Data..")
 
-        management.call_command("spatial_data_calculation")     
+        management.call_command("spatial_data_calculations")     
