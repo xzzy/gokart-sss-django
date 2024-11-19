@@ -5,9 +5,9 @@ from wagov_utils.components.utils.email import (
 
 class TemplateEmailBase(WAGovUtilsTemplateEmailBase):
     subject = ""
-    html_template = "/data/data/projects/gokart-sss-django/sss/templates/emails/base_email.html"
+    html_template = "emails/base_email.html"
     # txt_template can be None, in this case a 'tag-stripped' version of the html will be sent. (see send)
-    txt_template = "/data/data/projects/gokart-sss-django/sss/templates/emails/base_email.txt"
+    txt_template = "emails/base_email.txt"
 
     def send_to_user(self, users, context=None):
         filtered_emails = {u.email for u in users if hasattr(u, "email")}

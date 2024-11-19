@@ -24,6 +24,7 @@ class Command(BaseCommand):
                         sd.email_sent = True
                         sd.save()
                     except Exception as e:
+                        print (e)
                         print(f"Error in Sending Success email for {sd.bfrs}")
                     print(f"Calculation Completed: {sd.bfrs}")
                 except Exception as e:
@@ -35,10 +36,11 @@ class Command(BaseCommand):
                         sd.email_sent = True
                         sd.save()
                     except Exception as e:
+                        print (e)
                         print(traceback.format_exc())
                         print(f"Error in Sending Failure email for {sd.bfrs}")
                     print(f"Calculation Error: {sd.bfrs}")
 
-        except Exception as e:
+        except Exception as e:            
             self.stderr.write(self.style.ERROR(f"An error occurred: {str(e)}"))
             print (e)
