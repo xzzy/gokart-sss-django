@@ -1275,7 +1275,9 @@
                 if (["new","initial"].indexOf(feat.get('status')) >= 0 )  {
                     spatialData["plantations"]  = null
                     if (originPoint)  {
-                        plantation_task = vm._taskManager.addTask(feat,"getSpatialData","plantation","Find the plantations within 3kms",utils.WAITING)
+
+                            plantation_task = vm._taskManager.addTask(feat,"getSpatialData","plantation","Find the plantations within 3kms",utils.WAITING)
+                        
                     }
                 }
                 if (originPoint && (modifyType & 1) === 1) {
@@ -2352,17 +2354,34 @@
 
       updateBfrsUploadProgress(){
         if(vm.target_feature){
-            vm.showProgress(vm.target_feature, showDialog=false)
+            var progressInfoPopup = $('#progressInfo').css('display');
+            if (progressInfoPopup == 'block') { 
+                vm.showProgress(vm.target_feature, showDialog=false)
+            }
         }
       },
 
       showProgress(targetFeature, showDialog=true) {
-      if(targetFeature.get('status') === 'in_queue' && this.featureTasks(targetFeature).length === 0){
-        this._taskManager.initTasks(targetFeature)
-        this._taskManager.addTask(targetFeature,"import","import","Import bushfire fire boundary",utils.RUNNING)
-        this._taskManager.addTask(targetFeature,"save","save","Save spatial data",utils.RUNNING)
-        this._taskManager.addTask(targetFeature,"getSpatialData","tenure_area","Calculate fire boundary areas",utils.RUNNING)
-      }
+        
+        var progressInfoPopup = $('#progressInfo').css('display');
+        if  (progressInfoPopup == 'block') {
+            
+        // } else if (progressInfoPopup == 'none') {
+        //     return;
+        } else {
+            vm.taskDialog = new Foundation.Reveal($('#progressInfo'));
+            vm.taskDialog.open();
+        }
+
+        if (targetFeature.get('status') === 'in_queue' && this.featureTasks(targetFeature).length === 0){
+            this._taskManager.initTasks(targetFeature)
+            this._taskManager.addTask(targetFeature,"import","import","Import bushfire fire boundary",utils.RUNNING)
+            this._taskManager.addTask(targetFeature,"save","save","Save spatial data",utils.RUNNING)
+            this._taskManager.addTask(targetFeature,"getSpatialData","tenure_area","Calculate fire boundary areas",utils.RUNNING)
+        }
+
+      // Re check after popup is created
+      var progressInfoPopup = $('#progressInfo').css('display');
       this.calculation_status = ''
       $.ajax({
         url: "/api/spatial_calculation_progress.json",
@@ -2413,14 +2432,19 @@
                 this.completeButtonDisabled = false
                 this.saveFeature(targetFeature.imported_feature, "showprogress", () => {});
             }
-            if(showDialog){
-                vm.taskDialog = new Foundation.Reveal($('#progressInfo'));
-                vm.taskDialog.open()
-            }
+            // if(showDialog){
+            //     vm.taskDialog = new Foundation.Reveal($('#progressInfo'));
+            //     vm.taskDialog.open()
+            // }
             this.feature_tasks = this.featureTasks(targetFeature);
+            
+            setTimeout(vm.updateBfrsUploadProgress, 5000);
+            
         },
         error: function (xhr, status, message) {
-            alert(xhr.status + " : " + (xhr.responseText || message));
+            alert(xhr.status + " : " + (xhr.responseText || message));            
+            setTimeout(vm.updateBfrsUploadProgress, 5000);
+            
         },
         xhrFields: {
           withCredentials: true,
@@ -4233,7 +4257,7 @@
       //this.measure.register("dpaw:bushfirelist_latest",this.features)
 
       vm._bfrsStatus.phaseEnd("initialize")
-      setInterval(vm.updateBfrsUploadProgress, 30000);
+      // setInterval(vm.updateBfrsUploadProgress, 30000);
       vm._bfrsStatus.phaseBegin("gk-init", 20, "Listen 'gk-init' event", true, true)
       // post init event hookup
       this.$on('gk-init', function () {
