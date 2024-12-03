@@ -25,7 +25,6 @@ proj_aea = lambda geometry: pyproj.Proj("+proj=aea +lat_1=-17.5 +lat_2=-31.5 +la
 
 
 def exportGeojson(feat,fname):
-    print("export called")
     if isinstance(feat,BaseGeometry):
         geojson = {
             "type":"FeatureCollection",

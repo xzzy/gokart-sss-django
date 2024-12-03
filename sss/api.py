@@ -5,7 +5,7 @@ from wagov_utils.components.proxy.views import proxy_view
 from django.core.cache import cache
 from django.template.loader import render_to_string
 from django.shortcuts import render 
-from django.db.models import Q
+from django.db.models import Q, Max
 from django.contrib.auth.models import User
 from sss import raster
 from sss import sss_gdal
@@ -569,7 +569,6 @@ def weatherforecast(request):
                 requestData["weatherforecast_password"] = settings.WEATHERFORECAST_PASSWORD
 
                 template_dir = os.path.join(settings.JINJA2_BASE_TEMPLATE, 'weather')
-                print(template_dir)
                 jinja_env = Environment(loader=FileSystemLoader(template_dir))
                 
                 template = jinja_env.get_template('weatherforecast.html')
@@ -597,8 +596,9 @@ def bfrs_calculation_queue(request):
         features = request.POST.get("features")
         options = request.POST.get("options")
         user_email = request.user.email
+        tasks = request.POST.get("tasks")
         user = User.objects.get(email=user_email)
-        caculation_queue_object = SpatialDataCalculation.objects.create(bfrs=bfrs, features=features, options=options, calculation_status=SpatialDataCalculation.CALCULATION_STATUS[0][0], user=user)
+        caculation_queue_object = SpatialDataCalculation.objects.create(bfrs=bfrs, features=features, tasks=tasks, options=options, calculation_status=SpatialDataCalculation.CALCULATION_STATUS[0][0], user=user)
         content_type = 'application/json'
         data = {"bfrs": bfrs, "calculation_status": caculation_queue_object.calculation_status}
         response = HttpResponse(json.dumps(data), content_type=content_type)    
@@ -610,13 +610,16 @@ def bfrs_calculation_queue(request):
 def spatial_calculation_progress(request, *args, **kwargs):
     if request.user.is_authenticated:
         bfrs = request.GET.get('bfrs')
+        tasks = request.GET.get('tasks')
         calculation_object = SpatialDataCalculation.objects.filter(bfrs=bfrs, user__email=request.user.email).last()
+        calculation_object.tasks = tasks
+        calculation_object.save()
         last_uploaded_date = calculation_object.created.astimezone(conf.settings.PERTH_TIMEZONE).strftime('%a %b %d %Y %H:%M:%S AWST')
         if(calculation_object.output):
             result = json.loads(calculation_object.output.replace("'", '"'))
         else:
             result = ""
-        output = {"status": calculation_object.calculation_status, "result": result, "last_uploaded_date":last_uploaded_date}
+        output = {"status": calculation_object.calculation_status, "result": result, "last_uploaded_date":last_uploaded_date, "feature": calculation_object.features}
         
         if(calculation_object.calculation_status == SpatialDataCalculation.CALCULATION_STATUS[3][0]):
             output["error"] = calculation_object.error
@@ -626,21 +629,42 @@ def spatial_calculation_progress(request, *args, **kwargs):
     else:
         raise ValidationError('User is not authenticated') 
 
+def update_tasks(request, *args, **kwargs):
+    if request.user.is_authenticated:
+        bfrs = request.GET.get('bfrs')
+        tasks = request.GET.get('tasks')
+        calculation_object = SpatialDataCalculation.objects.filter(bfrs=bfrs, user__email=request.user.email).last()
+        calculation_object.tasks = tasks
+        calculation_object.save()
+        
+        return JsonResponse({"tasks":"updated"})
+    else:
+        raise ValidationError('User is not authenticated') 
+
 @csrf_exempt
 def load_bfrs_status(request, *args, **kwargs):
     if request.user.is_authenticated:
-        bfrs_in_queue = SpatialDataCalculation.objects.filter(
-            Q(calculation_status=SpatialDataCalculation.CALCULATION_STATUS[0][0]) | 
-            Q(calculation_status=SpatialDataCalculation.CALCULATION_STATUS[1][0]) |
-            Q(calculation_status=SpatialDataCalculation.CALCULATION_STATUS[2][0]) |
-            Q(calculation_status=SpatialDataCalculation.CALCULATION_STATUS[3][0]), 
+        # Get the latest entry for each unique bfrs
+        latest_entries = SpatialDataCalculation.objects.filter(
             user__email=request.user.email
+        ).values('bfrs').annotate(latest_id=Max('id'))
+
+        # Extract the IDs of the latest entries
+        latest_ids = [entry['latest_id'] for entry in latest_entries]
+
+        # Filter the queryset with the latest entries and the required statuses
+        bfrs_in_queue = SpatialDataCalculation.objects.filter(
+            Q(id__in=latest_ids) &
+            (Q(calculation_status=SpatialDataCalculation.CALCULATION_STATUS[0][0]) | 
+             Q(calculation_status=SpatialDataCalculation.CALCULATION_STATUS[1][0]) |
+             Q(calculation_status=SpatialDataCalculation.CALCULATION_STATUS[2][0]) |
+             Q(calculation_status=SpatialDataCalculation.CALCULATION_STATUS[3][0]))
         )
-        
-        bfrs_list = [{'bfrs': obj.bfrs, 'feature': obj.features} for obj in bfrs_in_queue]
+
+        bfrs_list = [{'bfrs': obj.bfrs, 'feature': obj.features, 'tasks': obj.tasks} for obj in bfrs_in_queue]
         return JsonResponse({'bfrs_list': bfrs_list})
     else:
-        return JsonResponse({'status': 'error', 'message': 'User not authenticated'}, status=401)  
+        return JsonResponse({'status': 'error', 'message': 'User not authenticated'}, status=401)
 
 @csrf_exempt
 def clear_queue(request, *args, **kwargs):
