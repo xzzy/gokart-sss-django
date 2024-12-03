@@ -2425,27 +2425,20 @@
 
       updateBfrsUploadProgress(){
         if(vm.target_feature){
-            var progressInfoPopup = $('#progressInfo').css('display');
-            if (progressInfoPopup == 'block') { 
+            if (vm.taskDialog && vm.taskDialog.isActive) { 
                 vm.showProgress(vm.target_feature)
             }
         }
       },
 
       showProgress(targetFeature) {
-        var progressInfoPopup = $('#progressInfo').css('display');
-        if  (progressInfoPopup == 'block') {
-            
-        // } else if (progressInfoPopup == 'none') {
-        //     return;
-        } else {
+        // check if task dialog already open
+        if  (!vm.taskDialog || !vm.taskDialog.isActive) {
             vm.taskDialog = new Foundation.Reveal($('#progressInfo'));
             vm.taskDialog.open();
+            this.calculation_status = ''
         }
-
-      // Re check after popup is created
-      var progressInfoPopup = $('#progressInfo').css('display');
-      this.calculation_status = ''
+      
       $.ajax({
         url: "/api/spatial_calculation_progress.json",
         method: "GET",
@@ -2479,6 +2472,7 @@
             }
 
             if (status === "Failed"){
+                this.calculation_status = ''
                 if (response["error"])
                     tenure_area_task.setStatus(utils.FAILED, response["error"]);
                 else
@@ -2493,6 +2487,7 @@
                 });
             }
             if (status === "Processing Finalised"){
+                this.calculation_status = ''
                 tenure_area_task.setStatus(utils.SUCCEED)
                 if(targetFeature.imported_feature){
                     targetFeature.imported_feature.tasks = tasks
@@ -2509,7 +2504,7 @@
             this.feature_tasks = this.featureTasks(targetFeature);
             // updating tasks after 5 sec
             setTimeout(() => this.updateTasks(targetFeature), 5000);
-            // updating progress after 10 sec
+            // updating progress after 5 sec
             setTimeout(vm.updateBfrsUploadProgress, 5000);
             
         },
