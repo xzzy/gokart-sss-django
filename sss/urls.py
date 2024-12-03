@@ -36,6 +36,7 @@ urlpatterns = [
     path("api/cataloguev2.json", api.cataloguev2, name='catalogue_example'),
     path("weatherforecast", api.weatherforecast, name='weatherforecast'),
     path("api/spatial_calculation_progress.json", api.spatial_calculation_progress, name='spatial_calculation_progress'),
+    path("api/update_tasks.json", api.update_tasks, name='update_tasks'),
     path("api/load_bfrs_status.json", api.load_bfrs_status, name='load_bfrs_status'),
     path("api/bfrs_calculation_queue", api.bfrs_calculation_queue),
     path("api/clear_queue", api.clear_queue, name='clear_queue'),

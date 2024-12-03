@@ -188,7 +188,7 @@
                     <a v-if="canReset(f)"  @click.stop.prevent="resetFeature(f)" title="Reset" class="button tiny secondary float-right acion" style="margin-left:2px"><i class="fa fa-undo actionicon"></i></a>
                   <a v-if="canDelete(f)" @click.stop.prevent="deleteFeature(f)" title="Delete" class="button tiny secondary float-right action" style="margin-left:2px"><i class="fa fa-trash actionicon"></i></a>
                   <a v-if="canUpload(f)"  @click.stop.prevent="uploadBushfire(f)" title="Upload" class="button tiny secondary float-right acion" style="margin-left:2px"><i class="fa fa-upload actionicon"></i></a>
-                  <a v-if="f.get('status') === 'in_queue'" @click.stop.prevent="showProgress(f,true)" title="Check Progress" class="button tiny secondary float-right acion" style="margin-left:2px"><i class="fa fa-tasks"></i></a>
+                  <a v-if="f.get('status') === 'in_queue'" @click.stop.prevent="showProgress(f)" title="Check Progress" class="button tiny secondary float-right acion" style="margin-left:2px"><i class="fa fa-tasks"></i></a>
                   <a v-if="canModify(f)" @click.stop.prevent="startEditFeature(f)" title="Edit Bushfire" class="button tiny secondary float-right action">
                     <svg class="editicon"><use xlink:href="/static/dist/static/images/iD-sprite.svg#icon-area"></use></svg>
                   </a>
@@ -222,7 +222,7 @@
                 <span aria-hidden="true">&times;</span>
             </button>
             <div class="small-12 expanded button-group" style="justify-content: center;">
-                <a title="Clear" class="button" style="flex: 0 0 8.33%; margin: 0 4.165%; margin-top:10px" @click="clearQueue()">Clear</a>
+                <a title="Clear" class="button" style="flex: 0 0 8.33%; margin: 0 4.165%; margin-top:10px" @click="clearQueue(true)">Clear</a>
                 <a title="Complete" class="button" style="flex: 0 0 8.33%; margin: 0 4.165%; margin-top:10px" @click="captureMethods()" :disabled="completeButtonDisabled">Complete</a>
             </div>
             </div>
@@ -402,7 +402,7 @@
         return this.selectRevision && this.selectedFeatures.getLength()
       },
       bushfireLayer: function() {
-        return this.$root.catalogue.getLayer("dpaw:bushfirelist_latest")
+        return this.$root.catalogue.getLayer("dpaw:bushfirelist_latest_uat")
       },
       bushfireMapLayer: function() {
         return this.$root.map?this.$root.map.getMapLayer(this.bushfireLayer):undefined
@@ -464,7 +464,7 @@
                     }
 
                     var labelStyle = null
-                    if (res < 0.003 && geometries.length > 0 && feat.get('fire_number') && vm.bushfireLabels && !vm.$root.active.isHidden(vm.map.getMapLayer("dpaw:bushfirelist_latest"))) {
+                    if (res < 0.003 && geometries.length > 0 && feat.get('fire_number') && vm.bushfireLabels && !vm.$root.active.isHidden(vm.map.getMapLayer("dpaw:bushfirelist_latest_uat"))) {
                       labelStyle = labelStyleFunc.call(feat, res)
                       labelStyle.setGeometry(geometries[0])
                     }
@@ -1075,6 +1075,12 @@
         }
         failedCallback = failedCallback || this._defaultFailedCallback
         vm._getSpatialDataCallback = vm._getSpatialDataCallback || function(feat,caller,callback,failedCallback,spatialData) {
+            if(spatialData){
+                vm.spatial_data = spatialData
+            }
+            if(vm.spatial_data){
+                spatialData = vm.spatial_data
+            }
             if (vm._taskManager.allTasksSucceed(feat,"getSpatialData")) {
                 if ("region" in spatialData && "district" in spatialData) {
                     var region = null
@@ -1130,7 +1136,10 @@
                 }
                 else if (caller === "showprogress" && spatialData["fire_boundary"]) {
                     vm.spatial_data = spatialData
-                } 
+                }
+                else if (caller === "save" && spatialData["fire_boundary"]) {
+                    vm.spatial_data = spatialData
+                }
                 else if (caller === "capturemethod" && vm.spatial_data["fire_boundary"]) {
                     var spatialData = vm.spatial_data
                     vm.loadCapturemethods(function(){
@@ -1210,7 +1219,6 @@
                         failedCallback(msg)
                     })
                 } else {
-                    //console.log( JSON.stringify(spatialData ) )
                     callback(spatialData)
                 }
 
@@ -1262,8 +1270,12 @@
                 }
 
                 var tenure_area_task = null
+                var tasks = vm.featureTasks(vm.target_feature);
                 if (fireboundary && (modifyType & 2) === 2 && caller !== 'showprogress') {
-                    tenure_area_task = vm._taskManager.addTask(feat,"getSpatialData","tenure_area","Calculate fire boundary areas",utils.WAITING)
+                    var tenure_area_task = tasks.find(task => task.taskId === 'tenure_area');
+                    if (!tenure_area_task){
+                        var tenure_area_task = vm._taskManager.addTask(feat,"getSpatialData","tenure_area","Calculate fire boundary areas",utils.WAITING)
+                    }
                 }
                 var tenure_origin_point_task = null
                 var fire_position_task = null
@@ -1275,18 +1287,34 @@
                 if (["new","initial"].indexOf(feat.get('status')) >= 0 )  {
                     spatialData["plantations"]  = null
                     if (originPoint)  {
-
-                            plantation_task = vm._taskManager.addTask(feat,"getSpatialData","plantation","Find the plantations within 3kms",utils.WAITING)
-                        
+                        plantation_task = tasks.find(task => task.taskId === 'plantation');
+                        if (!plantation_task){
+                            plantation_task = vm._taskManager.addTask(feat,"getSpatialData","plantation","Find the plantations within 3kms",utils.WAITING)  
+                        }
                     }
                 }
                 if (originPoint && (modifyType & 1) === 1) {
-                    tenure_origin_point_task = vm._taskManager.addTask(feat,"getSpatialData","tenure_origin_point","Get the tenure of ignition point",utils.WAITING)
-                    fire_position_task = vm._taskManager.addTask(feat,"getSpatialData","fire_position","Get the fire position",utils.WAITING)
-                    originpoint_grid_task = vm._taskManager.addTask(feat,"getSpatialData","originpoint_grid","Get origin point's grid data",utils.WAITING)
+                    tenure_origin_point_task = tasks.find(task => task.taskId === 'tenure_origin_point');
+                    if (!tenure_origin_point_task){
+                        tenure_origin_point_task = vm._taskManager.addTask(feat,"getSpatialData","tenure_origin_point","Get the tenure of ignition point",utils.WAITING)
+                    }
+                    fire_position_task = tasks.find(task => task.taskId === 'fire_position');
+                    if (!fire_position_task){
+                        fire_position_task = vm._taskManager.addTask(feat,"getSpatialData","fire_position","Get the fire position",utils.WAITING)
+                    }
+                    originpoint_grid_task = tasks.find(task => task.taskId === 'originpoint_grid');
+                    if (!originpoint_grid_task){
+                        originpoint_grid_task = vm._taskManager.addTask(feat,"getSpatialData","originpoint_grid","Get origin point's grid data",utils.WAITING)
+                    }
                     if (["new","initial"].indexOf(feat.get('status')) >= 0) {
-                        region_task = vm._taskManager.addTask(feat,"getSpatialData","region","Get bushfire's region",utils.WAITING)
-                        district_task = vm._taskManager.addTask(feat,"getSpatialData","district","Get bushfire's district",utils.WAITING)
+                        region_task = tasks.find(task => task.taskId === 'region');
+                        if (!region_task){
+                            region_task = vm._taskManager.addTask(feat,"getSpatialData","region","Get bushfire's region",utils.WAITING)
+                        }
+                        district_task = tasks.find(task => task.taskId === 'district');
+                        if (!district_task){
+                            district_task = vm._taskManager.addTask(feat,"getSpatialData","district","Get bushfire's district",utils.WAITING)
+                        }
                     }
                 }
                 //need to call the callback first because the callback will not be called if no tasks are required.
@@ -1519,6 +1547,7 @@
                         data:{
                                 feature: JSON.stringify(feat),
                                 bfrs:feat.get('fire_number'),
+                                tasks:JSON.stringify(vm.featureTasks(vm.target_feature)),
                                 features:vm.$root.geojson.writeFeatures([feat]),
                                 options:JSON.stringify({
                                     area: {
@@ -1535,7 +1564,11 @@
                             var feature = vm.featurelist.find(f => f.get('fire_number') === feat.get('fire_number'));
                             if (feature) {
                                 feature.set("status", "in_queue")
-                                vm.showProgress(feature, showDialog=true)
+                                var import_task = tasks.find(task => task.taskId === 'import');
+                                if (import_task){
+                                    import_task.setStatus(utils.SUCCEED)
+                                }
+                                vm.showProgress(feature)
                             } else {
                                 console.error("Feature not found");
                             }
@@ -1690,7 +1723,7 @@
                 vm._getSpatialDataCallback(feat,caller,callback,failedCallback,spatialData)
             }
 
-            if (plantation_task) {
+            if (plantation_task && caller !== 'showprogress') {
                 plantation_task.setStatus(utils.RUNNING)
                 var point_buffer = turf.buffer({
                     type:"Feature",
@@ -1734,7 +1767,11 @@
 
         try {
             if (this.isFireboundaryDrawable(feat) || ((feat.get('modifyType') & 2) !== 2 && feat.get('fire_boundary')) && caller !== 'showprogress') {
-                var validate_task = vm._taskManager.addTask(feat,"getSpatialData","validate","Validate bushfire",utils.RUNNING)
+                var tasks = vm.featureTasks(vm.target_feature);
+                var validate_task = tasks.find(task => task.taskId === 'validate');
+                if (!validate_task){
+                    var validate_task = vm._taskManager.addTask(feat,"getSpatialData","validate","Validate bushfire",utils.RUNNING)
+                }
                 this.validateBushfire(feat,"getSpatialData",function(error) {
                     if (error) {
                         validate_task.setStatus(utils.FAILED,error)
@@ -1754,17 +1791,23 @@
       },
       saveFeature: function(feat,caller,callback) {
         caller = caller || "save"
-        if (this.canSave(feat)) {
+        if (this.canSave(feat) || caller === 'capturemethod') {
             var vm = this
+            vm.target_feature = vm.featurelist.find(f => f.get('fire_number') === feat.get('fire_number'));
+            if(vm.target_feature){
+                var tasks = vm.featureTasks(vm.target_feature); 
+            }
             //initialize feature tasks, if triggered by user
             if (!callback && !vm._taskManager.initTasks(feat)) {
                 return
             }
             if (caller === 'showprogress' || caller === "capturemethod") {
-                var tasks = vm.featureTasks(vm.target_feature);
                 var task = tasks.find(task => task.taskId === 'save');
             } else {
-                var task = vm._taskManager.addTask(feat, "save", "save", "Save spatial data", utils.RUNNING);
+                var task = tasks.find(task => task.taskId === 'save');
+                if(!task){
+                    var task = vm._taskManager.addTask(feat, "save", "save", "Save spatial data", utils.RUNNING);
+                }
             }
             if (!callback) {
                 callback = function(feat,status,msg) {
@@ -1801,7 +1844,10 @@
                             if ((feat.get('modifyType') & 2) === 2) {
                                 var originPoint = feat.getGeometry().getGeometries().find(function(g) {return g instanceof ol.geom.Point}) || null
                                 if (originPoint) {
-                                    var checkTask = vm._taskManager.addTask(feat,"postsave","check_originpoint","Check origin within fire shape",utils.RUNNING)
+                                    var checkTask = tasks.find(task => task.taskId === 'check_originpoint');
+                                    if (!checkTask){
+                                        var checkTask = vm._taskManager.addTask(feat,"postsave","check_originpoint","Check origin within fire shape",utils.RUNNING)
+                                    }
                                     originPoint = originPoint.getCoordinates()
                                     $.ajax({
                                         url:vm.env.kmiService + "/wfs?service=wfs&version=2.0&request=GetPropertyValue&valueReference=fire_number&typeNames=" + getLayerId("dpaw:bushfire_final_fireboundary_latest") + "&cql_filter=(fire_number='" + feat.get('fire_number') + "')and (CONTAINS(fire_boundary,POINT(" + originPoint[1]  + " " + originPoint[0] + ")))",
@@ -1814,6 +1860,7 @@
                                             } else {
                                                 checkTask.setStatus(utils.SUCCEED)
                                                 task.setStatus(utils.SUCCEED)
+                                                vm.clearQueue(false)
                                                 callback(feat,utils.SUCCEED)
                                             }
                                         },
@@ -1832,6 +1879,7 @@
                         }
 
                         task.setStatus(utils.SUCCEED)
+                        vm.clearQueue(false)
                         callback(feat,utils.SUCCEED)
                     },
                     error: function (xhr,status,message) {
@@ -1999,6 +2047,10 @@
           if (features && features.length) {
             vm.initBushfire(features[0])
             features[0].inViewport = ol.extent.containsCoordinate(vm.map.extent,vm.originpointCoordinate(features[0]))
+            if(feat.get('status') === 'in_queue'){
+                vm.target_feature = feat
+                vm.clearQueue(withConfirm=true)
+            }
             if (feat.selectedIndex !== undefined) {
                 if (vm.annotations.getSelectedGeometry(features[0],feat.selectedIndex)) {
                     features[0].selectedIndex = feat.selectedIndex
@@ -2352,55 +2404,63 @@
         $("#uploadBushfires").click()
       },
 
+      updateTasks(targetFeature){
+        var tasks = this.featureTasks(targetFeature);
+        if(tasks){
+            $.ajax({
+                url: "/api/update_tasks.json",
+                method: "GET",
+                dataType: "json",
+                data: { bfrs: targetFeature.get("fire_number"), 
+                        tasks:JSON.stringify(tasks) },
+            success: (response, stat, xhr) => {
+            },
+            error: function (xhr, status, message) {
+                alert(xhr.status + " : " + (xhr.responseText || message)); 
+                
+            }
+        });
+      }
+    },
+
       updateBfrsUploadProgress(){
         if(vm.target_feature){
-            var progressInfoPopup = $('#progressInfo').css('display');
-            if (progressInfoPopup == 'block') { 
-                vm.showProgress(vm.target_feature, showDialog=false)
+            if (vm.taskDialog && vm.taskDialog.isActive) { 
+                vm.showProgress(vm.target_feature)
             }
         }
       },
 
-      showProgress(targetFeature, showDialog=true) {
-        
-        var progressInfoPopup = $('#progressInfo').css('display');
-        if  (progressInfoPopup == 'block') {
-            
-        // } else if (progressInfoPopup == 'none') {
-        //     return;
-        } else {
+      showProgress(targetFeature) {
+        // check if task dialog already open
+        if  (!vm.taskDialog || !vm.taskDialog.isActive) {
             vm.taskDialog = new Foundation.Reveal($('#progressInfo'));
             vm.taskDialog.open();
+            this.calculation_status = ''
         }
-
-        if (targetFeature.get('status') === 'in_queue' && this.featureTasks(targetFeature).length === 0){
-            this._taskManager.initTasks(targetFeature)
-            this._taskManager.addTask(targetFeature,"import","import","Import bushfire fire boundary",utils.RUNNING)
-            this._taskManager.addTask(targetFeature,"save","save","Save spatial data",utils.RUNNING)
-            this._taskManager.addTask(targetFeature,"getSpatialData","tenure_area","Calculate fire boundary areas",utils.RUNNING)
-        }
-
-      // Re check after popup is created
-      var progressInfoPopup = $('#progressInfo').css('display');
-      this.calculation_status = ''
+      
       $.ajax({
         url: "/api/spatial_calculation_progress.json",
         method: "GET",
         dataType: "json",
-        data: { bfrs: targetFeature.get("fire_number") },
+        data: { bfrs: targetFeature.get("fire_number"), 
+                tasks:JSON.stringify(this.featureTasks(targetFeature)) },
         success: (response, stat, xhr) => {
             var output = response['result']
             var status = response['status']
 
             var tasks = this.featureTasks(targetFeature)
             var tenure_area_task = tasks.find(task => task.taskId === 'tenure_area')
-
+            var import_task = tasks.find(task => task.taskId === 'import');
+            if (import_task){
+                import_task.setStatus(utils.SUCCEED)
+            }
             this.last_uploaded_date = response['last_uploaded_date']
             this.target_feature = targetFeature
 
             this.completeButtonDisabled = true
 
-            if(tenure_area_task.status === 3){
+            if(tenure_area_task && tenure_area_task.status === 3){
                 this.completeButtonDisabled = false
             }
             
@@ -2412,6 +2472,7 @@
             }
 
             if (status === "Failed"){
+                this.calculation_status = ''
                 if (response["error"])
                     tenure_area_task.setStatus(utils.FAILED, response["error"]);
                 else
@@ -2426,18 +2487,24 @@
                 });
             }
             if (status === "Processing Finalised"){
+                this.calculation_status = ''
                 tenure_area_task.setStatus(utils.SUCCEED)
-                targetFeature.imported_feature.tasks = tasks
-                this.calculation_result = output
-                this.completeButtonDisabled = false
-                this.saveFeature(targetFeature.imported_feature, "showprogress", () => {});
+                if(targetFeature.imported_feature){
+                    targetFeature.imported_feature.tasks = tasks
+                    this.calculation_result = output
+                    this.completeButtonDisabled = false
+                    this.saveFeature(targetFeature.imported_feature, "showprogress", () => {});
+                }
+                else{
+                    this.calculation_result = output
+                    this.completeButtonDisabled = false
+                    this.saveFeature(targetFeature, "save", () => {});
+                }       
             }
-            // if(showDialog){
-            //     vm.taskDialog = new Foundation.Reveal($('#progressInfo'));
-            //     vm.taskDialog.open()
-            // }
             this.feature_tasks = this.featureTasks(targetFeature);
-            
+            // updating tasks after 5 sec
+            setTimeout(() => this.updateTasks(targetFeature), 5000);
+            // updating progress after 5 sec
             setTimeout(vm.updateBfrsUploadProgress, 5000);
             
         },
@@ -2492,7 +2559,7 @@
             }
             
         }
-        this.saveFeature(feat.imported_feature,"capturemethod",function(f,status,msg) {
+        this.saveFeature(feat,"capturemethod",function(f,status,msg) {
                 vm.taskDialog.open()
                 if (import_task) {
                     import_task.setStatus(status)
@@ -2511,10 +2578,10 @@
                 featureImported(status)
             })      
     },
-    clearQueue() {
-        vm = this
-        feat = vm.target_feature
-        if (confirm("Do you want to clear the bush fire from processing?")) {
+    clearQueue(withConfirm) {
+        vm = this;
+        feat = vm.target_feature;
+        if (!withConfirm || confirm("Do you want to clear the bush fire from processing?")) {
             $.ajax({
                 url: "/api/clear_queue",
                 dataType: "json",
@@ -2522,9 +2589,12 @@
                 method: "POST",
                 success: function (response, stat, xhr) {
                     if (feat) {
-                        vm.taskDialog.close()
+                        if(vm.taskDialog){
+                            vm.taskDialog.close();
+                        }
                         feat.set("status", "draft_final");
-                        vm._taskManager.clearTasks(feat)
+                        vm.resetFeature(feat)
+                        vm._taskManager.clearTasks(feat);
                     } else {
                         console.error("Feature not found");
                     }
@@ -2533,7 +2603,7 @@
                     alert(xhr.status + " : " + (xhr.responseText || message));
                 },
             });
-        } 
+        }
     },
 
 	  importList: function () {
@@ -2562,7 +2632,10 @@
             if (!this._taskManager.initTasks(targetFeature)) {
                 return
             }
+            var tasks = this.featureTasks(targetFeature);
+            this.target_feature = targetFeature
             import_task = this._taskManager.addTask(targetFeature,"import","import","Import bushfire fire boundary",utils.RUNNING)
+
         }
         vm.dialog.show({
             title:"Importing bushfires...",
@@ -2942,7 +3015,6 @@
                                 if (uploadedFireboundary && (!vm.isFireboundaryDrawable(feat) || !vm.map.isGeometryEqual(uploadedFireboundary,featureFireboundary,0.000000005))) {
                                     modifyType = modifyType | 2
                                 }
-
                                 if (!vm.isFireboundaryDrawable(feat) && (modifyType & 2) === 2) {
                                     //save to the database directly
                                     feature.set('id',feat.get('id'),true)
@@ -3485,12 +3557,45 @@
 
                             // Find the matching target feature
                             let matchingBfrs = bfrsList.find(bfrsItem => bfrsItem.bfrs === fireNumber);
+
                             if (matchingBfrs) {
                                 // Change the status to in_queue
                                 feature.set("status", "in_queue");
-                                var imported_feature = this.$root.geojson.readFeatures(matchingBfrs.feature)[0]
+                                var imported_feature = this.$root.geojson.readFeatures(matchingBfrs.feature)[0];
                                 var target_feature = vm.featurelist.find(f => f.get('fire_number') === fireNumber);
-                                target_feature.imported_feature = imported_feature
+                                target_feature.imported_feature = imported_feature;
+                                if (matchingBfrs.tasks) {
+                                    var tasks = JSON.parse(matchingBfrs.tasks);
+                                    var allTasks = this.featureTasks(target_feature);
+                                    if (!allTasks || allTasks.length === 0){
+                                        this._taskManager.initTasks(target_feature);
+                                    }
+                                    tasks.forEach(task => {
+                                        var progress = null;
+                                        if (task.status === -1) {
+                                            progress = utils.FAILED;
+                                        } else if (task.status === -2) {
+                                            progress = utils.FAIL_CONFIRMED;
+                                        } else if (task.status === 1) {
+                                            progress = utils.WAITING;
+                                        } else if (task.status === 2) {
+                                            progress = utils.RUNNING;
+                                        } else if (task.status === 3) {
+                                            progress = utils.SUCCEED;
+                                        } else if (task.status === 4) {
+                                            progress = utils.WARNING;
+                                        } else if (task.status === 5) {
+                                            progress = utils.IGNORED;
+                                        } else if (task.status === 6) {
+                                            progress = utils.MERGED;
+                                        }
+                                        
+                                        var taskCheck = allTasks && allTasks.find(targetTask => targetTask.taskId === task.taskId);
+                                        if (!taskCheck) {
+                                            this._taskManager.addTask(target_feature, task.scope, task.taskId, task.description, progress);
+                                        }
+                                    });
+                                }
                             }
                         }
                     }
@@ -3501,6 +3606,7 @@
             });
         }
     },
+    
       setup: function() {
         var vm = this
         //restore the selected features
@@ -3746,7 +3852,7 @@
 
       vm.loadRegions()
       vm.ui = {}
-      var toolConfig = {features:vm.features, selectedFeatures:vm.selectedFeatures, mapLayers:function(layer){return layer.get("id") === "dpaw:bushfirelist_latest"}}
+      var toolConfig = {features:vm.features, selectedFeatures:vm.selectedFeatures, mapLayers:function(layer){return layer.get("id") === "dpaw:bushfirelist_latest_uat"}}
       /*
       vm.ui.translateInter = vm.annotations.translateInterFactory()(toolConfig)
       vm.ui.translateInter.on("translateend",function(ev){
@@ -3788,7 +3894,7 @@
         }
       })($.extend({selectMode:"geometry"},toolConfig))
 
-      vm.ui.modifyInter = vm.annotations.modifyInterFactory()({features:vm.selectedFeatures,mapLayers:function(layer){return layer.get("id") === "dpaw:bushfirelist_latest" }})
+      vm.ui.modifyInter = vm.annotations.modifyInterFactory()({features:vm.selectedFeatures,mapLayers:function(layer){return layer.get("id") === "dpaw:bushfirelist_latest_uat" }})
       vm.ui.modifyInter.on("featuresmodified",function(ev){
           if (ev.features.getLength() === 1 ) {
             vm.validateBushfire(ev.features.item(0),"modifyBushfire")
@@ -4092,7 +4198,7 @@
       this.$root.fixedLayers.push({
         type: 'WFSLayer',
         name: 'Bushfire Report',
-        id: "dpaw:bushfirelist_latest",
+        id: "dpaw:bushfirelist_latest_uat",
         getFeatureInfo: function (f) {
             return {name: f.get("fire_number"), img: map.getBlob(f, ['icon', 'tint']), comments: f.get('name') + "(" + (vm._reportStatusName[f.get('report_status')] || vm._reportStatusName[99999]) + ")"}
         },
@@ -4254,7 +4360,7 @@
             vm._checkPermission(features, processResources)
         }
       })
-      //this.measure.register("dpaw:bushfirelist_latest",this.features)
+      //this.measure.register("dpaw:bushfirelist_latest_uat",this.features)
 
       vm._bfrsStatus.phaseEnd("initialize")
       // setInterval(vm.updateBfrsUploadProgress, 30000);
@@ -4301,7 +4407,7 @@
         })
 
         vm.map.olmap.on("removeLayer",function(ev){
-            if (ev.mapLayer.get('id') === "dpaw:bushfirelist_latest") {
+            if (ev.mapLayer.get('id') === "dpaw:bushfirelist_latest_uat") {
                 vm.features.clear()
                 vm._featurelist.clear()
             }
