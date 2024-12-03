@@ -53,7 +53,7 @@ class SyncCatalogueCSWDataCronJob(CronJobBase):
         management.call_command("sync_catalogue_from_csw")              
         
 class SpatialDataCalculationJob(CronJobBase):
-    RUN_EVERY_MINS = 5
+    RUN_EVERY_MINS = 2
 
     schedule = Schedule(run_every_mins=RUN_EVERY_MINS)
     code = 'sss.cron.spatial_data_calculations'
