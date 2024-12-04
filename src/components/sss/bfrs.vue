@@ -2432,53 +2432,56 @@
       },
 
       showProgress(targetFeature) {
+        
+        vm = this
+        vm.target_feature = targetFeature
         // check if task dialog already open
         if  (!vm.taskDialog || !vm.taskDialog.isActive) {
             vm.taskDialog = new Foundation.Reveal($('#progressInfo'));
+            
             vm.taskDialog.open();
-            this.calculation_status = ''
+            vm.calculation_status = ''
         }
       
       $.ajax({
         url: "/api/spatial_calculation_progress.json",
         method: "GET",
         dataType: "json",
-        data: { bfrs: targetFeature.get("fire_number"), 
-                tasks:JSON.stringify(this.featureTasks(targetFeature)) },
+        data: { bfrs: vm.target_feature.get("fire_number"), 
+                tasks:JSON.stringify(vm.featureTasks(vm.target_feature)) },
         success: (response, stat, xhr) => {
             var output = response['result']
             var status = response['status']
 
-            var tasks = this.featureTasks(targetFeature)
+            var tasks = vm.featureTasks(vm.target_feature)
             var tenure_area_task = tasks.find(task => task.taskId === 'tenure_area')
             var import_task = tasks.find(task => task.taskId === 'import');
             if (import_task){
                 import_task.setStatus(utils.SUCCEED)
             }
-            this.last_uploaded_date = response['last_uploaded_date']
-            this.target_feature = targetFeature
+            vm.last_uploaded_date = response['last_uploaded_date']
 
-            this.completeButtonDisabled = true
+            vm.completeButtonDisabled = true
 
             if(tenure_area_task && tenure_area_task.status === 3){
-                this.completeButtonDisabled = false
+                vm.completeButtonDisabled = false
             }
             
             if (status === "Imported"){
-                this.calculation_status = "(Waiting)"
+                vm.calculation_status = "(Waiting)"
             }
             if (status === "Calculating"){
-                this.calculation_status = "(Calculating)"
+                vm.calculation_status = "(Calculating)"
             }
 
             if (status === "Failed"){
-                this.calculation_status = ''
+                vm.calculation_status = ''
                 if (response["error"])
                     tenure_area_task.setStatus(utils.FAILED, response["error"]);
                 else
                     tenure_area_task.setStatus(utils.FAILED);
 
-                targetFeature.imported_feature.tasks = tasks
+                vm.target_feature.imported_feature.tasks = tasks
                 var tasks = vm.featureTasks(vm.target_feature);
 
                 tasks.forEach(task => {
@@ -2487,23 +2490,23 @@
                 });
             }
             if (status === "Processing Finalised"){
-                this.calculation_status = ''
+                vm.calculation_status = ''
                 tenure_area_task.setStatus(utils.SUCCEED)
-                if(targetFeature.imported_feature){
-                    targetFeature.imported_feature.tasks = tasks
-                    this.calculation_result = output
-                    this.completeButtonDisabled = false
-                    this.saveFeature(targetFeature.imported_feature, "showprogress", () => {});
+                if(vm.target_feature.imported_feature){
+                    vm.target_feature.imported_feature.tasks = tasks
+                    vm.calculation_result = output
+                    vm.completeButtonDisabled = false
+                    vm.saveFeature(vm.target_feature.imported_feature, "showprogress", () => {});
                 }
                 else{
-                    this.calculation_result = output
-                    this.completeButtonDisabled = false
-                    this.saveFeature(targetFeature, "save", () => {});
+                    vm.calculation_result = output
+                    vm.completeButtonDisabled = false
+                    vm.saveFeature(vm.target_feature, "save", () => {});
                 }       
             }
-            this.feature_tasks = this.featureTasks(targetFeature);
+            vm.feature_tasks = vm.featureTasks(vm.target_feature);
             // updating tasks after 5 sec
-            setTimeout(() => this.updateTasks(targetFeature), 5000);
+            setTimeout(() => vm.updateTasks(vm.target_feature), 5000);
             // updating progress after 5 sec
             setTimeout(vm.updateBfrsUploadProgress, 5000);
             
