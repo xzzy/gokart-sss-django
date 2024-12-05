@@ -633,9 +633,11 @@ def update_tasks(request, *args, **kwargs):
     if request.user.is_authenticated:
         bfrs = request.GET.get('bfrs')
         tasks = request.GET.get('tasks')
+        tasks_list = json.loads(tasks)
         calculation_object = SpatialDataCalculation.objects.filter(bfrs=bfrs, user__email=request.user.email).last()
-        calculation_object.tasks = tasks
-        calculation_object.save()
+        if tasks_list:
+            calculation_object.tasks = tasks
+            calculation_object.save()
         
         return JsonResponse({"tasks":"updated"})
     else:
