@@ -402,7 +402,7 @@
         return this.selectRevision && this.selectedFeatures.getLength()
       },
       bushfireLayer: function() {
-        return this.$root.catalogue.getLayer("dpaw:bushfirelist_latest_uat")
+        return this.$root.catalogue.getLayer("dpaw:bushfirelist_latest")
       },
       bushfireMapLayer: function() {
         return this.$root.map?this.$root.map.getMapLayer(this.bushfireLayer):undefined
@@ -464,7 +464,7 @@
                     }
 
                     var labelStyle = null
-                    if (res < 0.003 && geometries.length > 0 && feat.get('fire_number') && vm.bushfireLabels && !vm.$root.active.isHidden(vm.map.getMapLayer("dpaw:bushfirelist_latest_uat"))) {
+                    if (res < 0.003 && geometries.length > 0 && feat.get('fire_number') && vm.bushfireLabels && !vm.$root.active.isHidden(vm.map.getMapLayer("dpaw:bushfirelist_latest"))) {
                       labelStyle = labelStyleFunc.call(feat, res)
                       labelStyle.setGeometry(geometries[0])
                     }
@@ -1320,29 +1320,29 @@
                 //need to call the callback first because the callback will not be called if no tasks are required.
                 vm._getSpatialDataCallback(feat,caller,callback,failedCallback,spatialData)
                 if(caller === "showprogress"){
-                    if (vm.calculation_result["total_features"] > 0) {
-                        var result = vm.calculation_result["features"][0]["area"]
-                        if (result["status"]["failed"] ) {
-                            //failed
-                            tenure_area_task.setStatus(utils.FAILED,result["status"]["failed"])
-                            vm._getSpatialDataCallback(feat,caller,callback,failedCallback,spatialData)
-                        } else if (result["status"]["invalid"]) {
-                            //invalid geometry
-                            process_invalid_func(result)
-                        } else if (result["status"]["overlapped"]) {
-                            //found overlap
-                            process_overlap_func(result)
+                        if (vm.calculation_result["total_features"] > 0) {
+                            var result = vm.calculation_result["features"][0]["area"]
+                            if (result["status"]["failed"] ) {
+                                //failed
+                                tenure_area_task.setStatus(utils.FAILED,result["status"]["failed"])
+                                vm._getSpatialDataCallback(feat,caller,callback,failedCallback,spatialData)
+                            } else if (result["status"]["invalid"]) {
+                                //invalid geometry
+                                process_invalid_func(result)
+                            } else if (result["status"]["overlapped"]) {
+                                //found overlap
+                                process_overlap_func(result)
+                            } else {
+                                result["data"]["fb_validation_req"] = null
+                                spatialData["area"] = result["data"]
+                                tenure_area_task.setStatus(utils.SUCCEED)
+                                vm._getSpatialDataCallback(feat,caller,callback,failedCallback,spatialData)
+                            }
                         } else {
-                            result["data"]["fb_validation_req"] = null
-                            spatialData["area"] = result["data"]
-                            tenure_area_task.setStatus(utils.SUCCEED)
+                            tenure_area_task.setStatus(utils.FAILED,"Calculate area failed.")
                             vm._getSpatialDataCallback(feat,caller,callback,failedCallback,spatialData)
+                            //alert(tenure_area_task.message)
                         }
-                    } else {
-                        tenure_area_task.setStatus(utils.FAILED,"Calculate area failed.")
-                        vm._getSpatialDataCallback(feat,caller,callback,failedCallback,spatialData)
-                        //alert(tenure_area_task.message)
-                    }
                     // return
                 }
                 if (tenure_area_task) {
@@ -1563,6 +1563,7 @@
                         success: function (response, stat, xhr) {
                             var feature = vm.featurelist.find(f => f.get('fire_number') === feat.get('fire_number'));
                             if (feature) {
+                                feature.set("original_status", feature.get("status"))
                                 feature.set("status", "in_queue")
                                 var import_task = tasks.find(task => task.taskId === 'import');
                                 if (import_task){
@@ -2043,7 +2044,7 @@
         }
         this.bushfireMapLayer.getSource().retrieveFeatures(filter,function(features){
           console.log("BFRS retrieveFeatures");
-          console.log(features);
+          console.log(features); 
           if (features && features.length) {
             vm.initBushfire(features[0])
             features[0].inViewport = ol.extent.containsCoordinate(vm.map.extent,vm.originpointCoordinate(features[0]))
@@ -2434,26 +2435,30 @@
       showProgress(targetFeature) {
         
         vm = this
-        vm.target_feature = targetFeature
-        // check if task dialog already open
-        if  (!vm.taskDialog || !vm.taskDialog.isActive) {
-            vm.taskDialog = new Foundation.Reveal($('#progressInfo'));
-            
-            vm.taskDialog.open();
-            vm.calculation_status = ''
-        }
+
       
       $.ajax({
         url: "/api/spatial_calculation_progress.json",
         method: "GET",
         dataType: "json",
-        data: { bfrs: vm.target_feature.get("fire_number"), 
-                tasks:JSON.stringify(vm.featureTasks(vm.target_feature)) },
+        data: { bfrs: targetFeature.get("fire_number"), 
+                tasks:JSON.stringify(vm.featureTasks(targetFeature)) },
         success: (response, stat, xhr) => {
             var output = response['result']
             var status = response['status']
-
-            var tasks = vm.featureTasks(vm.target_feature)
+            // check if task dialog already open
+            console.log(vm.taskDialog)
+            if  (!vm.taskDialog || !vm.taskDialog.isActive) {
+                if (vm.taskDialog) {
+                    vm.taskDialog.destroy();
+                }
+                vm.taskDialog = new Foundation.Reveal($('#progressInfo'));
+                
+                vm.taskDialog.open();
+                vm.calculation_status = ''
+            }
+            vm.target_feature = targetFeature
+            var tasks = vm.featureTasks(targetFeature)
             var tenure_area_task = tasks.find(task => task.taskId === 'tenure_area')
             var import_task = tasks.find(task => task.taskId === 'import');
             if (import_task){
@@ -2481,8 +2486,8 @@
                 else
                     tenure_area_task.setStatus(utils.FAILED);
 
-                vm.target_feature.imported_feature.tasks = tasks
-                var tasks = vm.featureTasks(vm.target_feature);
+                targetFeature.imported_feature.tasks = tasks
+                var tasks = vm.featureTasks(targetFeature);
 
                 tasks.forEach(task => {
                     if (task.taskId !== 'tenure_area' && task.status !== 3)
@@ -2491,18 +2496,20 @@
             }
             if (status === "Processing Finalised"){
                 vm.calculation_status = ''
+                vm.completeButtonDisabled = false
                 tenure_area_task.setStatus(utils.SUCCEED)
-                if(vm.target_feature.imported_feature){
-                    vm.target_feature.imported_feature.tasks = tasks
+                var tasks = vm.featureTasks(targetFeature);
+                var allTasksCompleted = true
+                tasks.forEach(task => {
+                    if (task.taskId !== 'tenure_area' && task.status === -1){
+                        allTasksCompleted = false
+                    }
+                });
+                if(targetFeature.imported_feature && allTasksCompleted){
+                    targetFeature.imported_feature.tasks = tasks
                     vm.calculation_result = output
-                    vm.completeButtonDisabled = false
-                    vm.saveFeature(vm.target_feature.imported_feature, "showprogress", () => {});
-                }
-                else{
-                    vm.calculation_result = output
-                    vm.completeButtonDisabled = false
-                    vm.saveFeature(vm.target_feature, "save", () => {});
-                }       
+                    vm.saveFeature(targetFeature.imported_feature, "showprogress", () => {});
+                } 
             }
             vm.feature_tasks = vm.featureTasks(vm.target_feature);
             // updating tasks after 5 sec
@@ -2595,8 +2602,14 @@
                         if(vm.taskDialog){
                             vm.taskDialog.close();
                         }
-                        feat.set("status", "draft_final");
-                        vm.resetFeature(feat)
+                        var target_feature = vm.featurelist.find(f => f.get('fire_number') === feat.get('fire_number'));
+                        if(feat.get("original_status")){
+                            target_feature.set("status", feat.get("original_status"))
+                            target_feature.set('tint',feat.get("original_status"))
+                        }
+                        if(withConfirm){
+                            vm.resetFeature(feat)
+                        }
                         vm._taskManager.clearTasks(feat);
                     } else {
                         console.error("Feature not found");
@@ -2606,6 +2619,9 @@
                     alert(xhr.status + " : " + (xhr.responseText || message));
                 },
             });
+            if(vm.taskDialog || vm.taskDialog.isActive){
+                vm.taskDialog.close()
+            }
         }
     },
 
@@ -3595,7 +3611,10 @@
                                         
                                         var taskCheck = allTasks && allTasks.find(targetTask => targetTask.taskId === task.taskId);
                                         if (!taskCheck) {
-                                            this._taskManager.addTask(target_feature, task.scope, task.taskId, task.description, progress);
+                                            var newTask = this._taskManager.addTask(target_feature, task.scope, task.taskId, task.description, progress);
+                                            if(task.status === -1){
+                                                newTask.setStatus(utils.FAILED,task.message)
+                                            }
                                         }
                                     });
                                 }
@@ -3855,7 +3874,7 @@
 
       vm.loadRegions()
       vm.ui = {}
-      var toolConfig = {features:vm.features, selectedFeatures:vm.selectedFeatures, mapLayers:function(layer){return layer.get("id") === "dpaw:bushfirelist_latest_uat"}}
+      var toolConfig = {features:vm.features, selectedFeatures:vm.selectedFeatures, mapLayers:function(layer){return layer.get("id") === "dpaw:bushfirelist_latest"}}
       /*
       vm.ui.translateInter = vm.annotations.translateInterFactory()(toolConfig)
       vm.ui.translateInter.on("translateend",function(ev){
@@ -3897,7 +3916,7 @@
         }
       })($.extend({selectMode:"geometry"},toolConfig))
 
-      vm.ui.modifyInter = vm.annotations.modifyInterFactory()({features:vm.selectedFeatures,mapLayers:function(layer){return layer.get("id") === "dpaw:bushfirelist_latest_uat" }})
+      vm.ui.modifyInter = vm.annotations.modifyInterFactory()({features:vm.selectedFeatures,mapLayers:function(layer){return layer.get("id") === "dpaw:bushfirelist_latest" }})
       vm.ui.modifyInter.on("featuresmodified",function(ev){
           if (ev.features.getLength() === 1 ) {
             vm.validateBushfire(ev.features.item(0),"modifyBushfire")
@@ -4201,7 +4220,7 @@
       this.$root.fixedLayers.push({
         type: 'WFSLayer',
         name: 'Bushfire Report',
-        id: "dpaw:bushfirelist_latest_uat",
+        id: "dpaw:bushfirelist_latest",
         getFeatureInfo: function (f) {
             return {name: f.get("fire_number"), img: map.getBlob(f, ['icon', 'tint']), comments: f.get('name') + "(" + (vm._reportStatusName[f.get('report_status')] || vm._reportStatusName[99999]) + ")"}
         },
@@ -4363,7 +4382,7 @@
             vm._checkPermission(features, processResources)
         }
       })
-      //this.measure.register("dpaw:bushfirelist_latest_uat",this.features)
+      //this.measure.register("dpaw:bushfirelist_latest",this.features)
 
       vm._bfrsStatus.phaseEnd("initialize")
       // setInterval(vm.updateBfrsUploadProgress, 30000);
@@ -4410,7 +4429,7 @@
         })
 
         vm.map.olmap.on("removeLayer",function(ev){
-            if (ev.mapLayer.get('id') === "dpaw:bushfirelist_latest_uat") {
+            if (ev.mapLayer.get('id') === "dpaw:bushfirelist_latest") {
                 vm.features.clear()
                 vm._featurelist.clear()
             }
