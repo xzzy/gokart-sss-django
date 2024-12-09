@@ -1343,7 +1343,7 @@
                             vm._getSpatialDataCallback(feat,caller,callback,failedCallback,spatialData)
                             //alert(tenure_area_task.message)
                         }
-                    // return
+                    return
                 }
                 if (tenure_area_task) {
                     tenure_area_task.setStatus(utils.RUNNING)
@@ -1791,6 +1791,9 @@
         }
       },
       saveFeature: function(feat,caller,callback) {
+        if(feat.imported_feature){
+            feat = feat.imported_feature
+        }
         caller = caller || "save"
         if (this.canSave(feat) || caller === 'capturemethod') {
             var vm = this
@@ -2431,6 +2434,9 @@
             }
         }
       },
+      closeModal() {
+        vm.taskDialog = null;
+    },
 
       showProgress(targetFeature) {
         
@@ -2446,6 +2452,7 @@
         success: (response, stat, xhr) => {
             var output = response['result']
             var status = response['status']
+            var imp_feature = response['feature']
             // check if task dialog already open
             console.log(vm.taskDialog)
             if  (!vm.taskDialog || !vm.taskDialog.isActive) {
@@ -2505,6 +2512,10 @@
                         allTasksCompleted = false
                     }
                 });
+                if(!targetFeature.imported_feature){
+                    var feature_response = this.$root.geojson.readFeatures(imp_feature)[0];
+                    targetFeature.imported_feature = feature_response
+                }
                 if(targetFeature.imported_feature && allTasksCompleted){
                     targetFeature.imported_feature.tasks = tasks
                     vm.calculation_result = output
@@ -2604,11 +2615,16 @@
                         }
                         var target_feature = vm.featurelist.find(f => f.get('fire_number') === feat.get('fire_number'));
                         if(feat.get("original_status")){
+                            feat.set("status", feat.get("original_status"))
                             target_feature.set("status", feat.get("original_status"))
                             target_feature.set('tint',feat.get("original_status"))
+                            delete feat['original_status']
+                            if(target_feature.get("orinal_status")){
+                                delete target_feature['original_status']
+                            }
                         }
                         if(withConfirm){
-                            vm.resetFeature(feat)
+                            vm.resetFeature(target_feature, false)
                         }
                         vm._taskManager.clearTasks(feat);
                     } else {
@@ -3579,8 +3595,9 @@
 
                             if (matchingBfrs) {
                                 // Change the status to in_queue
-                                feature.set("status", "in_queue");
                                 var imported_feature = this.$root.geojson.readFeatures(matchingBfrs.feature)[0];
+                                feature.set("original_status", imported_feature.get("status"))
+                                feature.set("status", "in_queue");
                                 var target_feature = vm.featurelist.find(f => f.get('fire_number') === fireNumber);
                                 target_feature.imported_feature = imported_feature;
                                 if (matchingBfrs.tasks) {
