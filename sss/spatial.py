@@ -101,7 +101,7 @@ def getShapelyGeometry(feature):
         return shape(feature["geometry"])
 
 
-def transform(geometry,src_proj="EPSG:3857",target_proj='aea'):
+def transform(geometry,src_proj="EPSG:4326",target_proj='aea'):
     if src_proj == target_proj:
         return geometry
     else:
