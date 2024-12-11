@@ -204,6 +204,7 @@ class SpatialDataCalculation(models.Model):
     features = models.TextField(null=True, blank=True)
     options = models.TextField(null=True, blank=True)
     tasks = models.TextField(null=True, blank=True)
+    spatial_data = models.TextField(null=True, blank=True)
     output = models.TextField(null=True, blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     updated = models.DateTimeField(auto_now=True, blank=True)

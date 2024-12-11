@@ -611,15 +611,17 @@ def spatial_calculation_progress(request, *args, **kwargs):
     if request.user.is_authenticated:
         bfrs = request.GET.get('bfrs')
         tasks = request.GET.get('tasks')
+        spatial_data = request.GET.get('spatial_data')
         calculation_object = SpatialDataCalculation.objects.filter(bfrs=bfrs, user__email=request.user.email).last()
         calculation_object.tasks = tasks
+        calculation_object.spatial_data = spatial_data
         calculation_object.save()
         last_uploaded_date = calculation_object.created.astimezone(conf.settings.PERTH_TIMEZONE).strftime('%a %b %d %Y %H:%M:%S AWST')
         if(calculation_object.output):
             result = json.loads(calculation_object.output.replace("'", '"'))
         else:
             result = ""
-        output = {"status": calculation_object.calculation_status, "result": result, "last_uploaded_date":last_uploaded_date, "feature": calculation_object.features}
+        output = {"status": calculation_object.calculation_status, "result": result, "last_uploaded_date":last_uploaded_date, "feature": calculation_object.features, "spatial_data": calculation_object.spatial_data }
         
         if(calculation_object.calculation_status == SpatialDataCalculation.CALCULATION_STATUS[3][0]):
             output["error"] = calculation_object.error
@@ -663,7 +665,7 @@ def load_bfrs_status(request, *args, **kwargs):
              Q(calculation_status=SpatialDataCalculation.CALCULATION_STATUS[3][0]))
         )
 
-        bfrs_list = [{'bfrs': obj.bfrs, 'feature': obj.features, 'tasks': obj.tasks} for obj in bfrs_in_queue]
+        bfrs_list = [{'bfrs': obj.bfrs, 'feature': obj.features, 'tasks': obj.tasks, 'spatial_data': obj.spatial_data} for obj in bfrs_in_queue]
         return JsonResponse({'bfrs_list': bfrs_list})
     else:
         return JsonResponse({'status': 'error', 'message': 'User not authenticated'}, status=401)

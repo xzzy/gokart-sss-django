@@ -311,7 +311,6 @@
         feature_tasks: [],
         region: '',
         district: '',
-        spatial_data: null,
         last_uploaded_date: '',
         featureLabelDisabled: false,
         completeButtonDisabled: true,
@@ -1075,11 +1074,11 @@
         }
         failedCallback = failedCallback || this._defaultFailedCallback
         vm._getSpatialDataCallback = vm._getSpatialDataCallback || function(feat,caller,callback,failedCallback,spatialData) {
-            if(spatialData){
-                vm.spatial_data = spatialData
+            if (spatialData && (caller === 'import' || caller === 'save')) {
+                vm.target_feature.spatial_data = spatialData;
             }
-            if(vm.spatial_data){
-                spatialData = vm.spatial_data
+            if(vm.target_feature.spatial_data){
+                spatialData = vm.target_feature.spatial_data
             }
             if (vm._taskManager.allTasksSucceed(feat,"getSpatialData")) {
                 if ("region" in spatialData && "district" in spatialData) {
@@ -1135,13 +1134,13 @@
                     callback(spatialData)
                 }
                 else if (caller === "showprogress" && spatialData["fire_boundary"]) {
-                    vm.spatial_data = spatialData
+                    vm.target_feature.spatial_data = spatialData
                 }
                 else if (caller === "save" && spatialData["fire_boundary"]) {
-                    vm.spatial_data = spatialData
+                    vm.target_feature.spatial_data = spatialData
                 }
-                else if (caller === "capturemethod" && vm.spatial_data["fire_boundary"]) {
-                    var spatialData = vm.spatial_data
+                else if (caller === "capturemethod" && vm.target_feature.spatial_data && vm.target_feature.spatial_data["fire_boundary"]) {
+                    var spatialData = vm.target_feature.spatial_data
                     vm.loadCapturemethods(function(){
                         initData = {}
                         if (feat.get("capt_meth")) {
@@ -1235,7 +1234,7 @@
         vm._getSpatialData = vm._getSpatialData || function(feat,caller,callback,failedCallback) {
             try{
                 if(caller === "capturemethod"){
-                    vm._getSpatialDataCallback(feat,caller,callback,failedCallback,vm.spatial_data)
+                    vm._getSpatialDataCallback(feat,caller,callback,failedCallback,vm.target_feature.spatial_data)
                     return
                 }
                 
@@ -1277,6 +1276,36 @@
                         var tenure_area_task = vm._taskManager.addTask(feat,"getSpatialData","tenure_area","Calculate fire boundary areas",utils.WAITING)
                     }
                 }
+
+                if(caller === "showprogress"){
+                    spatialData = vm.target_feature.spatial_data
+                    var tenure_area_task = tasks.find(task => task.taskId === 'tenure_area');
+                        if (vm.calculation_result["total_features"] > 0) {
+                            var result = vm.calculation_result["features"][0]["area"]
+                            if (result["status"]["failed"] ) {
+                                //failed
+                                tenure_area_task.setStatus(utils.FAILED,result["status"]["failed"])
+                                vm._getSpatialDataCallback(feat,caller,callback,failedCallback,spatialData)
+                            } else if (result["status"]["invalid"]) {
+                                //invalid geometry
+                                process_invalid_func(result)
+                            } else if (result["status"]["overlapped"]) {
+                                //found overlap
+                                process_overlap_func(result)
+                            } else {
+                                result["data"]["fb_validation_req"] = null
+                                spatialData["area"] = result["data"]
+                                tenure_area_task.setStatus(utils.SUCCEED)
+                                vm._getSpatialDataCallback(feat,caller,callback,failedCallback,spatialData)
+                            }
+                        } else {
+                            tenure_area_task.setStatus(utils.FAILED,"Calculate area failed.")
+                            vm._getSpatialDataCallback(feat,caller,callback,failedCallback,spatialData)
+                            //alert(tenure_area_task.message)
+                        }
+                    return
+                }
+
                 var tenure_origin_point_task = null
                 var fire_position_task = null
                 var originpoint_grid_task = null
@@ -1319,32 +1348,6 @@
                 }
                 //need to call the callback first because the callback will not be called if no tasks are required.
                 vm._getSpatialDataCallback(feat,caller,callback,failedCallback,spatialData)
-                if(caller === "showprogress"){
-                        if (vm.calculation_result["total_features"] > 0) {
-                            var result = vm.calculation_result["features"][0]["area"]
-                            if (result["status"]["failed"] ) {
-                                //failed
-                                tenure_area_task.setStatus(utils.FAILED,result["status"]["failed"])
-                                vm._getSpatialDataCallback(feat,caller,callback,failedCallback,spatialData)
-                            } else if (result["status"]["invalid"]) {
-                                //invalid geometry
-                                process_invalid_func(result)
-                            } else if (result["status"]["overlapped"]) {
-                                //found overlap
-                                process_overlap_func(result)
-                            } else {
-                                result["data"]["fb_validation_req"] = null
-                                spatialData["area"] = result["data"]
-                                tenure_area_task.setStatus(utils.SUCCEED)
-                                vm._getSpatialDataCallback(feat,caller,callback,failedCallback,spatialData)
-                            }
-                        } else {
-                            tenure_area_task.setStatus(utils.FAILED,"Calculate area failed.")
-                            vm._getSpatialDataCallback(feat,caller,callback,failedCallback,spatialData)
-                            //alert(tenure_area_task.message)
-                        }
-                    return
-                }
                 if (tenure_area_task) {
                     tenure_area_task.setStatus(utils.RUNNING)
                     vm._getValidationMessage = vm._getValidationMessage || function(message) {
@@ -2441,20 +2444,27 @@
       showProgress(targetFeature) {
         
         vm = this
-
+        var spatial_data = null
+        if(vm.target_feature && vm.target_feature.spatial_data){
+            spatial_data = vm.target_feature.spatial_data
+        }
+        if(targetFeature && targetFeature.spatial_data){
+            spatial_data = targetFeature.spatial_data
+        }
       
       $.ajax({
         url: "/api/spatial_calculation_progress.json",
         method: "GET",
         dataType: "json",
         data: { bfrs: targetFeature.get("fire_number"), 
-                tasks:JSON.stringify(vm.featureTasks(targetFeature)) },
+                tasks:JSON.stringify(vm.featureTasks(targetFeature)),
+                spatial_data: JSON.stringify(spatial_data) },
         success: (response, stat, xhr) => {
             var output = response['result']
             var status = response['status']
             var imp_feature = response['feature']
+            var spatial_data = response['spatial_data']
             // check if task dialog already open
-            console.log(vm.taskDialog)
             if  (!vm.taskDialog || !vm.taskDialog.isActive) {
                 if (vm.taskDialog) {
                     vm.taskDialog.destroy();
@@ -2504,6 +2514,7 @@
             if (status === "Processing Finalised"){
                 vm.calculation_status = ''
                 vm.completeButtonDisabled = false
+                vm.target_feature.spatial_data = JSON.parse(spatial_data)
                 tenure_area_task.setStatus(utils.SUCCEED)
                 var tasks = vm.featureTasks(targetFeature);
                 var allTasksCompleted = true
@@ -3602,6 +3613,7 @@
                                 target_feature.imported_feature = imported_feature;
                                 if (matchingBfrs.tasks) {
                                     var tasks = JSON.parse(matchingBfrs.tasks);
+                                    target_feature.spatial_data = JSON.parse(matchingBfrs.spatial_data);
                                     var allTasks = this.featureTasks(target_feature);
                                     if (!allTasks || allTasks.length === 0){
                                         this._taskManager.initTasks(target_feature);
