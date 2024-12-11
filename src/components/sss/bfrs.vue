@@ -1074,7 +1074,7 @@
         }
         failedCallback = failedCallback || this._defaultFailedCallback
         vm._getSpatialDataCallback = vm._getSpatialDataCallback || function(feat,caller,callback,failedCallback,spatialData) {
-            if (spatialData && (caller === 'import' || caller === 'save')) {
+            if (spatialData && vm.target_feature && (caller === 'import' || caller === 'save' || caller === 'create')) {
                 vm.target_feature.spatial_data = spatialData;
             }
             if(vm.target_feature.spatial_data){
@@ -1991,6 +1991,7 @@
             if (!vm._taskManager.initTasks(feat)) {
                 return
             }
+            vm.target_feature = feat
             var task = vm._taskManager.addTask(feat,"create","create","Open bushfire report form",utils.RUNNING)
             this.getSpatialData(feat,"create",function(spatialData,job) {
                 feat.set("modifyType",0,true)
