@@ -549,7 +549,6 @@ def himawari8(request, target):
     else:
         content_type = 'application/json'
         json_data = json.dumps(result)
-        print(json_data)
         response = HttpResponse(json_data, content_type=content_type)
         return response
    
