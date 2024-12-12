@@ -222,7 +222,7 @@
                 <span aria-hidden="true">&times;</span>
             </button>
             <div class="small-12 expanded button-group" style="justify-content: center;">
-                <a title="Clear" class="button" style="flex: 0 0 8.33%; margin: 0 4.165%; margin-top:10px" @click="clearQueue(true)">Clear</a>
+                <a title="Clear" class="button" style="flex: 0 0 8.33%; margin: 0 4.165%; margin-top:10px" @click="clearQueue(true)" :disabled="clearButtonDisabled">Clear</a>
                 <a title="Complete" class="button" style="flex: 0 0 8.33%; margin: 0 4.165%; margin-top:10px" @click="captureMethods()" :disabled="completeButtonDisabled">Complete</a>
             </div>
             </div>
@@ -314,6 +314,7 @@
         last_uploaded_date: '',
         featureLabelDisabled: false,
         completeButtonDisabled: true,
+        clearButtonDisabled: false,
         showFireboundary: false,
         tools: [],
         fields: ['fire_number', 'name'],
@@ -1134,7 +1135,12 @@
                     callback(spatialData)
                 }
                 else if (caller === "showprogress" && spatialData["fire_boundary"]) {
-                    vm.target_feature.spatial_data = spatialData
+                    if(feat.get('original_status') === 'new'){
+                        callback(spatialData)
+                    }
+                    else{
+                        vm.target_feature.spatial_data = spatialData
+                    }     
                 }
                 else if (caller === "save" && spatialData["fire_boundary"]) {
                     vm.target_feature.spatial_data = spatialData
@@ -1985,32 +1991,61 @@
         }
         return feat
       },
-      createFeature: function(feat) {
-        if (this.canCreate(feat)) {
-            var vm = this
-            if (!vm._taskManager.initTasks(feat)) {
-                return
-            }
-            vm.target_feature = feat
-            var task = vm._taskManager.addTask(feat,"create","create","Open bushfire report form",utils.RUNNING)
-            this.getSpatialData(feat,"create",function(spatialData,job) {
-                feat.set("modifyType",0,true)
+      createFeature: function(feat, caller="create") {
+        var vm = this;
+
+        if (caller === "showprogress") {
+            vm.target_feature = feat;
+            var tasks = vm.featureTasks(feat);
+            var task = tasks.find(task => task.taskId === 'create');
+            this.getSpatialData(feat, "showprogress", function(spatialData, job) {
+                feat.set("modifyType", 0, true);
                 if (!feat.get("sss_id")) {
-                    feat.set("sss_id",hash.MD5(vm.whoami["email"] + "-" + Date.now() + "-" + feat.getGeometry().getGeometriesArray()[0].getCoordinates().join(",")),true)
+                    feat.set("sss_id", hash.MD5(vm.whoami["email"] + "-" + Date.now() + "-" + feat.getGeometry().getGeometriesArray()[0].getCoordinates().join(",")), true);
                 }
-                spatialData["sss_id"] = feat.get("sss_id")
-                $("#sss_create").val(JSON.stringify(spatialData))
-                utils.submitForm("bushfire_create")
-                task.setStatus(utils.SUCCEED)
-                vm._taskManager.clearTasks(feat)
-            },
-            function(ex){
-                task.setStatus(utils.FAILED,"")
-                var msg = vm._taskManager.errorMessages(feat).join("\r\n")
-                if (msg) alert(msg)
-            })
+                spatialData["sss_id"] = feat.get("sss_id");
+                $("#sss_create").val(JSON.stringify(spatialData));
+                utils.submitForm("bushfire_create");
+                task.setStatus(utils.SUCCEED);
+                if (vm.taskDialog) {
+                    vm.taskDialog.close();
+                }
+                vm.clearQueue(false);
+                vm._taskManager.clearTasks(feat);
+            }, function(ex) {
+                task.setStatus(utils.FAILED, "");
+                var msg = vm._taskManager.errorMessages(feat).join("\r\n");
+                if (msg) alert(msg);
+            });
+        } else {
+            if (this.canCreate(feat)) {
+                if (!vm._taskManager.initTasks(feat)) {
+                    return;
+                }
+                vm.target_feature = feat;
+                var task = vm._taskManager.addTask(feat, "create", "create", "Open bushfire report form", utils.RUNNING);
+                vm.showProgress(feat, "create");
+                this.getSpatialData(feat, "create", function(spatialData, job) {
+                    feat.set("modifyType", 0, true);
+                    if (!feat.get("sss_id")) {
+                        feat.set("sss_id", hash.MD5(vm.whoami["email"] + "-" + Date.now() + "-" + feat.getGeometry().getGeometriesArray()[0].getCoordinates().join(",")), true);
+                    }
+                    spatialData["sss_id"] = feat.get("sss_id");
+                    $("#sss_create").val(JSON.stringify(spatialData));
+                    utils.submitForm("bushfire_create");
+                    task.setStatus(utils.SUCCEED);
+                    if (vm.taskDialog) {
+                        vm.taskDialog.close();
+                    }
+                    vm._taskManager.clearTasks(feat);
+                }, function(ex) {
+                    task.setStatus(utils.FAILED, "");
+                    var msg = vm._taskManager.errorMessages(feat).join("\r\n");
+                    if (msg) alert(msg);
+                });
+            }
         }
-      },
+    },
       deleteFeature: function(feat) {
          var vm = this
          if (this.canDelete(feat)) {
@@ -2442,116 +2477,146 @@
         vm.taskDialog = null;
     },
 
-      showProgress(targetFeature) {
-        
-        vm = this
-        var spatial_data = null
-        if(vm.target_feature && vm.target_feature.spatial_data){
-            spatial_data = vm.target_feature.spatial_data
+    showProgress(targetFeature) {
+        var vm = this;
+        var spatial_data = null;
+
+        if (vm.target_feature && vm.target_feature.spatial_data) {
+            spatial_data = vm.target_feature.spatial_data;
         }
-        if(targetFeature && targetFeature.spatial_data){
-            spatial_data = targetFeature.spatial_data
+        if (targetFeature && targetFeature.spatial_data) {
+            spatial_data = targetFeature.spatial_data;
         }
-      
-      $.ajax({
-        url: "/api/spatial_calculation_progress.json",
-        method: "GET",
-        dataType: "json",
-        data: { bfrs: targetFeature.get("fire_number"), 
-                tasks:JSON.stringify(vm.featureTasks(targetFeature)),
-                spatial_data: JSON.stringify(spatial_data) },
-        success: (response, stat, xhr) => {
-            var output = response['result']
-            var status = response['status']
-            var imp_feature = response['feature']
-            var spatial_data = response['spatial_data']
-            // check if task dialog already open
-            if  (!vm.taskDialog || !vm.taskDialog.isActive) {
+
+        var tasks = vm.featureTasks(targetFeature);
+        var tenure_area_task = tasks.find(task => task.taskId === 'tenure_area');
+        if(targetFeature.get('original_status') === 'new'){
+            vm.completeButtonDisabled = true;
+        }
+        if (!tenure_area_task) {
+            vm.feature_tasks = tasks;
+            vm.clearButtonDisabled = true;
+
+            if (!vm.taskDialog || !vm.taskDialog.isActive) {
                 if (vm.taskDialog) {
                     vm.taskDialog.destroy();
                 }
                 vm.taskDialog = new Foundation.Reveal($('#progressInfo'));
-                
                 vm.taskDialog.open();
-                vm.calculation_status = ''
+                vm.calculation_status = '';
             }
-            vm.target_feature = targetFeature
-            var tasks = vm.featureTasks(targetFeature)
-            var tenure_area_task = tasks.find(task => task.taskId === 'tenure_area')
-            var import_task = tasks.find(task => task.taskId === 'import');
-            if (import_task){
-                import_task.setStatus(utils.SUCCEED)
-            }
-            vm.last_uploaded_date = response['last_uploaded_date']
+        } else {
+            vm.clearButtonDisabled = false;
+            $.ajax({
+                url: "/api/spatial_calculation_progress.json",
+                method: "GET",
+                dataType: "json",
+                data: {
+                    bfrs: targetFeature.get("fire_number"),
+                    tasks: JSON.stringify(vm.featureTasks(targetFeature)),
+                    spatial_data: JSON.stringify(spatial_data)
+                },
+                success: (response, stat, xhr) => {
+                    var output = response['result'];
+                    var status = response['status'];
+                    var imp_feature = response['feature'];
+                    var spatial_data = response['spatial_data'];
 
-            vm.completeButtonDisabled = true
-
-            if(tenure_area_task && tenure_area_task.status === 3){
-                vm.completeButtonDisabled = false
-            }
-            
-            if (status === "Imported"){
-                vm.calculation_status = "(Waiting)"
-            }
-            if (status === "Calculating"){
-                vm.calculation_status = "(Calculating)"
-            }
-
-            if (status === "Failed"){
-                vm.calculation_status = ''
-                if (response["error"])
-                    tenure_area_task.setStatus(utils.FAILED, response["error"]);
-                else
-                    tenure_area_task.setStatus(utils.FAILED);
-
-                targetFeature.imported_feature.tasks = tasks
-                var tasks = vm.featureTasks(targetFeature);
-
-                tasks.forEach(task => {
-                    if (task.taskId !== 'tenure_area' && task.status !== 3)
-                    task.setStatus(utils.FAILED);
-                });
-            }
-            if (status === "Processing Finalised"){
-                vm.calculation_status = ''
-                vm.completeButtonDisabled = false
-                vm.target_feature.spatial_data = JSON.parse(spatial_data)
-                tenure_area_task.setStatus(utils.SUCCEED)
-                var tasks = vm.featureTasks(targetFeature);
-                var allTasksCompleted = true
-                tasks.forEach(task => {
-                    if (task.taskId !== 'tenure_area' && task.status === -1){
-                        allTasksCompleted = false
+                    if (!vm.taskDialog || !vm.taskDialog.isActive) {
+                        if (vm.taskDialog) {
+                            vm.taskDialog.destroy();
+                        }
+                        vm.taskDialog = new Foundation.Reveal($('#progressInfo'));
+                        vm.taskDialog.open();
+                        vm.calculation_status = '';
                     }
-                });
-                if(!targetFeature.imported_feature){
-                    var feature_response = this.$root.geojson.readFeatures(imp_feature)[0];
-                    targetFeature.imported_feature = feature_response
-                }
-                if(targetFeature.imported_feature && allTasksCompleted){
-                    targetFeature.imported_feature.tasks = tasks
-                    vm.calculation_result = output
-                    vm.saveFeature(targetFeature.imported_feature, "showprogress", () => {});
-                } 
-            }
-            vm.feature_tasks = vm.featureTasks(vm.target_feature);
-            // updating tasks after 5 sec
-            setTimeout(() => vm.updateTasks(vm.target_feature), 5000);
-            // updating progress after 5 sec
-            setTimeout(vm.updateBfrsUploadProgress, 5000);
-            
-        },
-        error: function (xhr, status, message) {
-            alert(xhr.status + " : " + (xhr.responseText || message));            
-            setTimeout(vm.updateBfrsUploadProgress, 5000);
-            
-        },
-        xhrFields: {
-          withCredentials: true,
-        },
-      });
+
+                    vm.target_feature = targetFeature;
+                    var tasks = vm.featureTasks(targetFeature);
+                    var tenure_area_task = tasks.find(task => task.taskId === 'tenure_area');
+                    var import_task = tasks.find(task => task.taskId === 'import');
+
+                    if (import_task) {
+                        import_task.setStatus(utils.SUCCEED);
+                    }
+
+                    vm.last_uploaded_date = response['last_uploaded_date'];
+                    vm.completeButtonDisabled = true;
+
+                    if (tenure_area_task && tenure_area_task.status === 3) {
+                        vm.completeButtonDisabled = false;
+                    }
+
+                    if (status === "Imported") {
+                        vm.calculation_status = "(Waiting)";
+                    }
+                    if (status === "Calculating") {
+                        vm.calculation_status = "(Calculating)";
+                    }
+
+                    if (status === "Failed") {
+                        vm.calculation_status = '';
+                        if (response["error"]) {
+                            tenure_area_task.setStatus(utils.FAILED, response["error"]);
+                        } else {
+                            tenure_area_task.setStatus(utils.FAILED);
+                        }
+
+                        targetFeature.imported_feature.tasks = tasks;
+                        tasks.forEach(task => {
+                            if (task.taskId !== 'tenure_area' && task.status !== 3) {
+                                task.setStatus(utils.FAILED);
+                            }
+                        });
+                    }
+
+                    if (status === "Processing Finalised") {
+                        vm.calculation_status = '';
+                        vm.target_feature.spatial_data = JSON.parse(spatial_data);
+                        tenure_area_task.setStatus(utils.SUCCEED);
+
+                        var tasks = vm.featureTasks(targetFeature);
+                        var allTasksCompleted = true;
+                        tasks.forEach(task => {
+                            if (task.taskId !== 'tenure_area' && task.status === -1) {
+                                allTasksCompleted = false;
+                            }
+                        });
+
+                        if (!targetFeature.imported_feature) {
+                            var feature_response = this.$root.geojson.readFeatures(imp_feature)[0];
+                            targetFeature.imported_feature = feature_response;
+                        }
+
+                        var create_task = tasks.find(task => task.taskId === 'create');
+                        if (create_task && targetFeature.imported_feature && allTasksCompleted) {
+                            vm.completeButtonDisabled = true;
+                            targetFeature.imported_feature.tasks = tasks;
+                            vm.calculation_result = output;
+                            vm.createFeature(targetFeature, "showprogress");
+                        } else if (targetFeature.imported_feature && allTasksCompleted) {
+                            vm.completeButtonDisabled = false;
+                            targetFeature.imported_feature.tasks = tasks;
+                            vm.calculation_result = output;
+                            vm.saveFeature(targetFeature.imported_feature, "showprogress", () => {});
+                        }
+                    }
+
+                    vm.feature_tasks = vm.featureTasks(vm.target_feature);
+                    setTimeout(() => vm.updateTasks(vm.target_feature), 5000);
+                    setTimeout(vm.updateBfrsUploadProgress, 5000);
+                },
+                error: function(xhr, status, message) {
+                    alert(xhr.status + " : " + (xhr.responseText || message));
+                    setTimeout(vm.updateBfrsUploadProgress, 5000);
+                },
+                xhrFields: {
+                    withCredentials: true,
+                },
+            });
+        }
     },
-    
+   
     captureMethods() {
         if (this.completeButtonDisabled) {
             return;
@@ -4321,7 +4386,7 @@
                             })
                             if (!loadedFeature) {                                
                                 //still not save, keep the current new bushfire (PWM: saved?)
-                                features.splice(insertPosition, 0, ff)
+                                features.splice(insertPosition, 0, f)
                                 insertPosition += 1
                             } else{
                                 if (f.get('tint') === 'modified'){
