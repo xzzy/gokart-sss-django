@@ -67,5 +67,5 @@ class ProxyAdmin(admin.ModelAdmin):
 
 @admin.register(models.SpatialDataCalculation)
 class SpatialDataCalculationAdmin(admin.ModelAdmin):
-    list_display = ('id', 'bfrs','calculation_status', 'user')
+    list_display = ('id', 'bfrs', 'calculation_status', 'user', 'created')
     readonly_fields = ['updated', 'created','output']

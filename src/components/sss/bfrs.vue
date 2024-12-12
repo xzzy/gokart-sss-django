@@ -222,7 +222,7 @@
                 <span aria-hidden="true">&times;</span>
             </button>
             <div class="small-12 expanded button-group" style="justify-content: center;">
-                <a title="Clear" class="button" style="flex: 0 0 8.33%; margin: 0 4.165%; margin-top:10px" @click="clearQueue(true)" :disabled="clearButtonDisabled">Clear</a>
+                <a title="Clear" class="button" style="flex: 0 0 8.33%; margin: 0 4.165%; margin-top:10px" @click="clearQueue(withConfirm=true)" :disabled="clearButtonDisabled">Clear</a>
                 <a title="Complete" class="button" style="flex: 0 0 8.33%; margin: 0 4.165%; margin-top:10px" @click="captureMethods()" :disabled="completeButtonDisabled">Complete</a>
             </div>
             </div>
@@ -1873,7 +1873,7 @@
                                             } else {
                                                 checkTask.setStatus(utils.SUCCEED)
                                                 task.setStatus(utils.SUCCEED)
-                                                vm.clearQueue(false)
+                                                vm.clearQueue(withConfirm=false)
                                                 callback(feat,utils.SUCCEED)
                                             }
                                         },
@@ -1991,57 +1991,52 @@
         }
         return feat
       },
-      createFeature: function(feat, caller="create") {
+      createFeature: function(feat, caller) {
+        caller = caller || "create"
         var vm = this;
+        vm.target_feature = feat;
+
+        function handleSpatialData(spatialData, task) {
+            feat.set("modifyType", 0, true);
+            if (!feat.get("sss_id")) {
+                feat.set("sss_id", hash.MD5(vm.whoami["email"] + "-" + Date.now() + "-" + feat.getGeometry().getGeometriesArray()[0].getCoordinates().join(",")), true);
+            }
+            spatialData["sss_id"] = feat.get("sss_id");
+            $("#sss_create").val(JSON.stringify(spatialData));
+            utils.submitForm("bushfire_create");
+            task.setStatus(utils.SUCCEED);
+            if (vm.taskDialog) {
+                vm.taskDialog.close();
+            }
+            vm._taskManager.clearTasks(feat);
+            vm.clearQueue(withConfirm=false)
+        }
+
+        function handleError(task) {
+            task.setStatus(utils.FAILED, "");
+            var msg = vm._taskManager.errorMessages(feat).join("\r\n");
+            if (msg) alert(msg);
+        }
 
         if (caller === "showprogress") {
-            vm.target_feature = feat;
             var tasks = vm.featureTasks(feat);
             var task = tasks.find(task => task.taskId === 'create');
             this.getSpatialData(feat, "showprogress", function(spatialData, job) {
-                feat.set("modifyType", 0, true);
-                if (!feat.get("sss_id")) {
-                    feat.set("sss_id", hash.MD5(vm.whoami["email"] + "-" + Date.now() + "-" + feat.getGeometry().getGeometriesArray()[0].getCoordinates().join(",")), true);
-                }
-                spatialData["sss_id"] = feat.get("sss_id");
-                $("#sss_create").val(JSON.stringify(spatialData));
-                utils.submitForm("bushfire_create");
-                task.setStatus(utils.SUCCEED);
-                if (vm.taskDialog) {
-                    vm.taskDialog.close();
-                }
-                vm.clearQueue(false);
-                vm._taskManager.clearTasks(feat);
+                handleSpatialData(spatialData, task);
             }, function(ex) {
-                task.setStatus(utils.FAILED, "");
-                var msg = vm._taskManager.errorMessages(feat).join("\r\n");
-                if (msg) alert(msg);
+                handleError(task);
             });
         } else {
             if (this.canCreate(feat)) {
                 if (!vm._taskManager.initTasks(feat)) {
                     return;
                 }
-                vm.target_feature = feat;
                 var task = vm._taskManager.addTask(feat, "create", "create", "Open bushfire report form", utils.RUNNING);
                 vm.showProgress(feat, "create");
                 this.getSpatialData(feat, "create", function(spatialData, job) {
-                    feat.set("modifyType", 0, true);
-                    if (!feat.get("sss_id")) {
-                        feat.set("sss_id", hash.MD5(vm.whoami["email"] + "-" + Date.now() + "-" + feat.getGeometry().getGeometriesArray()[0].getCoordinates().join(",")), true);
-                    }
-                    spatialData["sss_id"] = feat.get("sss_id");
-                    $("#sss_create").val(JSON.stringify(spatialData));
-                    utils.submitForm("bushfire_create");
-                    task.setStatus(utils.SUCCEED);
-                    if (vm.taskDialog) {
-                        vm.taskDialog.close();
-                    }
-                    vm._taskManager.clearTasks(feat);
+                    handleSpatialData(spatialData, task);
                 }, function(ex) {
-                    task.setStatus(utils.FAILED, "");
-                    var msg = vm._taskManager.errorMessages(feat).join("\r\n");
-                    if (msg) alert(msg);
+                    handleError(task);
                 });
             }
         }
@@ -2477,7 +2472,7 @@
         vm.taskDialog = null;
     },
 
-    showProgress(targetFeature) {
+    showProgress: function(targetFeature) {
         var vm = this;
         var spatial_data = null;
 
@@ -2488,15 +2483,7 @@
             spatial_data = targetFeature.spatial_data;
         }
 
-        var tasks = vm.featureTasks(targetFeature);
-        var tenure_area_task = tasks.find(task => task.taskId === 'tenure_area');
-        if(targetFeature.get('original_status') === 'new'){
-            vm.completeButtonDisabled = true;
-        }
-        if (!tenure_area_task) {
-            vm.feature_tasks = tasks;
-            vm.clearButtonDisabled = true;
-
+        function openTaskDialog() {
             if (!vm.taskDialog || !vm.taskDialog.isActive) {
                 if (vm.taskDialog) {
                     vm.taskDialog.destroy();
@@ -2505,6 +2492,18 @@
                 vm.taskDialog.open();
                 vm.calculation_status = '';
             }
+        }
+
+        var tasks = vm.featureTasks(targetFeature);
+        var tenure_area_task = tasks.find(task => task.taskId === 'tenure_area');
+        if (targetFeature.get('status') === 'new' || targetFeature.get('original_status') === 'new') {
+            vm.completeButtonDisabled = true;
+        }
+
+        if (!tenure_area_task) {
+            vm.feature_tasks = tasks;
+            vm.clearButtonDisabled = true;
+            openTaskDialog();
         } else {
             vm.clearButtonDisabled = false;
             $.ajax({
@@ -2522,14 +2521,7 @@
                     var imp_feature = response['feature'];
                     var spatial_data = response['spatial_data'];
 
-                    if (!vm.taskDialog || !vm.taskDialog.isActive) {
-                        if (vm.taskDialog) {
-                            vm.taskDialog.destroy();
-                        }
-                        vm.taskDialog = new Foundation.Reveal($('#progressInfo'));
-                        vm.taskDialog.open();
-                        vm.calculation_status = '';
-                    }
+                    openTaskDialog();
 
                     vm.target_feature = targetFeature;
                     var tasks = vm.featureTasks(targetFeature);
