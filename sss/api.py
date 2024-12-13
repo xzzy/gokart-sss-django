@@ -617,9 +617,6 @@ def spatial_calculation_progress(request, *args, **kwargs):
         calculation_object.save()
         last_uploaded_date = calculation_object.created.astimezone(conf.settings.PERTH_TIMEZONE).strftime('%a %b %d %Y %H:%M:%S AWST')
         if(calculation_object.output):
-            print("inside print")
-            print(calculation_object.output)
-            print(calculation_object.output.replace("'", '"'))
             result = json.loads(calculation_object.output.replace("'", '"').replace("nan", "null"))
         else:
             result = ""
