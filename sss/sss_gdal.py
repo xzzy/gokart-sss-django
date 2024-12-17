@@ -1018,11 +1018,11 @@ def download(request, fmt):
         
         # changing coordinates to EPSG:4326
         for layer in layers:
-            layer['srs'] = 'EPSG:4326'
+            layer['srs'] = None
             if(layer['sourcelayers']):
                 for l in layer['sourcelayers']:
-                    l['meta']['srs'] = 'EPSG:4326'
-                    l['srs'] = 'EPSG:4326'
+                    l['meta']['srs'] = None
+                    l['srs'] = None        
                     
         #convert and union the layers
         outputdir = os.path.join(workdir,"output")
