@@ -308,6 +308,11 @@ def cataloguev2(request):
         #template_date = render_to_string('sss/cataloguev2.json', context)    
         return HttpResponse(json.dumps(catalogue_array), content_type='text/json')
 
+def gokart_js(request):
+    context = {'settings': conf.settings}
+    template_date = render_to_string('sss/gokart.js', context)   
+    return HttpResponse(template_date, content_type='text/javascript')
+
 def sso_profile(request):
     data= '{"authenticated": true, "email": "test.test@dbca.wa.gov.au", "username": "test.test@dbca.wa.gov.au", "first_name": "Test", "last_name": "Test", "full_name": "Test Test", "groups": "TEST,TEST1,TEST_ADMIN_TEAM,TEST_DEV_TEAM", "logout_url": "/sso/auth_logout", "session_key": "000.000.000.000.000|AUTH2-01|000dddeeefffff|1-auth2018eeedddfffgghhhtttyuuhgg", "auth_cache_hit": "success", "Frame_Options": "DENY", "Content_Type_Options": "nosniff", "client_logon_ip": "000.000.000.000", "access_token": "eeddfffuuiiidlkdldkdkdldkllksdlkdlkkjasdlksajlkdjkhlsajkdsajdlkas", "access_token_created": "2023-07-19 10:24:54", "access_token_expireat": "2023-08-16 23:59:59", "idp": "staff"}'
     return HttpResponse(data, content_type='application/json')

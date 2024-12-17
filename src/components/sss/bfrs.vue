@@ -2671,7 +2671,7 @@
     clearQueue(withConfirm) {
         vm = this;
         feat = vm.target_feature;
-        if (!withConfirm || confirm("Do you want to clear the bush fire from processing?")) {
+        if ((!withConfirm || confirm("Do you want to clear the bush fire from processing?")) && feat.get('status') === 'in_queue') {
             $.ajax({
                 url: "/api/clear_queue",
                 dataType: "json",
