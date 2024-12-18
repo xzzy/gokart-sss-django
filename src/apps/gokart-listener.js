@@ -1,7 +1,8 @@
 let GokartListener = function() {
     var vm = this
+    this.app = "sss"
     this.debug = window.location.search?(window.location.search.toLowerCase().indexOf("debug=true") >= 0):false 
-    this.channelNamePrefix = "gokart(" + window.location.origin + window.location.pathname + ")."
+    this.channelNamePrefix = "gokart(" + window.location.origin + window.location.pathname + this.app + ")."
 
     window.addEventListener('storage',function(e){
         if (e.key.startsWith(vm.channelNamePrefix)) {
