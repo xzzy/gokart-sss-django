@@ -3,8 +3,10 @@ var requestId = 0
 var pendingRequests = {}
 
 function GokartClient(app,module,debug) {
+    console.log("inside GokartClient")
     var vm = this
-    this.debug = debug
+    // this.debug = debug
+    this.debug = true    
     this.app = (app || "sss").toLowerCase();
     this.serverUrl = window.location.origin + "/" + this.app;
     this.defaultModule = module;
@@ -70,11 +72,12 @@ GokartClient.prototype.populateRequest = function(method,data){
 }
 
 GokartClient.prototype.call = function(method,options,module,ignoreIfNotOpen){
+    console.log("inisde call")
     module = module || this.defaultModule
     ignoreIfNotOpen = ignoreIfNotOpen?true:false
     var vm = this
-
     var request = JSON.stringify(vm.populateRequest(method,{module:module,options:options}))
+    console.log(request)
     var syncMessageFunc = null
 
     var sendMessage = null
