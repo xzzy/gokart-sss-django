@@ -1862,30 +1862,33 @@
                                         var checkTask = vm._taskManager.addTask(feat,"postsave","check_originpoint","Check origin within fire shape",utils.RUNNING)
                                     }
                                     originPoint = originPoint.getCoordinates()
-                                    $.ajax({
+
+                                    setTimeout(function() {
+                                        $.ajax({
                                         url:vm.env.kmiService + "/wfs?service=wfs&version=2.0&request=GetPropertyValue&valueReference=fire_number&typeNames=" + getLayerId("dpaw:bushfire_final_fireboundary_latest") + "&cql_filter=(fire_number='" + feat.get('fire_number') + "')and (CONTAINS(fire_boundary,POINT(" + originPoint[1]  + " " + originPoint[0] + ")))",
                                         dataType:"xml",
                                         success: function (response, stat, xhr) {
-                                            if (!response.firstChild || !response.firstChild.children || response.firstChild.children.length === 0) {
+                                                if (!response.firstChild || !response.firstChild.children || response.firstChild.children.length === 0) {
                                                 checkTask.setStatus(utils.FAILED ,"Point of Origin is not inside fire boundary, please fix using the edit bushfire button")
                                                 task.setStatus(utils.WARNING)
                                                 callback(feat,utils.WARNING,checkTask.message)
-                                            } else {
+                                                } else {
                                                 checkTask.setStatus(utils.SUCCEED)
                                                 task.setStatus(utils.SUCCEED)
                                                 vm.clearQueue(withConfirm=false)
                                                 callback(feat,utils.SUCCEED)
-                                            }
-                                        },
+                                                }
+                                            },
                                         error: function (xhr,status,message) {
                                             checkTask.setStatus(utils.FAILED,xhr.status + " : " + (xhr.responseText || message))
                                             task.setStatus(utils.WARNING)
                                             callback(feat,utils.WARNING,checkTask.message)
-                                        },
-                                        xhrFields: {
-                                            withCredentials: true
-                                        }
-                                    })
+                                            },
+                                            xhrFields: {
+                                                withCredentials: true
+                                            }
+                                        })
+                                    }, 10000); // 10 seconds timeout
                                     return
                                 }
                             }
