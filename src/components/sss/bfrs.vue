@@ -1888,7 +1888,7 @@
                                                 withCredentials: true
                                             }
                                         })
-                                    }, 5000); // 5 seconds timeout
+                                    }, 10000); // 10 seconds timeout
                                     return
                                 }
                             }
