@@ -1863,7 +1863,6 @@
                                     }
                                     originPoint = originPoint.getCoordinates()
 
-                                    setTimeout(function() {
                                         $.ajax({
                                         url:vm.env.kmiService + "/wfs?service=wfs&version=2.0&request=GetPropertyValue&valueReference=fire_number&typeNames=" + getLayerId("dpaw:bushfire_final_fireboundary_latest") + "&cql_filter=(fire_number='" + feat.get('fire_number') + "')and (CONTAINS(fire_boundary,POINT(" + originPoint[1]  + " " + originPoint[0] + ")))",
                                         dataType:"xml",
@@ -1888,7 +1887,6 @@
                                                 withCredentials: true
                                             }
                                         })
-                                    }, 10000); // 10 seconds timeout
                                     return
                                 }
                             }

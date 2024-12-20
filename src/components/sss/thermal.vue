@@ -1315,7 +1315,7 @@
         {
             name: 'Thermal Imaging Select',
             label: 'Select',
-            icon: 'fa-mouse-pointer',
+            // icon: 'fa-mouse-pointer',
             scope:["thermal"],
             selectedFeatures:vm.selectedFeatures,
             keepSelection:true,
@@ -1346,17 +1346,17 @@
                 vm.annotations.ui.dragSelectInter.setMulti(true)
                 vm.annotations.ui.selectInter.setMulti(true)
             },
-            comments:[
-              {
-                  name:"Tips",
-                  description:[
-                      "Select all features using shortcut key 'Ctrl + A'",
-                      "Select features using mouse.",
-                      "Hold 'Ctrl' to enable polygon selection",
-                      "Delete selected features using key 'Del'"
-                  ]
-              }
-            ]
+            // comments:[
+            //   {
+            //       name:"Tips",
+            //       description:[
+            //           "Select all features using shortcut key 'Ctrl + A'",
+            //           "Select features using mouse.",
+            //           "Hold 'Ctrl' to enable polygon selection",
+            //           "Delete selected features using key 'Del'"
+            //       ]
+            //   }
+            // ]
           }
       ]
 
