@@ -1810,6 +1810,17 @@
             if(vm.target_feature){
                 var tasks = vm.featureTasks(vm.target_feature); 
             }
+            
+            //resetting tasks, if failed
+            if (caller != 'showprogress' && caller != 'capturemethod' && tasks && tasks.length > 0) {
+                for (let i = 0; i < tasks.length; i++) {
+                    if (tasks[i].status === -1) {
+                        feat.tasks = [];
+                        break;
+                    }
+                }
+            }
+
             //initialize feature tasks, if triggered by user
             if (!callback && !vm._taskManager.initTasks(feat)) {
                 return
@@ -1821,6 +1832,9 @@
                 if(!task){
                     var task = vm._taskManager.addTask(feat, "save", "save", "Save spatial data", utils.RUNNING);
                 }
+            }
+            if (!vm.taskDialog || !vm.taskDialog.isActive) {
+                vm.showProgress(feat);
             }
             if (!callback) {
                 callback = function(feat,status,msg) {
@@ -2089,6 +2103,9 @@
             if(feat.get('status') === 'in_queue'){
                 vm.target_feature = feat
                 vm.clearQueue(withConfirm=true)
+            }
+            if (vm.taskDialog) {
+                vm.taskDialog.close();
             }
             if (feat.selectedIndex !== undefined) {
                 if (vm.annotations.getSelectedGeometry(features[0],feat.selectedIndex)) {
@@ -2462,16 +2479,16 @@
       }
     },
 
-      updateBfrsUploadProgress(){
-        if(vm.target_feature){
-            if (vm.taskDialog && vm.taskDialog.isActive) { 
-                vm.showProgress(vm.target_feature)
+        updateBfrsUploadProgress(){
+            if(vm.target_feature){
+                if (vm.taskDialog && vm.taskDialog.isActive) { 
+                    vm.showProgress(vm.target_feature)
+                }
             }
-        }
-      },
-      closeModal() {
-        vm.taskDialog = null;
-    },
+        },
+        closeModal() {
+            vm.taskDialog = null;
+        },
 
     showProgress: function(targetFeature) {
         var vm = this;
@@ -2695,6 +2712,7 @@
                         }
                         if(withConfirm){
                             vm.resetFeature(target_feature, false)
+                            target_feature.tasks = []
                         }
                         vm._taskManager.clearTasks(feat);
                     } else {
