@@ -1,5 +1,5 @@
 Django~=5.0.8
-dbca-util==2.0.2
+dbca-utils==2.0.2
 gunicorn==23.0.0
 gevent==24.11.1
 git+https://github.com/dbca-wa/webtemplate2.git#egg=webtemplate_dbca
