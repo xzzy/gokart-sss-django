@@ -2526,7 +2526,7 @@
             vm.clearButtonDisabled = false;
             $.ajax({
                 url: "/api/spatial_calculation_progress.json",
-                method: "GET",
+                method: "POST",
                 dataType: "json",
                 data: {
                     bfrs: targetFeature.get("fire_number"),

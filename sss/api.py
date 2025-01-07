@@ -616,12 +616,12 @@ def bfrs_calculation_queue(request):
     else:
         return HttpResponse('User is not authenticated', content_type='text/plain', status=500)
 
-
+@csrf_exempt
 def spatial_calculation_progress(request, *args, **kwargs):
     if request.user.is_authenticated:
-        bfrs = request.GET.get('bfrs')
-        tasks = request.GET.get('tasks')
-        spatial_data = request.GET.get('spatial_data')
+        bfrs = request.POST.get('bfrs')
+        tasks = request.POST.get('tasks')
+        spatial_data = request.POST.get('spatial_data')
         calculation_object = SpatialDataCalculation.objects.filter(bfrs=bfrs, user__email=request.user.email).last()
         calculation_object.tasks = tasks
         calculation_object.spatial_data = spatial_data
