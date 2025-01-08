@@ -235,6 +235,7 @@ SSS_FILE_URL = decouple.config("SSS_FILE_URL", default="http://sss-maps.dbca.wa.
 CALCULATE_AREA_IN_SEPARATE_PROCESS  = decouple.config("CALCULATE_AREA_IN_SEPARATE_PROCESS", default=False, cast=bool)
 DATA_UPLOAD_MAX_MEMORY_SIZE = decouple.config("DATA_UPLOAD_MAX_MEMORY_SIZE", default=51200000)
 EXPORT_CALCULATE_AREA_FILES_4_DEBUG = decouple.config("EXPORT_CALCULATE_AREA_FILES_4_DEBUG", default="true")
+CHECK_OVERLAP_IF_CALCULATE_AREA_FAILED = decouple.config("CHECK_OVERLAP_IF_CALCULATE_AREA_FAILED", default=False)
 
 # BOM FTP Login Details
 BOM_FTP_SERVER = decouple.config("BOM_FTP_SERVER", default="")

@@ -622,9 +622,10 @@ def spatial_calculation_progress(request, *args, **kwargs):
         bfrs = request.POST.get('bfrs')
         tasks = request.POST.get('tasks')
         spatial_data = request.POST.get('spatial_data')
-        calculation_object = SpatialDataCalculation.objects.filter(bfrs=bfrs, user__email=request.user.email).last()
+        calculation_object = SpatialDataCalculation.objects.filter(bfrs=bfrs).last()
         calculation_object.tasks = tasks
-        calculation_object.spatial_data = spatial_data
+        if (spatial_data != "" or spatial_data != "null"):
+            calculation_object.spatial_data = spatial_data
         calculation_object.save()
         last_uploaded_date = calculation_object.created.astimezone(conf.settings.PERTH_TIMEZONE).strftime('%a %b %d %Y %H:%M:%S AWST')
         if(calculation_object.output):
@@ -646,7 +647,7 @@ def update_tasks(request, *args, **kwargs):
         bfrs = request.GET.get('bfrs')
         tasks = request.GET.get('tasks')
         tasks_list = json.loads(tasks)
-        calculation_object = SpatialDataCalculation.objects.filter(bfrs=bfrs, user__email=request.user.email).last()
+        calculation_object = SpatialDataCalculation.objects.filter(bfrs=bfrs).last()
         if tasks_list:
             calculation_object.tasks = tasks
             calculation_object.save()
@@ -659,9 +660,7 @@ def update_tasks(request, *args, **kwargs):
 def load_bfrs_status(request, *args, **kwargs):
     if request.user.is_authenticated:
         # Get the latest entry for each unique bfrs
-        latest_entries = SpatialDataCalculation.objects.filter(
-            user__email=request.user.email
-        ).values('bfrs').annotate(latest_id=Max('id'))
+        latest_entries = SpatialDataCalculation.objects.all().values('bfrs').annotate(latest_id=Max('id'))
 
         # Extract the IDs of the latest entries
         latest_ids = [entry['latest_id'] for entry in latest_entries]
@@ -685,8 +684,7 @@ def clear_queue(request, *args, **kwargs):
     if request.user.is_authenticated:
         bfrs = request.POST.get('bfrs')
         bfrs_in_queue = SpatialDataCalculation.objects.filter(
-            bfrs = bfrs,
-            user__email=request.user.email
+            bfrs = bfrs
         ).last()
         bfrs_in_queue.calculation_status = SpatialDataCalculation.CALCULATION_STATUS[4][0]
         bfrs_in_queue.save()
