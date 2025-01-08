@@ -622,9 +622,10 @@ def spatial_calculation_progress(request, *args, **kwargs):
         bfrs = request.POST.get('bfrs')
         tasks = request.POST.get('tasks')
         spatial_data = request.POST.get('spatial_data')
-        calculation_object = SpatialDataCalculation.objects.filter(bfrs=bfrs, user__email=request.user.email).last()
+        calculation_object = SpatialDataCalculation.objects.filter(bfrs=bfrs).last()
         calculation_object.tasks = tasks
-        calculation_object.spatial_data = spatial_data
+        if (spatial_data != "" or spatial_data != "null"):
+            calculation_object.spatial_data = spatial_data
         calculation_object.save()
         last_uploaded_date = calculation_object.created.astimezone(conf.settings.PERTH_TIMEZONE).strftime('%a %b %d %Y %H:%M:%S AWST')
         if(calculation_object.output):
