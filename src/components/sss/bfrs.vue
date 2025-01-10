@@ -188,7 +188,7 @@
                     <a v-if="canReset(f)"  @click.stop.prevent="resetFeature(f)" title="Reset" class="button tiny secondary float-right acion" style="margin-left:2px"><i class="fa fa-undo actionicon"></i></a>
                   <a v-if="canDelete(f)" @click.stop.prevent="deleteFeature(f)" title="Delete" class="button tiny secondary float-right action" style="margin-left:2px"><i class="fa fa-trash actionicon"></i></a>
                   <a v-if="canUpload(f)"  @click.stop.prevent="uploadBushfire(f)" title="Upload" class="button tiny secondary float-right acion" style="margin-left:2px"><i class="fa fa-upload actionicon"></i></a>
-                  <a v-if="f.get('status') === 'in_queue'" @click.stop.prevent="showProgress(f)" title="Check Progress" class="button tiny secondary float-right acion" style="margin-left:2px"><i class="fa fa-tasks"></i></a>
+                  <a v-if="f.get('status') === 'in_queue'" @click.stop.prevent="showProgress(f)" title="Check Status" class="button tiny secondary float-right acion" style="margin-left:2px"><i class="fa fa-tasks"></i></a>
                   <a v-if="canModify(f)" @click.stop.prevent="startEditFeature(f)" title="Edit Bushfire" class="button tiny secondary float-right action">
                     <svg class="editicon"><use xlink:href="/static/dist/static/images/iD-sprite.svg#icon-area"></use></svg>
                   </a>
@@ -205,8 +205,18 @@
                 </div>
 
             <div class="small reveal" id="progressInfo" data-close-on-click="false">
-            <h3>Progress</h3>
-            <p>Last Uploaded: {{last_uploaded_date}}  {{calculation_status}}</p>
+            <h3>Status</h3>
+            <div class="alert-container">
+            <p style="font-size: 13px; margin: 0;">
+                <i class="fa fa-info-circle"></i> This window can be closed – you will receive an email when the upload is ready to proceed
+            </p>
+            </div>
+            <table style=" width: 100%; font-size: 12px; margin-top: -5px; margin-bottom: 5px; border: none;">
+                <tr>
+                    <td style=" text-align: left; background-color: #EDEDED;"><b>Last Uploaded: </b>{{last_uploaded_date}}  {{calculation_status}}</td>
+                    <td style=" text-align: left; background-color: #EDEDED;"><b>Submitted By: </b>{{submitter}}</td>
+                </tr>
+            </table>
             <div v-for="(index, task) in feature_tasks" :key="index">
                 <div class="small-12 columns">
                 <a class="task_status float-right" :title="revision && task.statusText">
@@ -222,8 +232,8 @@
                 <span aria-hidden="true">&times;</span>
             </button>
             <div class="small-12 expanded button-group" style="justify-content: center;">
-                <a title="Clear" class="button" style="flex: 0 0 8.33%; margin: 0 4.165%; margin-top:10px" @click="clearQueue(withConfirm=true)" :disabled="clearButtonDisabled">Clear</a>
-                <a title="Complete" class="button" style="flex: 0 0 8.33%; margin: 0 4.165%; margin-top:10px" @click="captureMethods()" :disabled="completeButtonDisabled">Complete</a>
+                <a title="Clear" class="button" style="flex: 0 0 auto; width: auto; margin: 0 4.165%; margin-top:10px" @click="clearQueue(withConfirm=true)" :disabled="clearButtonDisabled">Return to Edit Mode</a>
+                <a title="Complete" class="button" style="flex: 0 0 auto; width: auto; margin: 0 4.165%; margin-top:10px" @click="captureMethods()" :disabled="completeButtonDisabled">Complete</a>
             </div>
             </div>
               </div>
@@ -285,6 +295,17 @@
     padding-left:4px;
     padding-right:4px;
 }
+.alert-container {
+  padding: 10px; /* Adjust padding to reduce space */
+  margin-bottom: 20px;
+  border: 1px solid #004085;
+  border-radius: 6px;
+  margin-top: -10px;
+  position: relative;
+  background-color: #cce5ff;
+  border-color: #b8daff;
+  color: #004085;
+}
 </style>
 <script>
   import { ol, $, moment, hash, turf, utils } from 'src/vendor.js'
@@ -312,6 +333,7 @@
         region: '',
         district: '',
         last_uploaded_date: '',
+        submitter: '',
         featureLabelDisabled: false,
         completeButtonDisabled: true,
         clearButtonDisabled: false,
@@ -2521,6 +2543,9 @@
         if (!tenure_area_task) {
             vm.feature_tasks = tasks;
             vm.clearButtonDisabled = true;
+            vm.last_uploaded_date = '';
+            vm.submitter = '';
+            vm.calculation_status = '';
             openTaskDialog();
         } else {
             vm.clearButtonDisabled = false;
@@ -2537,9 +2562,7 @@
                     var output = response['result'];
                     var status = response['status'];
                     var imp_feature = response['feature'];
-                    var spatial_data = response['spatial_data'];
-
-                    openTaskDialog();
+                    var spatial_data = response['spatial_data'];                 
 
                     vm.target_feature = targetFeature;
                     var tasks = vm.featureTasks(targetFeature);
@@ -2551,6 +2574,7 @@
                     }
 
                     vm.last_uploaded_date = response['last_uploaded_date'];
+                    vm.submitter = response['submitter'];
                     vm.completeButtonDisabled = true;
 
                     if (tenure_area_task && tenure_area_task.status === 3) {
@@ -2563,9 +2587,10 @@
                     if (status === "Calculating") {
                         vm.calculation_status = "(Calculating)";
                     }
-
-                    if (status === "Failed") {
-                        vm.calculation_status = '';
+                    
+                    openTaskDialog();
+                    if (status === "Calculation Error") {
+                        vm.calculation_status = '(Calculation Error)';
                         if (response["error"]) {
                             tenure_area_task.setStatus(utils.FAILED, response["error"]);
                         } else {
@@ -2689,11 +2714,15 @@
     clearQueue(withConfirm) {
         vm = this;
         feat = vm.target_feature;
-        if ((!withConfirm || confirm("Do you want to clear the bush fire from processing?")) && feat.get('status') === 'in_queue') {
+        var removed = false;
+        if ((!withConfirm || confirm("Do you want to remove the bush fire from processing?")) && feat.get('status') === 'in_queue') {
+            if(withConfirm){
+                removed = true;
+            }
             $.ajax({
                 url: "/api/clear_queue",
                 dataType: "json",
-                data: { bfrs: feat.get("fire_number") },
+                data: { bfrs: feat.get("fire_number"), status: vm.calculation_status, removed: removed },
                 method: "POST",
                 success: function (response, stat, xhr) {
                     if (feat) {

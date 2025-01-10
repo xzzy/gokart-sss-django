@@ -3,7 +3,16 @@
 {% block content_body %}
 Hi{% if first_name %} {{ first_name }}{% endif %},
 
-Your spatial data calculation for {{ bfrs }} has failed with the following error:
+Your spatial data calculation for {{ bfrs }} has been failed.
 
-{{ error }}
+Status of the tasks after processing:
+
+{% for task in tasks %}
+Task: {{ task.description }}
+Status: {{ task.status }}
+{% if task.message %}
+Message: 
+{{ task.message }}
+{% endif %}
+{% endfor %}
 {% endblock %}
