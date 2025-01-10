@@ -212,4 +212,4 @@ class SpatialDataCalculation(models.Model):
     created = models.DateTimeField(default=timezone.now)
     error = models.TextField(null=True, blank=True)
     email_sent = models.BooleanField(default=False)
-    logs = models.TextField(null=True, blank=True)
+    logs = models.TextField(default='',null=True, blank=True)
