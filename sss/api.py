@@ -701,6 +701,8 @@ def clear_queue(request, *args, **kwargs):
             log_entry = "Removed by {} on {}".format(user, current_time)
         else:
             log_entry = "Completed by {} on {}".format(user, current_time)
+        if bfrs_in_queue.logs is None:
+            bfrs_in_queue.logs = ''
         bfrs_in_queue.logs += f"\n{log_entry}"
         bfrs_in_queue.save()
         return JsonResponse({'bfrs': bfrs})
