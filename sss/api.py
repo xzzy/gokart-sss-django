@@ -608,7 +608,9 @@ def bfrs_calculation_queue(request):
         user_email = request.user.email
         tasks = request.POST.get("tasks")
         user = User.objects.get(email=user_email)
-        caculation_queue_object = SpatialDataCalculation.objects.create(bfrs=bfrs, features=features, tasks=tasks, options=options, calculation_status=SpatialDataCalculation.CALCULATION_STATUS[0][0], user=user)
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        log_entry = "Added by {} on {}".format(user_email, current_time)
+        caculation_queue_object = SpatialDataCalculation.objects.create(bfrs=bfrs, features=features, tasks=tasks, options=options, calculation_status=SpatialDataCalculation.CALCULATION_STATUS[0][0], user=user, logs=log_entry)
         content_type = 'application/json'
         data = {"bfrs": bfrs, "calculation_status": caculation_queue_object.calculation_status}
         response = HttpResponse(json.dumps(data), content_type=content_type)    
@@ -624,15 +626,16 @@ def spatial_calculation_progress(request, *args, **kwargs):
         spatial_data = request.POST.get('spatial_data')
         calculation_object = SpatialDataCalculation.objects.filter(bfrs=bfrs).last()
         calculation_object.tasks = tasks
-        if (spatial_data != "" or spatial_data != "null"):
+        if (spatial_data != "" and spatial_data != "null"):
             calculation_object.spatial_data = spatial_data
         calculation_object.save()
         last_uploaded_date = calculation_object.created.astimezone(conf.settings.PERTH_TIMEZONE).strftime('%a %b %d %Y %H:%M:%S AWST')
+        submitter = calculation_object.user.email
         if(calculation_object.output):
             result = json.loads(calculation_object.output.replace("'", '"').replace("nan", "null"))
         else:
             result = ""
-        output = {"status": calculation_object.calculation_status, "result": result, "last_uploaded_date":last_uploaded_date, "feature": calculation_object.features, "spatial_data": calculation_object.spatial_data }
+        output = {"status": calculation_object.calculation_status, "result": result, "last_uploaded_date":last_uploaded_date, "submitter":submitter, "feature": calculation_object.features, "spatial_data": calculation_object.spatial_data }
         
         if(calculation_object.calculation_status == SpatialDataCalculation.CALCULATION_STATUS[3][0]):
             output["error"] = calculation_object.error
@@ -683,10 +686,22 @@ def load_bfrs_status(request, *args, **kwargs):
 def clear_queue(request, *args, **kwargs):
     if request.user.is_authenticated:
         bfrs = request.POST.get('bfrs')
+        status = request.POST.get('status')
+        removed = request.POST.get('removed')
         bfrs_in_queue = SpatialDataCalculation.objects.filter(
             bfrs = bfrs
         ).last()
-        bfrs_in_queue.calculation_status = SpatialDataCalculation.CALCULATION_STATUS[4][0]
+        if 'error' in status.lower():
+            bfrs_in_queue.calculation_status = SpatialDataCalculation.CALCULATION_STATUS[5][0]
+        else:
+            bfrs_in_queue.calculation_status = SpatialDataCalculation.CALCULATION_STATUS[4][0]
+        user = request.user.email
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        if removed == 'true':
+            log_entry = "Removed by {} on {}".format(user, current_time)
+        else:
+            log_entry = "Completed by {} on {}".format(user, current_time)
+        bfrs_in_queue.logs += f"\n{log_entry}"
         bfrs_in_queue.save()
         return JsonResponse({'bfrs': bfrs})
     else:

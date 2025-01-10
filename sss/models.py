@@ -191,11 +191,12 @@ class CatalogueSyncCSW(models.Model):
         
 class SpatialDataCalculation(models.Model):
     CALCULATION_STATUS = (
-    ('Imported', "Imported"),
-    ('Calculating', "Calculating"),
-    ('Processing Finalised', "Processing Finalised"),
-    ('Failed', "Failed"),
+    ('Imported', 'Imported'),
+    ('Calculating', 'Calculating'),
+    ('Processing Finalised', 'Processing Finalised'),
+    ('Calculation Error', 'Calculation Error'),
     ('Completed', "Completed"),
+    ('Failed', 'Failed')
 )
     bfrs = models.CharField(max_length=500)
     calculation_status = models.CharField('Calculation Status', 
@@ -211,3 +212,4 @@ class SpatialDataCalculation(models.Model):
     created = models.DateTimeField(default=timezone.now)
     error = models.TextField(null=True, blank=True)
     email_sent = models.BooleanField(default=False)
+    logs = models.TextField(null=True, blank=True)
