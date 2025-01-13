@@ -206,15 +206,22 @@
 
             <div class="small reveal" id="progressInfo" data-close-on-click="false">
             <h3>Status</h3>
-            <div class="alert-container">
+            <div v-if="target_feature.get('status') === 'in_queue'" class="alert-container">
             <p style="font-size: 13px; margin: 0;">
                 <i class="fa fa-info-circle"></i> This window can be closed – you will receive an email when the upload is ready to proceed
             </p>
             </div>
-            <table style=" width: 100%; font-size: 12px; margin-top: -5px; margin-bottom: 5px; border: none;">
+            <table v-if="target_feature.get('status') === 'in_queue'" style=" width: 100%; font-size: 12px; margin-top: -5px; margin-bottom: 5px; border: none;">
                 <tr>
-                    <td style=" text-align: left; background-color: #EDEDED;"><b>Last Uploaded: </b>{{last_uploaded_date}}  {{calculation_status}}</td>
+                    <td style=" text-align: left; background-color: #EDEDED;"><b>Last Uploaded: </b>{{last_uploaded_date}}</td>
                     <td style=" text-align: left; background-color: #EDEDED;"><b>Submitted By: </b>{{submitter}}</td>
+                    <td style="text-align: left; background-color: #EDEDED;">
+                    <b>Status: </b>
+                    <span v-if="calculation_status === 'waiting'" class="badge bg-primary">Waiting</span>
+                    <span v-if="calculation_status === 'calculating'" class="badge bg-warning">Calculating</span>
+                    <span v-if="calculation_status === 'calculation_error'" class="badge bg-danger">Failed</span>
+                    <span v-if="calculation_status === 'calculation_completed'" class="badge bg-success">Completed</span>
+                </td>
                 </tr>
             </table>
             <div v-for="(index, task) in feature_tasks" :key="index">
@@ -305,6 +312,33 @@
   background-color: #cce5ff;
   border-color: #b8daff;
   color: #004085;
+}
+.badge {
+    display: inline-block;
+    padding: 0.25em 0.4em;
+    font-size: 75%;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.25rem;
+}
+.bg-primary {
+    background-color: #2199E8;
+    color: white;
+}
+.bg-warning {
+    background-color: #ffc107;
+    color: #212529;
+}
+.bg-danger {
+    background-color: #dc3545;
+    color: white;
+}
+.bg-success {
+    background-color: #28a745;
+    color: white;
 }
 </style>
 <script>
@@ -2530,7 +2564,6 @@
                 }
                 vm.taskDialog = new Foundation.Reveal($('#progressInfo'));
                 vm.taskDialog.open();
-                vm.calculation_status = '';
             }
         }
 
@@ -2582,15 +2615,15 @@
                     }
 
                     if (status === "Imported") {
-                        vm.calculation_status = "(Waiting)";
+                        vm.calculation_status = "waiting";
                     }
                     if (status === "Calculating") {
-                        vm.calculation_status = "(Calculating)";
+                        vm.calculation_status = "calculating";
                     }
                     
                     openTaskDialog();
                     if (status === "Calculation Error") {
-                        vm.calculation_status = '(Calculation Error)';
+                        vm.calculation_status = 'calculation_error';
                         if (response["error"]) {
                             tenure_area_task.setStatus(utils.FAILED, response["error"]);
                         } else {
@@ -2606,7 +2639,7 @@
                     }
 
                     if (status === "Processing Finalised") {
-                        vm.calculation_status = '';
+                        vm.calculation_status = 'calculation_completed';
                         vm.target_feature.spatial_data = JSON.parse(spatial_data);
                         tenure_area_task.setStatus(utils.SUCCEED);
 
