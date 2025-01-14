@@ -1406,13 +1406,11 @@
                                                                         } else {
                                                                             spatialData["area"] = result["data"]
                                                                             tenure_area_task.setStatus(utils.SUCCEED)
-                                                                            vm.taskDialog.open()
-                                                                            vm._getSpatialDataCallback(feat,caller,callback,failedCallback,spatialData)
+                                                                            vm.showProgress(vm.target_feature)
                                                                         }
                                                                     } else {
                                                                         tenure_area_task.setStatus(utils.FAIL_CONFIRMED,msg)
-                                                                        vm.taskDialog.open()
-                                                                        vm._getSpatialDataCallback(feat,caller,callback,failedCallback,spatialData)
+                                                                        vm.showProgress(vm.target_feature)
                                                                     }
                                                                 },1)
                                                             }
@@ -1471,8 +1469,7 @@
                                             } else {
                                                 tenure_area_task.setStatus(utils.FAIL_CONFIRMED,"Cancelled")
                                             }
-                                            vm.taskDialog.open()
-                                            vm._getSpatialDataCallback(feat,caller,callback,failedCallback,spatialData)
+                                            vm.showProgress(vm.target_feature)
                                         },1)
                                     }
                                 })
@@ -2681,7 +2678,7 @@
         }
 
         function openTaskDialog() {
-            if (!vm.taskDialog || !vm.taskDialog.isActive) {
+            if (!vm.taskDialog || !vm.taskDialog.isActive || !vm.dialog.isActive) {
                 if (vm.taskDialog) {
                     vm.taskDialog.destroy();
                 }
@@ -2761,7 +2758,7 @@
                         });
                     }
 
-                    if (status === "Processing Finalised") {
+                    if (status === "Processing Finalised" && [1, 2, 3].includes(tenure_area_task.status)) {
                         vm.calculation_status = 'calculation_completed';
                         vm.target_feature.spatial_data = JSON.parse(spatial_data);
                         tenure_area_task.setStatus(utils.SUCCEED);
