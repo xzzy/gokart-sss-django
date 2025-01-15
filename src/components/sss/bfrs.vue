@@ -2699,6 +2699,7 @@
             vm.last_uploaded_date = '';
             vm.submitter = '';
             vm.calculation_status = '';
+            vm.completeButtonDisabled = true;
             openTaskDialog();
         } else {
             vm.clearButtonDisabled = false;
@@ -2758,35 +2759,37 @@
                         });
                     }
 
-                    if (status === "Processing Finalised" && [1, 2, 3].includes(tenure_area_task.status)) {
+                    if (status === "Processing Finalised") {
                         vm.calculation_status = 'calculation_completed';
-                        vm.target_feature.spatial_data = JSON.parse(spatial_data);
-                        tenure_area_task.setStatus(utils.SUCCEED);
+                        if([1, 2, 3].includes(tenure_area_task.status)){
+                            vm.target_feature.spatial_data = JSON.parse(spatial_data);
+                            tenure_area_task.setStatus(utils.SUCCEED);
 
-                        var tasks = vm.featureTasks(targetFeature);
-                        var allTasksCompleted = true;
-                        tasks.forEach(task => {
-                            if (task.taskId !== 'tenure_area' && task.status === -1) {
-                                allTasksCompleted = false;
+                            var tasks = vm.featureTasks(targetFeature);
+                            var allTasksCompleted = true;
+                            tasks.forEach(task => {
+                                if (task.taskId !== 'tenure_area' && task.status === -1) {
+                                    allTasksCompleted = false;
+                                }
+                            });
+
+                            if (!targetFeature.imported_feature) {
+                                var feature_response = this.$root.geojson.readFeatures(imp_feature)[0];
+                                targetFeature.imported_feature = feature_response;
                             }
-                        });
 
-                        if (!targetFeature.imported_feature) {
-                            var feature_response = this.$root.geojson.readFeatures(imp_feature)[0];
-                            targetFeature.imported_feature = feature_response;
-                        }
-
-                        var create_task = tasks.find(task => task.taskId === 'create');
-                        if (create_task && targetFeature.imported_feature && allTasksCompleted) {
-                            vm.completeButtonDisabled = true;
-                            targetFeature.imported_feature.tasks = tasks;
-                            vm.calculation_result = output;
-                            vm.createFeature(targetFeature, "showprogress");
-                        } else if (targetFeature.imported_feature && allTasksCompleted) {
-                            vm.completeButtonDisabled = false;
-                            targetFeature.imported_feature.tasks = tasks;
-                            vm.calculation_result = output;
-                            vm.saveFeature(targetFeature.imported_feature, "showprogress", () => {});
+                            var create_task = tasks.find(task => task.taskId === 'create');
+                            if (create_task && targetFeature.imported_feature && allTasksCompleted) {
+                                vm.completeButtonDisabled = true;
+                                targetFeature.imported_feature.tasks = tasks;
+                                vm.calculation_result = output;
+                                vm.createFeature(targetFeature, "showprogress");
+                            } else if (targetFeature.imported_feature && allTasksCompleted) {
+                                vm.completeButtonDisabled = false;
+                                targetFeature.imported_feature.tasks = tasks;
+                                vm.calculation_result = output;
+                                vm.saveFeature(targetFeature.imported_feature, "showprogress", () => {});
+                            }
                         }
                     }
 
