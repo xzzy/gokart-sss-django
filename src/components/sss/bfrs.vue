@@ -2658,7 +2658,7 @@
         updateBfrsUploadProgress(){
             if(vm.target_feature){
                 if (vm.taskDialog && vm.taskDialog.isActive) { 
-                    vm.showProgress(vm.target_feature)
+                    vm.showProgress(vm.target_feature,'updateBfrsUploadProgress')
                 }
             }
         },
@@ -2666,7 +2666,8 @@
             vm.taskDialog = null;
         },
 
-    showProgress: function(targetFeature) {
+    showProgress: function(targetFeature, caller) {
+        caller = caller || "showprogress"
         var vm = this;
         var spatial_data = null;
 
@@ -2741,8 +2742,9 @@
                     if (status === "Calculating") {
                         vm.calculation_status = "calculating";
                     }
-                    
-                    openTaskDialog();
+                    if(caller !== 'updateBfrsUploadProgress'){
+                        openTaskDialog();
+                    }
                     if (status === "Calculation Error") {
                         vm.calculation_status = 'calculation_error';
                         if (response["error"]) {
@@ -2794,8 +2796,8 @@
                     }
 
                     vm.feature_tasks = vm.featureTasks(vm.target_feature);
-                    setTimeout(() => vm.updateTasks(vm.target_feature), 5000);
-                    setTimeout(vm.updateBfrsUploadProgress, 5000);
+                        setTimeout(() => vm.updateTasks(vm.target_feature), 5000);
+                        setTimeout(vm.updateBfrsUploadProgress, 5000);
                 },
                 error: function(xhr, status, message) {
                     alert(xhr.status + " : " + (xhr.responseText || message));
