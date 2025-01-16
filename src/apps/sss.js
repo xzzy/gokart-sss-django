@@ -181,7 +181,7 @@ if (result) {
           delete store["activeLayers"]
       }
       var storedData = utils.extend(JSON.parse(JSON.stringify(persistentData)), store || {}, volatileData)
-    
+      storedData['activeLayers'] = storedData['activeLayers'].filter(layer => layer[0] !== 'dpaw:resource_tracking_history');
       global.gokart = new Vue({
         el: 'body',
         components: {
@@ -218,14 +218,14 @@ if (result) {
           catalogue: function () { return this.$refs.app.$refs.layers.$refs.catalogue },
           export: function () { return this.$refs.app.$refs.layers.$refs.export },
           annotations: function () { return this.$refs.app.$refs.annotations },
-		  tracking: function () { return this.$refs.app.$refs.tracking },
-		  thermal: function () { return this.$refs.app.$refs.thermal },
+		      tracking: function () { return this.$refs.app.$refs.tracking },
+		      thermal: function () { return this.$refs.app.$refs.thermal },
           settings: function () { return this.$refs.app.$refs.settings },
           systemsetting: function () { return this.$refs.app.$refs.settings.$refs.systemsetting },
           bfrs: function () { return this.$refs.app.$refs.bfrs },
           weatheroutlook: function () { return this.$refs.app.$refs.settings.$refs.weatheroutlook },
           geojson: function () { return new ol.format.GeoJSON() },
-          wgs84Sphere: function () { return new ol.Sphere(6378137) },
+          //wgs84Sphere: function () { return new ol.sphere(6378137) },
           profile: function(){return profile},
           app: function() {return "SSS"},
           utils: function() {return utils},
@@ -384,7 +384,7 @@ if (result) {
             },
             timelineRefresh:300,
             fetchTimelineUrl:function(lastUpdatetime){
-                return self.env.gokartService + '/hi8/AHI_TKY_FHS?updatetime=' + lastUpdatetime
+                return '/hi8/AHI_TKY_b321?updatetime=' + lastUpdatetime
             },
             setTimeIndex:function(layer, tileLayer, previousTimeline, defaultFunc) {
                 var timeIndex = null
@@ -413,7 +413,7 @@ if (result) {
             id: 'himawari8:bandtc',
             timelineRefresh:300,
             fetchTimelineUrl:function(lastUpdatetime){
-                return self.env.gokartService + '/hi8/AHI_TKY_b321?updatetime=' + lastUpdatetime
+              return '/hi8/AHI_TKY_b321?updatetime=' + lastUpdatetime
             },
             setTimeIndex:function(layer,tileLayer,previousTimeline,defaultFunc) {
                 var timeIndex = null
@@ -454,7 +454,7 @@ if (result) {
             id: 'himawari8:band7',
             timelineRefresh:300,
             fetchTimelineUrl:function(lastUpdatetime){
-                return self.env.gokartService + '/hi8/AHI_TKY_b7?updatetime=' + lastUpdatetime
+                return '/hi8/AHI_TKY_b7?updatetime=' + lastUpdatetime
             },
             setTimeIndex:function(layer,tileLayer,previousTimeline,defaultFunc) {
                 var timeIndex = null
@@ -477,6 +477,7 @@ if (result) {
                     }
                 }
             }
+          },
             //base: true
          /*
           }, {
@@ -510,48 +511,48 @@ if (result) {
             fetchTimelineUrl:function(lastUpdatetime){
                 return "/bom/IDZ71117?basetimelayer=bom:IDZ71117_datetime&timelinesize=72&layertimespan=3600&updatetime=" + lastUpdatetime
             }*/
-		  }, {
-            type: 'TileLayer',
-            name: 'Forest Fire Danger Index',
-            id: 'bom:forest_fire_danger_index',
-            timelineRefresh: 300,
-            fetchTimelineUrl: function(lastUpdatetime){
-                //return "/bom/IDZ71117?basetimelayer=bom:IDZ71117_datetime&timelinesize=72&layertimespan=3600&updatetime=" + lastUpdatetime
-				return "/bom/IDZ71117?basetimelayer=bom:IDZ71117_datetime&timelinesize=72&layertimespan=3600&updatetime=" + lastUpdatetime
-            }
-          }, {
-            type: 'TileLayer',
-            name: 'Maximum Forest Fire Danger Index',
-            id: 'bom:maximum_forest_fire_danger_index',
-            timelineRefresh:300,
-            fetchTimelineUrl:function(lastUpdatetime){
-                return "/bom/IDZ71118?basetimelayer=bom:IDZ71118_datetime&timelinesize=4&layertimespan=86400&updatetime=" + lastUpdatetime
-            }
-          }, {
-            type: 'TileLayer',
-            name: 'Grassland Fire Danger Index',
-            id: 'bom:grass_fire_danger_index',
-            timelineRefresh:300,
-            fetchTimelineUrl:function(lastUpdatetime){
-                return "/bom/IDZ71122?basetimelayer=bom:IDZ71122_datetime&timelinesize=72&layertimespan=3600&updatetime=" + lastUpdatetime
-            }
-          }, {
-            type: 'TileLayer',
-            name: 'Maximum Grassland Fire Danger Index',
-            id: 'bom:maximum_grass_fire_danger_index',
-            timelineRefresh:300,
-            fetchTimelineUrl:function(lastUpdatetime){
-                return "/bom/IDZ71123?basetimelayer=bom:IDZ71123_datetime&timelinesize=4&layertimespan=86400&updatetime=" + lastUpdatetime
-            }
-          }, {
-            type: 'TileLayer',
-            name: 'Continuous Haines',
-            id: 'bom:continuous_haines',
-            timelineRefresh:300,
-            fetchTimelineUrl:function(lastUpdatetime){
-                return "/bom/IDZ71115?basetimelayer=bom:IDZ71115_datetime&timelinesize=56&layertimespan=10800&updatetime=" + lastUpdatetime
-            }
-          }
+      // {
+      //       type: 'TileLayer',
+      //       name: 'Forest Fire Danger Index',
+      //       id: 'bom:forest_fire_danger_index',
+      //       timelineRefresh: 300,
+      //       fetchTimelineUrl: function(lastUpdatetime){
+      //           //return "/bom/IDZ71117?basetimelayer=bom:IDZ71117_datetime&timelinesize=72&layertimespan=3600&updatetime=" + lastUpdatetime
+			// 	return "/bom/IDZ71117?basetimelayer=bom:IDZ71117_datetime&timelinesize=72&layertimespan=3600&updatetime=" + lastUpdatetime
+      //       }
+      //     }, {
+      //       type: 'TileLayer',
+      //       name: 'Maximum Forest Fire Danger Index',
+      //       id: 'bom:maximum_forest_fire_danger_index',
+      //       timelineRefresh:300,
+      //       fetchTimelineUrl:function(lastUpdatetime){
+      //           return "/bom/IDZ71118?basetimelayer=bom:IDZ71118_datetime&timelinesize=4&layertimespan=86400&updatetime=" + lastUpdatetime
+      //       }
+      //     }, {
+      //       type: 'TileLayer',
+      //       name: 'Grassland Fire Danger Index',
+      //       id: 'bom:grass_fire_danger_index',
+      //       timelineRefresh:300,
+      //       fetchTimelineUrl:function(lastUpdatetime){
+      //           return "/bom/IDZ71122?basetimelayer=bom:IDZ71122_datetime&timelinesize=72&layertimespan=3600&updatetime=" + lastUpdatetime
+      //       }
+      //     }, {
+      //       type: 'TileLayer',
+      //       name: 'Maximum Grassland Fire Danger Index',
+      //       id: 'bom:maximum_grass_fire_danger_index',
+      //       timelineRefresh:300,
+      //       fetchTimelineUrl:function(lastUpdatetime){
+      //           return "/bom/IDZ71123?basetimelayer=bom:IDZ71123_datetime&timelinesize=4&layertimespan=86400&updatetime=" + lastUpdatetime
+      //       }
+      //     }, {
+      //       type: 'TileLayer',
+      //       name: 'Continuous Haines',
+      //       id: 'bom:continuous_haines',
+      //       timelineRefresh:300,
+      //       fetchTimelineUrl:function(lastUpdatetime){
+      //           return "/bom/IDZ71115?basetimelayer=bom:IDZ71115_datetime&timelinesize=56&layertimespan=10800&updatetime=" + lastUpdatetime
+      //       }
+      //     }
 		  /*, {
             type: 'TileLayer',
             name: 'mslp',

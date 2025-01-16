@@ -1,0 +1,45 @@
+{% extends 'emails/base_email.html' %}
+
+{% block content_body %}
+<p>Hi{% if first_name %} {{ first_name }}{% endif %}</p>
+<p>Your spatial data calculation for {{ bfrs }} has been failed.</p>
+
+<p>Status of the tasks after processing</p>
+
+<table border="1" style="border-collapse: collapse; width: 100%;">
+    <thead>
+        <tr>
+            <th style="border: 1px solid black; padding: 8px; text-align: left;">Task</th>
+            <th style="border: 1px solid black; padding: 8px; text-align: left;">Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for task in tasks %}
+        <tr>
+            <td style="border: 1px solid black; padding: 8px;">
+                {{ task.description }}
+                {% if task.message %}
+                <br><br>
+                <pre style="color: red;">{{ task.message }}</pre>
+                {% endif %}
+            </td>
+            <td style="border: 1px solid black; padding: 8px;">
+                <b style="
+                  {% if task.status == 'Running' %}
+                    color: #1685CF;
+                  {% elif task.status == 'Succeed' %}
+                    color: green;
+                  {% elif task.status == 'Failed' %}
+                    color: red;
+                  {% else %}
+                    color: black;
+                  {% endif %}
+                ">
+                  {{ task.status }}
+                </b>
+              </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

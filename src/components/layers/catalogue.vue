@@ -11,10 +11,11 @@
             </select>
           </div>
           <div class="small-6 columns">
-            <input id="find-layer" type="search" v-model="search" placeholder="Find a layer">
+            <input id="find-layer" type="search" v-model="search" placeholder="Find a layer" autocomplete="off">
           </div>
         </div>
         <div v-show="search.length > 0 && search !== 'basemap'" class="row">
+          
           <div class="columns text-right">
             <label for="switchBaseLayers" class="side-label">Toggle all</label>
           </div>
@@ -40,8 +41,8 @@
     </div>
     <div class="layers-flexibleframe scroller row collapse" id="catalogue-list-container">
       <div class="columns">
-        <div id="layers-catalogue-list">
-          <div v-for="l in catalogue.getArray() | filterBy search in searchAttrs | orderBy 'name'" class="row layer-row" @mouseover="preview(l)" track-by="mapLayerId" @mouseleave="preview(false)" style="margin-left:0px;margin-right:0px">
+        <div id="layers-catalogue-list">          
+          <div v-for="l in catalogue.getArray()  | orderBy 'name'" class="row layer-row" @mouseover="preview(l)" v-if="l.name.toLowerCase().indexOf(search.toLowerCase()) !== -1  || l.id.toLowerCase().indexOf(search.toLowerCase()) !== -1 || containsTag(l.tags, search.toLowerCase())"  track-by="mapLayerId" @mouseleave="preview(false)" style="margin-left:0px;margin-right:0px">                        
             <div class="small-10">
               <a v-if="editable(l)" @click.stop.prevent="utils.editResource($event)" title="Edit catalogue entry" href="{{env.catalogueAdminService}}/admin/catalogue/record/{{l.systemid}}/change/" target="{{env.catalogueAdminService}}" class="button tiny secondary float-right short"><i class="fa fa-pencil"></i></a>
               <div class="layer-title">{{ l.name || l.id }}</div>
@@ -49,18 +50,18 @@
             <div class="small-2">
               <div class="text-right">
                 <div class="switch tiny" @click.stop v-bind:title="getMapLayer(l) === undefined?'Add to map':'Remove from map'">
-                  <input class="switch-input ctlgsw" id="ctlgsw{{ $index }}" @change="onLayerChange(l, $event.target.checked)" v-bind:checked="getMapLayer(l) !== undefined"
+                  <input class="switch-input ctlgsw" id="ctlgsw{{ $index }}" @change="onLayerChange(l, $event.target.checked, $event)" v-bind:checked="getMapLayer(l) !== undefined"
                     type="checkbox" />
                   <label class="switch-paddle" for="ctlgsw{{ $index }}">
                     <span class="show-for-sr">Toggle layer</span>
                   </label>
                 </div>
-              </div>
+              </div>          
             </div>
-          </div>
-        </div>
-        <div v-el:layerdetails class="hide">
-          <div class="layerdetails row">
+            </div>
+          </div>          
+          <div v-el:layerdetails class="hide">
+          <div class="layerdetails row" style="z-index:2;">
             <div class="columns small-12">
               <h5>{{ layer.name }}</h5>
               <img v-if="layer.legend" v-bind:src="layer.legend" class="cat-legend"/>
@@ -68,9 +69,10 @@
             </div>
           </div>
         </div>
+          </div>
       </div>
     </div>
-  </div>
+
 </template>
 
 <style>
@@ -117,10 +119,10 @@ div.ol-previewmap.ol-uncollapsible {
 }
 
 .layerdetails {
-    position: absolute;
-    background-color: rgba(39,48,55,0.7);
-    width: 100%;
-    padding-bottom: 0.5em;
+  position: absolute;
+  background-color: rgba(39,48,55,0.7);
+  width: 100%;
+  padding-bottom: 0.5em;
 }
 
 .layerdetails p {
@@ -131,6 +133,8 @@ div.ol-previewmap.ol-uncollapsible {
 </style>
 
 <script>
+
+
   import { $, ol, Vue, utils } from 'src/vendor.js'
   Vue.filter('lessThan', function(value, length) {
     return value.length < length
@@ -150,7 +154,7 @@ div.ol-previewmap.ol-uncollapsible {
         catalogue: new ol.Collection(),
         swapBaseLayers: true,
         search: '',
-        searchAttrs: ['name', 'id', 'tags'],
+        searchAttrs: ['name',],
         overview: false,
         layerDetails: false
       }
@@ -180,38 +184,52 @@ div.ol-previewmap.ol-uncollapsible {
         this.adjustHeight()
       },
       preview: function (l) {
-        console.log("preview");
-        console.log("l.type");
-        if (this.layer === l) {
-          return
-        }
-        if (this.layer.preview) {
-          this.layer.preview.setMap(null)
-        }
-        if (!l) {
-          this.layer = {}
-          return
-        }
-        if (!l.preview) {
-          l.preview = new ol.control.OverviewMap({
-            className: 'ol-overviewmap ol-previewmap',
-            layers: [this.$root.map['create' + l.type]($.extend({}, l, {refresh:0,previewLayer:true}))],
-            collapsed: false,
-            collapsible: false,
-            min_ratio:1,
-            max_ratio:1,
-            view: new ol.View({
-              projection: 'EPSG:4326'
+        if(l.mapLayerId !== "dpaw:resource_tracking_history"){
+          if (this.layer === l) {
+            return
+          }
+          if (this.layer.preview) {
+            this.layer.preview.setMap(null)
+          }
+          if (!l) {
+            this.layer = {}
+            return
+          }
+          if (!l.preview) {
+            l.preview = new ol.control.OverviewMap({
+              className: 'ol-overviewmap ol-previewmap',
+              layers: [this.$root.map['create' + l.type]($.extend({}, l, {refresh:0,previewLayer:true}))],
+              collapsed: false,
+              collapsible: false,
+              min_ratio:1,
+              max_ratio:1,
+              view: new ol.View({
+                projection: 'EPSG:4326'
+              })
             })
-          })
-        }
-        l.preview.setMap(this.$root.map.olmap)
-        var previewEl = $(l.preview.getOverviewMap().getViewport())
-        this.layer = l
-        if (!previewEl.find('.layerdetails').length > 0) {
-          this.$nextTick(function() {
-            previewEl.prepend(this.$els.layerdetails.innerHTML)
-          })
+          }
+          let previewMap = l.preview.element.getElementsByClassName("ol-overviewmap-map");
+          if (previewMap.length > 0) {
+              previewMap[0].style.width = '100%';
+              previewMap[0].style.height = '100%';
+              previewMap[0].style.border = '0';
+              previewMap[0].style.margin = '0';
+
+          } 
+          // console.log("(this.$root.map.olmap)")
+          // console.log(this.$root.map.olmap);
+          l.preview.setMap(this.$root.map.olmap)
+          var previewEl = $(l.preview.getOverviewMap().getViewport())
+          this.layer = l
+          if (!previewEl.find('.layerdetails').length > 0) {
+            this.$nextTick(function() {
+              previewEl.prepend(this.$els.layerdetails.innerHTML)
+            })
+          }
+          let stopeventElement = document.getElementsByClassName("ol-overlaycontainer-stopevent");
+          if(stopeventElement.length>0){
+            stopeventElement[0].style.zIndex = ""
+          }
         }
       },
       toggleAll: function (checked, event) {
@@ -226,11 +244,10 @@ div.ol-previewmap.ol-uncollapsible {
 	  
       // toggle a layer in the Layer Catalogue
       //return true if layer's state is changed; otherwise return false
-      onLayerChange: function (layer, checked) {
+      onLayerChange: function (layer, checked, event) {
+        // console.log("onLayerChange");
+        // console.log(layer);
 
-        console.log("onLayerChange");
-        console.log(layer);
-	 
         var vm = this
         var active = this.$root.active
         var map = this.$root.map
@@ -238,36 +255,49 @@ div.ol-previewmap.ol-uncollapsible {
         if (checked === (map.getMapLayer(layer) !== undefined)) {
           return false
         }
+
         // make the layer match the state
         if (checked) {
-        console.log("onLayerChange CHECKED");
-        console.log(layer.type);
-		    var olLayer = map['create' + layer.type](layer)
-          olLayer.setOpacity(layer.opacity || 1)
-          if (layer.base) {
-            // "Switch out base layers automatically" is enabled, remove
-            // all other layers with the "base" option set.
-            if (this.swapBaseLayers) {
-              active.olLayers.forEach(function (mapLayer) {
-                if (vm.getLayer(mapLayer)) {
-                  if (mapLayer.get('dependentLayer')) return
-                    if (vm.getLayer(mapLayer).base) {
-                      active.removeLayer(mapLayer)
-                    }
-                }
-                })
-            }
-            // add new base layer to bottom
-            map.olmap.getLayers().insertAt(0, olLayer)
+          if(layer.mapLayerId == "dpaw:resource_tracking_history" && layer.cql_filter == false) {
+            alert("Please add a resource to view the history.")
+            event.target.checked = false
+            return 
           } else {
-            console.log("ADDING LAYER")
-            map.olmap.addLayer(olLayer)
+            var olLayer = map['create' + layer.type](layer)
+            olLayer.setOpacity(layer.opacity || 1)
+            if (layer.base) {
+              // "Switch out base layers automatically" is enabled, remove
+              // all other layers with the "base" option set.
+              if (this.swapBaseLayers) {
+                active.olLayers.forEach(function (mapLayer) {
+                  if (vm.getLayer(mapLayer)) {
+                    if (mapLayer.get('dependentLayer')) return
+                      if (vm.getLayer(mapLayer).base) {
+                        active.removeLayer(mapLayer)
+                      }
+                  }
+                  })
+              }
+              // add new base layer to bottom
+              map.olmap.getLayers().insertAt(0, olLayer)
+            } else {
+              map.olmap.addLayer(olLayer)
+            }
+            this.map.olmap.dispatchEvent(this.map.createEvent(this.map, "addLayer", {mapLayer:olLayer}))
           }
-          this.map.olmap.dispatchEvent(this.map.createEvent(this.map, "addLayer", {mapLayer:olLayer}))
         } else {
           active.removeLayer(map.getMapLayer(layer))
         }
         return true
+        },
+
+      containsTag(tags, search) {
+        for (let tag of tags) {
+            if (tag.name.toLowerCase().includes(search)) {
+                return true; 
+            }
+        }
+        return false; 
       },
 
       // helper to populate the catalogue from a remote service
@@ -281,8 +311,8 @@ div.ol-previewmap.ol-uncollapsible {
             var layers = []
             
             JSON.parse(this.responseText).forEach(function (l) {
-                    console.log("JSON LAYERS");
-                    console.log(l);
+                    // console.log("JSON LAYERS");
+                    // console.log(l);
                     // overwrite layers in the catalogue with the same identifier
                     i = 0
                     if (vm.getLayer(l.identifier)) {
@@ -360,8 +390,8 @@ div.ol-previewmap.ol-uncollapsible {
       var catalogueStatus = vm.loading.register("catalogue", "Catalogue Component")
       this.catalogue.on('add', function (event) {
         var l = event.element
-        console.log ("MY L.TYPE");
-        console.log(l.type + ":" + l.identifier);
+        // console.log ("MY L.TYPE");
+        // console.log(l.type + ":" + l.identifier);
         l.id = l.id || l.identifier
         l.name = l.name || l.title
         l.type = l.type || 'TileLayer'

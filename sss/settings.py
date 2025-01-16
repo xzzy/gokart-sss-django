@@ -43,8 +43,15 @@ else:
     ALLOWED_HOSTS_STRING = decouple.config("ALLOWED_HOSTS", default='[""]')
     ALLOWED_HOSTS = json.loads(ALLOWED_HOSTS_STRING)
 
-GIT_COMMIT_HASH = os.popen(f"cd {BASE_DIR}; git log -1 --format=%H").read()  # noqa: S605
-GIT_COMMIT_DATE = os.popen(f"cd {BASE_DIR}; git log -1 --format=%cd").read()  # noqa: S605
+GIT_COMMIT_HASH = ''
+GIT_COMMIT_DATE = ''
+if  os.path.isdir(str(BASE_DIR)+'/.git/') is True:
+    GIT_COMMIT_DATE = os.popen('cd '+str(BASE_DIR)+' ; git log -1 --format=%cd').read()
+    GIT_COMMIT_HASH = os.popen('cd  '+str(BASE_DIR)+' ; git log -1 --format=%H').read()
+if len(GIT_COMMIT_HASH) == 0:
+    GIT_COMMIT_HASH = os.popen('cat /app/git_hash').read()
+    if len(GIT_COMMIT_HASH) == 0:
+       print ("ERROR: No git hash provided")
 
 VERSION_NO = "2.00"
 
@@ -61,6 +68,7 @@ INSTALLED_APPS = [
     'sss',
     'rest_framework',
     'django_cron',
+    'appmonitor_client'
 ]
 
 MIDDLEWARE = [
@@ -81,7 +89,9 @@ CRON_CLASSES = [
     "sss.cron.FetchCatalogueDataCronJob",
     "sss.cron.FetchBfrsRegionDataCronJob",
     "sss.cron.SyncBOMDataCronJob",
-    "sss.cron.SyncCatalogueCSWDataCronJob"
+    "sss.cron.SyncCatalogueCSWDataCronJob",
+    "sss.cron.SpatialDataCalculationJob",
+    'appmonitor_client.cron.CronJobAppMonitorClient'
 ]
 
 ROOT_URLCONF = 'sss.urls'
@@ -172,7 +182,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 KMI_URL=decouple.config("KMI_URL", default="https://kmi.dbca.wa.gov.au")
 KMI_API_URL=decouple.config("KMI_URL", default="https://kmi-api.dbca.wa.gov.au")
-KB_API_URL=decouple.config("KMI_URL", default="https://kaartdijin-boodja-geoserver-api.dbca.wa.gov.au")
+KB_API_URL=decouple.config("KB_URL", default="https://kaartdijin-boodja-geoserver-api.dbca.wa.gov.au/geoserver")
 HOTSPOT_API_URL=decouple.config("HOTSPOT_URL", default="https://hotspots.dbca.wa.gov.au")
 CATALOGUE_URL=decouple.config("CATALOGUE_URL", default="https://csw-uat.dbca.wa.gov.au")
 BFRS_URL=decouple.config("BFRS_URL", default="https://bfrs-uat.dbca.wa.gov.au")
@@ -185,31 +195,47 @@ KB_AUTH2_BASIC_AUTH_USER=decouple.config("KB_AUTH2_BASIC_AUTH_USER", default="ad
 KB_AUTH2_BASIC_AUTH_PASSWORD=decouple.config("KB_AUTH2_BASIC_AUTH_PASSWORD", default="nopassword")
 HOTSPOT_AUTH2_BASIC_AUTH_USER=decouple.config("HOTSPOT_AUTH2_BASIC_AUTH_USER", default=None)
 HOTSPOT_AUTH2_BASIC_AUTH_PASSWORD=decouple.config("HOTSPOT_AUTH2_BASIC_AUTH_PASSWORD", default=None)
+WEATHERFORECAST_URL=decouple.config("WEATHERFORECAST_URL", default="https://incidentweatherforecast.service.bom.gov.au")
+WEATHERFORECAST_USER=decouple.config("WEATHERFORECAST_USER", default="")
+WEATHERFORECAST_PASSWORD=decouple.config("WEATHERFORECAST_PASSWORD", default="")
 
 CSW_SERVICE_URL=decouple.config("CSW_SERVICE_URL", default="/api/catalogue.json")
-KMI_SERVICE_URL=decouple.config("KMI_SERVICE_URL", default="/kmi-proxy/geoserver")
-HOTSPOT_SERVICE_URL=decouple.config("HOTSPOT_SERVICE_URL", default="/hotspots-proxy/geoserver")
 SSS_SERVICE_URL=decouple.config("SSS_SERVICE_URL", default="https://sss-uat.dbca.wa.gov.au")
 RESOURCE_TRACKING_SERVICE_URL=decouple.config("RESOURCE_TRACKING_SERVICE_URL", default="https://resourcetracking.dbca.wa.gov.au")
+SRSS_URL=decouple.config("SRSS_URL", default="https://srss-ows-14.landgate.wa.gov.au")
+FIREWATCH_SERVICE=decouple.config("FIREWATCH_SERVICE", default="/geoproxy/firewatch/service/")
+FIREWATCH_HTTPS_VERIFY=decouple.config("FIREWATCH_HTTPS_VERIFY", default=False)
 BFRS_SERVICE_URL=decouple.config("BFRS_SERVICE_URL", default="https://bfrs-uat.dbca.wa.gov.au")
 DBCA_STATIC_URL=decouple.config("DBCA_STATIC_URL", default="https://static.dbca.wa.gov.au")
 MAPBOX_URL=decouple.config("MAPBOX_URL", default="https://api.mapbox.com")
-OVERVIEW_LAYER=decouple.config("OVERVIEW_LAYER", default="dbca:mapbox-outdoors")
+OVERVIEW_LAYER=decouple.config("OVERVIEW_LAYER", default="dbca:mapbox-streets-satellite")
 ACCOUNT_DETAILS_URL=decouple.config("ACCOUNT_DETAILS_URL", default="/api/account.json")
 BOM_HOME=decouple.config("BOM_HOME", default="/var/www/bom_data/.data/")
 ENV_DOMAIN="dbca"
 CSRF_TRUSTED_ORIGINS_STRING = decouple.config("CSRF_TRUSTED_ORIGINS", default='[]')
 CSRF_TRUSTED_ORIGINS = json.loads(str(CSRF_TRUSTED_ORIGINS_STRING))
 
+BUSHFIRELIST_LATEST_LAYER=decouple.config("BUSHFIRELIST_LATEST_LAYER", default="dpaw:bushfirelist_latest")
+BUSHFIRE_LATEST_LAYER=decouple.config("BUSHFIRE_LATEST_LAYER", default="dpaw:bushfire_latest")
+BUSHFIRE_FINAL_FIREBOUNDARY_LATEST_LAYER=decouple.config("BUSHFIRE_FINAL_FIREBOUNDARY_LATEST_LAYER", default="dpaw:bushfire_final_fireboundary_latest")
+BUSHFIRE_FIREBOUNDARY_LATEST_LAYER=decouple.config("BUSHFIRE_FIREBOUNDARY_LATEST_LAYER", default="dpaw:bushfire_fireboundary_latest")
+BUSHFIRE_LAYER=decouple.config("BUSHFIRE_LAYER", default="dpaw:bushfire")
+BUSHFIRE_FIREBOUNDARY_LAYER=decouple.config("BUSHFIRE_FIREBOUNDARY_LAYER", default="dpaw:bushfire_fireboundary")
+RESOURCE_TRACKING_LIVE_LAYER=decouple.config("RESOURCE_TRACKING_LIVE_LAYER", default="dpaw:resource_tracking_live")
+
 EMAIL_INSTANCE = decouple.config("EMAIL_INSTANCE", default="PROD")
 NON_PROD_EMAIL = decouple.config("NON_PROD_EMAIL", default="")
 PRODUCTION_EMAIL= decouple.config("PRODUCTION_EMAIL", default=False, cast=bool)
-EMAIL_DELIVERY = decouple.config("EMAIL_DELIVERY", default="off")
+EMAIL_DELIVERY = decouple.config("EMAIL_DELIVERY", default="on")
+EMAIL_BACKEND = "wagov_utils.components.utils.email_backend.EmailBackend"
+DEFAULT_FROM_EMAIL = decouple.config("DEFAULT_FROM_EMAIL", default="")
+EMAIL_FROM = DEFAULT_FROM_EMAIL
+EMAIL_HOST = decouple.config("EMAIL_HOST", default="")
 SSS_FILE_URL = decouple.config("SSS_FILE_URL", default="http://sss-maps.dbca.wa.gov.au/")
-CALCULATE_AREA_IN_SEPARATE_PROCESS  = decouple.config("CALCULATE_AREA_IN_SEPARATE_PROCESS", default="true")
+CALCULATE_AREA_IN_SEPARATE_PROCESS  = decouple.config("CALCULATE_AREA_IN_SEPARATE_PROCESS", default=False, cast=bool)
+DATA_UPLOAD_MAX_MEMORY_SIZE = decouple.config("DATA_UPLOAD_MAX_MEMORY_SIZE", default=51200000)
 EXPORT_CALCULATE_AREA_FILES_4_DEBUG = decouple.config("EXPORT_CALCULATE_AREA_FILES_4_DEBUG", default="true")
-
-NON_PROD_EMAIL = decouple.config("NON_PROD_EMAIL", default="")
+CHECK_OVERLAP_IF_CALCULATE_AREA_FAILED = decouple.config("CHECK_OVERLAP_IF_CALCULATE_AREA_FAILED", default=False)
 
 # BOM FTP Login Details
 BOM_FTP_SERVER = decouple.config("BOM_FTP_SERVER", default="")

@@ -7,7 +7,7 @@ var env = {
     catalogueAdminService:"{{ settings.CATALOGUE_URL }}",
 
     //kmiService:"https://kmi.dbca.wa.gov.au/geoserver",
-    kmiService:"{{ settings.KMI_SERVICE_URL }}",
+    kmiService:"{{ mapserver.kmi }}",
     kmiApiService: "{{ settings.KMI_API_URL }}",
     legendSrc:"https://kmi.dbca.wa.gov.au/geoserver/gwc/service/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&legend_options=fontName:Times%20New%20Roman;fontAntiAliasing:true;fontSize:14;bgColor:0xFFFFEE;dpi:120;labelMargin:10&LAYER=",
 
@@ -19,11 +19,24 @@ var env = {
     staticService:"{{ settings.DBCA_STATIC_URL }}",
 
     s3Service:"{{ settings.SSS_FILE_URL }}",
+    weatherForecastUrl:"{{ settings.WEATHERFORECAST_URL }}",
+    weatherForecastUser:"{{ settings.WEATHERFORECAST_USER }}",
+    weatherForecastPassword:"{{ settings.WEATHERFORECAST_PASSWORD }}",
 
     appMapping:{
     },
     layerMapping:{
+        "dpaw:bushfirelist_latest"                  : "{{ settings.BUSHFIRELIST_LATEST_LAYER }}",
+        "dpaw:bushfire_latest"                      : "{{ settings.BUSHFIRE_LATEST_LAYER }}",
+        "dpaw:bushfire_final_fireboundary_latest"   : "{{ settings.BUSHFIRE_FINAL_FIREBOUNDARY_LATEST_LAYER }}",
+        "dpaw:bushfire_fireboundary_latest"         : "{{ settings.BUSHFIRE_FIREBOUNDARY_LATEST_LAYER }}",
+        "dpaw:bushfire"                             : "{{ settings.BUSHFIRE_LAYER }}",
+        "dpaw:bushfire_fireboundary"                : "{{ settings.BUSHFIRE_FIREBOUNDARY_LAYER }}",
+        "dpaw:resource_tracking_live"               : "{{ settings.RESOURCE_TRACKING_LIVE_LAYER }}",
+        //"dpaw:resource_tracking_history"            : "dpaw:resource_tracking_history_uat"
+
     },
     overviewLayer:"{{ settings.OVERVIEW_LAYER }}",
+    hotspotsUrl:"{{mapserver.hotspots}}"
 };
 

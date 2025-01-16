@@ -28,7 +28,7 @@ class CatalogueTagInline(admin.TabularInline):
 
 @admin.register(models.Catalogue)
 class Catalogue(admin.ModelAdmin):
-    list_display = ('id', 'identifier', 'type', 'updated', 'created')
+    list_display = ('id', 'identifier', 'type', 'updated', 'created', 'active')
     readonly_fields = ['updated', 'created',]  
     inlines = [CatalogueTagInline,]  
     
@@ -44,3 +44,28 @@ class MapServer(admin.ModelAdmin):
 
 admin.site.register(models.Region)
 
+@admin.register(models.Proxy)
+class ProxyAdmin(admin.ModelAdmin):
+    list_display = ("request_path", "username", "basic_auth_enabled", "active")
+    search_fields = ("request_path",)
+    ordering = ("request_path",)
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "request_path",
+                    "proxy_url",
+                    "basic_auth_enabled",
+                    "username",
+                    "password",
+                    "active",
+                )
+            },
+        ),
+    )
+
+@admin.register(models.SpatialDataCalculation)
+class SpatialDataCalculationAdmin(admin.ModelAdmin):
+    list_display = ('id', 'bfrs', 'calculation_status', 'created', 'user')
+    readonly_fields = ['updated', 'created', 'output', 'user', 'logs']

@@ -535,8 +535,7 @@
 				var footprintOLLayer = map['createWFSLayer'](this.flightFootprintLayer)
 				var ThermalImagingFlightFootprintsExists = false;
 				map.olmap.getLayers().forEach(function (layer) {
-					console.log("LAYERS");
-					console.log(layer);
+
 					if (layer.get('name') === 'Thermal Imaging Flight Footprints') {
 					 		ThermalImagingFlightFootprintsExists = true;							
 					}
@@ -559,11 +558,13 @@
       toggleRawImageMosaic: function() {
 		this.showRawImageMosaic = !this.showRawImageMosaic
      		this.export.saveState()
+
+
 		var vm = this
 		var map = this.$root.map			
 		// Check if mosaic layer already loaded
 		var mosaicLoaded = false
-		var hotspotsLoaded = false
+		var hotspotsLoaded = this.isFeatureSelected
 		map.olmap.getLayers().forEach(function (layer) {
 			if (layer.get('name') === 'Flight mosaics') {
 					mosaicLoaded = true
@@ -574,7 +575,7 @@
 			}
 		})
 		if (hotspotsLoaded && this.showRawImageMosaic) {
-			console.log("HOT SPOT IS LOADED mosaicLoaded");
+			
 			vm.removeImages();
 			/*var mosaicLayers = []
 			if (!this.hasDateFilter()) {
@@ -593,10 +594,13 @@
  			
 		}
 		else if (hotspotsLoaded && !this.showRawImageMosaic) {
+			
 			map.olmap.getLayers().forEach(function (layer) {
+				if(layer){
 				if (layer.get('name') === 'Flight mosaics') {
 						map.olmap.removeLayer(layer)
 				}
+			}
 			})
 		}
       },
@@ -683,8 +687,7 @@
 		}
 	    var _this = this
 		var vm = this
-		console.log("vm.showFlightFootprint");
-		console.log(vm.showFlightFootprint);		
+	
 		vm._featurelist.clear()
 		vm.setExtentFeatureSize()
 		var cqlFilter = ""
@@ -707,14 +710,14 @@
 		setTimeout(function(){
 			map.olmap.getLayers().getArray().slice().forEach(function(layer){
 				var layer_name = layer.get("name");
-				console.log(layer_name);
+				
 				//"Thermal Imaging Flight Footprints"===layer.get("name")&&map.olmap.removeLayer(layer),"Flight mosaics"===layer.get("name")&&map.olmap.removeLayer(layer)
 				// if (layer.get("name") == "Thermal Imaging Hotspots"){
 				// 	map.olmap.removeLayer(layer)
 				// }
-				if (layer.get("name").startsWith("Hotspot image") || layer.get("name").startsWith("Thermal Imaging Hotspots") || layer.get("name").startsWith("Thermal Imaging Flight Footprints") || layer.get("name").startsWith("Flight mosaics")){
+				if (layer_name.startsWith("Hotspot image") || layer_name.startsWith("Thermal Imaging Hotspots") || layer_name.startsWith("Thermal Imaging Flight Footprints") || layer_name.startsWith("Flight mosaics")){
 					 
-					// map.olmap.removeLayer(layer)
+					map.olmap.removeLayer(layer)
 				}
 			})
 			vm.hotspotLayer.hotspotFilter = cqlFilter
@@ -845,7 +848,7 @@
 				
 				//get extent of filtered features and set extent of map to this
 				if (!this.showFlightFootprint) {
-					console.log("updateFeatureFilter showFlightFootprint");
+					
 					var extent = list[0].getGeometry().getExtent()	//.slice(0)
 					list.forEach(function(feature){ ol.extent.extend(extent,feature.getGeometry().getExtent())})
 					vm.$root.map.olmap.getView().fit(extent, vm.$root.map.olmap.getSize())
@@ -943,8 +946,10 @@
 			  var map = this.$root.map
 				// Close any single images for this hotspot
 				map.olmap.getLayers().forEach(function (layer) {
-					if (layer.get('name') === 'Hotspot image ' + hotspotID) {
-						map.olmap.removeLayer(layer)
+					if(layer){
+						if (layer.get('name') === 'Hotspot image ' + hotspotID) {
+							map.olmap.removeLayer(layer)
+						}
 					}
 				})
 				this.isHotspotImageON = false;
@@ -977,8 +982,11 @@
 		}
 		// Close any other single images for the same hotspot
 		map.olmap.getLayers().forEach(function (layer) {
-			if (layer.get('name') === 'Hotspot image ' + flight_datetime + ' ' + hotspot_no) {
-				map.olmap.removeLayer(layer)
+
+			if (layer) {
+				if (layer.get('name') === 'Hotspot image ' + flight_datetime + ' ' + hotspot_no) {
+					map.olmap.removeLayer(layer)
+				}
 			}
 		})
 		// Add new single image
@@ -1024,7 +1032,7 @@
             		var vm = this
 			var map = this.$root.map			
 			// Remove layers if exist
-			map.olmap.getLayers().forEach(function (layer) {
+			map.active.olLayers.forEach(function (layer) {
 				if (layer.get('name') === 'Thermal Imaging Hotspots') {
 					map.olmap.removeLayer(layer)
 				}
@@ -1231,47 +1239,47 @@
 	this.changeThermalDateRange()
 
 	thermalStatus.phaseBegin("load_hotspots", 30, "Load hotspots", false, true)
-	// this.$root.fixedLayers.push({
-    //     // type: 'WFSLayer',
-	// 	type: 'TileLayer',
-    //     name: 'Thermal Imaging Hotspots',
-    //     id: 'hotspots:hotspot_centroids',
-    //     features: vm._featurelist,
-    //     getFeatureInfo: function (f) {
-	// 		return {flight_datetime: f.get("flight_datetime"), hotspot_no: f.get('hotspot_no'), images: f.get('images')}
-    //     },
-    //     onerror: function (status, message) {
-    //         thermalStatus.phaseFailed("load_hotspots", status + " : " + message)
-    //     },
-	// 	onload: function (loadType, vectorSource, features, defaultOnload) {
-	// 		vm.features.clear()
-	// 		vm.updateFeatureFilter(0)
-	// 		vm.features.extend(features.sort(vm.featureOrder))
-	// 		/*var s = function(hotspot_no) {
-	// 			return new ol.style.Style({
-	// 					text: new ol.style.Text({
-	// 					  text: hotspot_no,
-	// 					  font: '16px Calibri,sans-serif',
-	// 					  fill: new ol.style.Fill({ color: '#fff' }),
-	// 					  stroke: new ol.style.Stroke({color: '#fff', width: 0.8})
-	// 					}),
-	// 					image : new ol.style.Circle({
-	// 						fill: new ol.style.Fill({color: [0, 0, 255]}),
-	// 						radius: 15
-	// 					})
-	// 				})
-	// 		}*/
-
-	// 		$.each(features, function (index, feature){
-	// 			//var hotspot_no = feature.get('hotspot_no').toString()
-	// 			//feature.setStyle(s(hotspot_no))
-	// 			var imagesString = feature.get('images')
-	// 			var imagesArray = imagesString.split(',')
-	// 			feature.shortImages = imagesArray
-	// 		})
-	// 	}
-    //   })
-	  
+	  this.$root.fixedLayers.push({
+		  // type: 'WFSLayer',
+		  type: 'TileLayer',
+		  name: 'Thermal Imaging Hotspots',
+		  id: 'hotspots:hotspot_centroids',
+		  features: vm._featurelist,
+		  getFeatureInfo: function (f) {
+			  return {flight_datetime: f.get("flight_datetime"), hotspot_no: f.get('hotspot_no'), images: f.get('images')}
+		  },
+		  onerror: function (status, message) {
+			  thermalStatus.phaseFailed("load_hotspots", status + " : " + message)
+		  },
+		  onload: function (loadType, vectorSource, features, defaultOnload) {
+			  vm.features.clear()
+			  vm.updateFeatureFilter(0)
+			  vm.features.extend(features.sort(vm.featureOrder))
+			  /*var s = function(hotspot_no) {
+				  return new ol.style.Style({
+						  text: new ol.style.Text({
+							text: hotspot_no,
+							font: '16px Calibri,sans-serif',
+							fill: new ol.style.Fill({ color: '#fff' }),
+							stroke: new ol.style.Stroke({color: '#fff', width: 0.8})
+						  }),
+						  image : new ol.style.Circle({
+							  fill: new ol.style.Fill({color: [0, 0, 255]}),
+							  radius: 15
+						  })
+					  })
+			  }*/
+  
+			  $.each(features, function (index, feature){
+				  //var hotspot_no = feature.get('hotspot_no').toString()
+				  //feature.setStyle(s(hotspot_no))
+				  var imagesString = feature.get('images')
+				  var imagesArray = imagesString.split(',')
+				  feature.shortImages = imagesArray
+			  })
+		  }
+		})
+		
 	 this.$root.fixedLayers.push({
         type: 'WFSLayer',
         name: 'Thermal Imaging Flight Footprints',
@@ -1307,7 +1315,7 @@
         {
             name: 'Thermal Imaging Select',
             label: 'Select',
-            icon: 'fa-mouse-pointer',
+            // icon: 'fa-mouse-pointer',
             scope:["thermal"],
             selectedFeatures:vm.selectedFeatures,
             keepSelection:true,
@@ -1338,17 +1346,17 @@
                 vm.annotations.ui.dragSelectInter.setMulti(true)
                 vm.annotations.ui.selectInter.setMulti(true)
             },
-            comments:[
-              {
-                  name:"Tips",
-                  description:[
-                      "Select all features using shortcut key 'Ctrl + A'",
-                      "Select features using mouse.",
-                      "Hold 'Ctrl' to enable polygon selection",
-                      "Delete selected features using key 'Del'"
-                  ]
-              }
-            ]
+            // comments:[
+            //   {
+            //       name:"Tips",
+            //       description:[
+            //           "Select all features using shortcut key 'Ctrl + A'",
+            //           "Select features using mouse.",
+            //           "Hold 'Ctrl' to enable polygon selection",
+            //           "Delete selected features using key 'Del'"
+            //       ]
+            //   }
+            // ]
           }
       ]
 

@@ -73,7 +73,6 @@ GokartClient.prototype.call = function(method,options,module,ignoreIfNotOpen){
     module = module || this.defaultModule
     ignoreIfNotOpen = ignoreIfNotOpen?true:false
     var vm = this
-
     var request = JSON.stringify(vm.populateRequest(method,{module:module,options:options}))
     var syncMessageFunc = null
 

@@ -319,6 +319,7 @@
         }
       },
       trackingLayer: function() {
+        
         return this.$root.catalogue.getLayer('dpaw:resource_tracking_live')
       },
       trackingMapLayer: function() {
@@ -622,7 +623,10 @@
           }
       },
       updateCQLFilter: function (wait) {
+             
         var vm = this
+        
+
         if (!vm._updateCQLFilter) {
             vm._updateCQLFilter = debounce(function(updateType){
                 try {
@@ -787,6 +791,7 @@
       },
       //filter the loaded features based on report name and fire number
       setup: function() {
+        
         //restore the selected features
         this.annotations.restoreSelectedFeatures()
 
@@ -811,6 +816,7 @@
       }
     },
     ready: function () {
+      
       var vm = this
       var trackingStatus = this.loading.register("tracking", "Resource Tracking Component")
       vm._featurelist = new ol.Collection()
@@ -856,11 +862,13 @@
       this.changeHistoryRange()
 
       var resourceTrackingStyleFunc = function(layerId){
-        return function (res) {
-            var feat = this
+        return function (feat,res) {
+            //var feat = this;
+            //var feat = res;
             // cache styles for performance
             var style = vm.map.cacheStyle(function (feat) {
               var src = vm.map.getBlob(feat, ['icon', 'tint'],vm.tints)
+
               if (!src) { return false }
               return new ol.style.Style({
                 image: new ol.style.Icon({
@@ -1033,7 +1041,10 @@
       }
 
       trackingStatus.phaseBegin("load_resources", 30, "Load resources", false, true)
+      
       var _addResourceFunc = addResourceFunc(resourceTrackingStyleFunc('dpaw:resource_tracking_live'))
+      
+
       this.$root.fixedLayers.push({
         type: 'WFSLayer',
         name: 'Resource Tracking',
@@ -1048,10 +1059,15 @@
         },
         refresh: 60,
         onerror: function(status, message) {
+            console.log("tracking onerror: before processResources function");
             trackingStatus.phaseFailed("load_resources", status + " : " + message)
         },
         onload: function(loadType, vectorSource, features, defaultOnload) {
+
+            
             function processResources() {
+
+                
                 $.each(features, function(index, f){
                     _addResourceFunc(f)
                 })
@@ -1083,18 +1099,23 @@
                 }
                 trackingStatus.phaseEnd("load_resources")
             }
-			//alert(vm.whoami.editVehicle)
+            
+			
             if ((vm.whoami.editVehicle === null || vm.whoami.editVehicle === undefined ) && features.length > 0) {
+                
                 var f = features.find(function(f) {return f.get('source_device_type') != "tracplus"})
                 if (f){
                     utils.checkPermission(vm.env.resourceTrackingService + "/sss_admin/tracking/device/" + f.get('id') + "/change/","GET",function(allowed){
                         vm.whoami.editVehicle = allowed
+                        
                         processResources()
                     })
                 } else {
+                    
                     processResources()
                 }
             } else {
+                
                 processResources()
             }
         }

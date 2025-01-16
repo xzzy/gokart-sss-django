@@ -413,7 +413,7 @@ def loadDatasource(session_cookie,workdir,loadedDatasources,options, request):
             if not os.path.exists(os.path.dirname(datasource)):
                 os.makedirs(os.path.dirname(datasource))
             url = "{}&outputFormat=application%2Fjson&srsName=EPSG:4326".format(options["url"])
-            auth_request = requests.auth.HTTPBasicAuth(settings.AUTH2_BASIC_AUTH_USER,settings.KMI_AUTH2_BASIC_AUTH_PASSWORD)
+            auth_request = requests.auth.HTTPBasicAuth(settings.KMI_AUTH2_BASIC_AUTH_USER,settings.KMI_AUTH2_BASIC_AUTH_PASSWORD)
             r = requests.get(url,
                 verify=False,
                 #cookies=session_cookie
@@ -458,7 +458,8 @@ def loadDatasource(session_cookie,workdir,loadedDatasources,options, request):
                 if not os.path.exists(os.path.dirname(datasource)):
                     os.makedirs(os.path.dirname(datasource))
                 with open(datasource,"wb") as f:
-                    f.write(request.POST.get(options["parameter"]))
+                    f.write(bytes(request.POST.get(options["parameter"]),'utf-8'))
+                    
                 loadedDatasources[options["parameter"]] = (datasource,getDatasourceFiles(os.path.dirname(datasource),datasource))
     
         options["file"] = loadedDatasources[options["parameter"]][0]
@@ -1014,7 +1015,15 @@ def download(request, fmt):
                         srss[layer["sourcename"]] = layer["srs"]
                         break
         del srss
-
+        
+        # changing coordinates to EPSG:4326
+        for layer in layers:
+            layer['srs'] = None
+            if(layer['sourcelayers']):
+                for l in layer['sourcelayers']:
+                    l['meta']['srs'] = None
+                    l['srs'] = None        
+                    
         #convert and union the layers
         outputdir = os.path.join(workdir,"output")
         os.mkdir(outputdir)
@@ -1088,7 +1097,10 @@ def download(request, fmt):
                         cmd.insert(index,arg)
                         index += 1
                 #print " ".join(cmd)
-                subprocess.check_call(cmd) 
+                # subprocess.check_call(cmd)
+                result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+                if result.stderr:
+                    raise Exception(str(result.stderr))
             else:
                 #get all geometry types in the source layer list
                 srcTypes = []
@@ -1213,12 +1225,12 @@ def download(request, fmt):
         resp = {'outputfile': outputfile, 'outputfilename': outputfilename,'filemime':filemime, "output": output}
         return resp
         #return output
-    except:
+    except Exception as e:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         #bottle.response.status = 400
         #bottle.response.set_header("Content-Type","text/plain")
         traceback.print_exc()
-        resp = {'output' :  traceback.format_exception_only(exc_type,exc_value) , 'filemime': 'text/plain' , 'outputfile': None, "outputfilename": "traceback_error.html"}
+        resp = {'output' :  str(e) , 'filemime': 'text/plain' , 'outputfile': None, "outputfilename": "traceback_error.html"}
         return resp
         #eturn traceback.format_exception_only(exc_type,exc_value)
     finally:

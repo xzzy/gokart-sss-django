@@ -27,12 +27,30 @@
     </script>
     <!-- main global styles down here to load after all packaged styles -->
     <link rel="stylesheet" property="stylesheet" type="text/css" href="/static/dist/static/css/style.css?version={{ settings.GIT_COMMIT_HASH }}" />
+    <link rel="stylesheet" property="stylesheet" type="text/css" href="/static/sss/css/ol9.2.3.css?version={{ settings.GIT_COMMIT_HASH }}" />
+    <link rel="stylesheet" property="stylesheet" type="text/css" href="/static/sss/css/ol-custom.css?version={{ settings.GIT_COMMIT_HASH }}" />
     <app v-ref:app></app>
+    <script src="/static/sss/js/ol-9.2.3.js?version={{settings.GIT_COMMIT_HASH}}"></script>
     
-    <script src="/static/dist/release/static/js/ol-debug-4.1.1.js?version={{settings.GIT_COMMIT_HASH}}"></script>
+    <script>
+      
+      ol.inherits = function(childCtor, parentCtor) {
+        //  console.log("INHERITS");
+        //  console.log(parentCtor);
+        //  console.log(childCtor);
+             // console.log(childCtor);
+             // console.log(parentCtor);
+        //  console.log(parentCtor.prototype)
+        //  console.log(childCtor.prototype)
+        //  console.log(Object.create(parentCtor.prototype));
+         childCtor.prototype = Object.create(parentCtor.prototype);
+         childCtor.prototype.constructor = childCtor;
+     }
+ 
+     </script>
     <script src="/api/environment_config.js?version={{settings.GIT_COMMIT_HASH}}"></script>
     <script src="/static/dist/release/vendor.js?version={{ settings.GIT_COMMIT_HASH }}"></script>
     <script src="/static/dist/release/sss.js?version={{ settings.GIT_COMMIT_HASH }}"></script>
-    
+
   </body>
 </html>

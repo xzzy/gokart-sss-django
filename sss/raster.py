@@ -503,7 +503,7 @@ def getFireDangerRating(band,data):
 raster_datasources={
     "bom":{
         "IDW71000_WA_T_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71000_WA_T_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71000_WA_T_SFC.nc"),
             "name":"Surface Temperature",
             "sort_key":("weather","temperature"),
             "metadata_f":{
@@ -527,7 +527,7 @@ raster_datasources={
             "required":True
         },
         "IDW71001_WA_Td_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71001_WA_Td_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71001_WA_Td_SFC.nc"),
             "name":"Dewpoint temperature",
             "sort_key":("weather","temperature"),
             "metadata_f":{
@@ -551,7 +551,7 @@ raster_datasources={
             #"required":True
         },
         "IDW71002_WA_MaxT_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71002_WA_MaxT_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71002_WA_MaxT_SFC.nc"),
             "name":"Maximum temperature",
             "sort_key":("weather","temperature"),
             "time_mapping":{"00:00:00":"14:00:00"},
@@ -576,7 +576,7 @@ raster_datasources={
             }
         },
         "IDW71003_WA_MinT_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71003_WA_MinT_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71003_WA_MinT_SFC.nc"),
             "name":"Minimum temperature",
             "sort_key":("weather","temperature"),
             "time_mapping":{"00:00:00":"06:00:00"},
@@ -601,7 +601,7 @@ raster_datasources={
             }
         },
         "IDW71005_WA_DailyPrecip_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71005_WA_DailyPrecip_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71005_WA_DailyPrecip_SFC.nc"),
             "name":"Precipitation",
             "sort_key":("weather","precipitation"),
             "var":"precip",
@@ -625,7 +625,7 @@ raster_datasources={
             }
         },
         "IDW71006_WA_Wind_Mag_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71006_WA_Wind_Mag_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71006_WA_Wind_Mag_SFC.nc"),
             "name":"Wind speed (knots)",
             "sort_key":("weather","wind"),
             "metadata_f":{
@@ -649,7 +649,7 @@ raster_datasources={
             }
         },
         "IDW71013_WA_PoP_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71013_WA_PoP_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71013_WA_PoP_SFC.nc"),
             "name":"Probability of precipitation at least 0.2mm",
             "sort_key":("weather","precipitation"),
             "metadata_f":{
@@ -672,7 +672,7 @@ raster_datasources={
             }
         },
         "IDW71014_WA_DailyPrecip25Pct_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71014_WA_DailyPrecip25Pct_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71014_WA_DailyPrecip25Pct_SFC.nc"),
             "name":"25% Confidence Precipitation Amount",
             "sort_key":("weather","precipitation"),
             "var":"precip_25%",
@@ -696,7 +696,7 @@ raster_datasources={
             }
         },
         "IDW71015_WA_DailyPrecip50Pct_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71015_WA_DailyPrecip50Pct_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71015_WA_DailyPrecip50Pct_SFC.nc"),
             "name":"50% Confidence Precipitation Amount",
             "sort_key":("weather","precipitation"),
             "var":"precip_50%",
@@ -720,7 +720,7 @@ raster_datasources={
             }
         },
         "IDW71016_WA_DailyPrecip75Pct_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71016_WA_DailyPrecip75Pct_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71016_WA_DailyPrecip75Pct_SFC.nc"),
             "name":"75% Confidence Precipitation Amount",
             "sort_key":("weather","precipitation"),
             "var":"precip_75%",
@@ -744,7 +744,7 @@ raster_datasources={
             }
         },
         "IDW71017_WA_Sky_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71017_WA_Sky_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71017_WA_Sky_SFC.nc"),
             "name":"Sky condition",
             "sort_key":("weather",),
             "metadata_f":{
@@ -767,7 +767,7 @@ raster_datasources={
             }
         },
         "IDW71018_WA_RH_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71018_WA_RH_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71018_WA_RH_SFC.nc"),
             "name":"Relative humidity",
             "sort_key":("weather","other"),
             "metadata_f":{
@@ -791,7 +791,7 @@ raster_datasources={
             "required":True
         },
         "IDW71022_WA_WindWaveHgt_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71022_WA_WindWaveHgt_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71022_WA_WindWaveHgt_SFC.nc"),
             "name":"Wind wave height",
             "sort_key":("weather","wind"),
             "metadata_f":{
@@ -814,7 +814,7 @@ raster_datasources={
             }
         },
         "IDW71023_WA_Swell_Mag_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71023_WA_Swell_Mag_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71023_WA_Swell_Mag_SFC.nc"),
             "name":"Swell magnitude",
             "sort_key":("weather","other"),
             "metadata_f":{
@@ -838,7 +838,7 @@ raster_datasources={
             }
         },
         "IDW71030_WA_DailyPrecip10Pct_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71030_WA_DailyPrecip10Pct_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71030_WA_DailyPrecip10Pct_SFC.nc"),
             "name":"10% Confidence Precipitation Amount",
             "sort_key":("weather","percipitation"),
             "var":"rainfall_10%",
@@ -862,7 +862,7 @@ raster_datasources={
             }
         },
         "IDW71031_WA_Precip10Pct_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71031_WA_Precip10Pct_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71031_WA_Precip10Pct_SFC.nc"),
             "name":"10% Confidence Precipitation Amount",
             "sort_key":("weather","percipitation"),
             "metadata_f":{
@@ -886,7 +886,7 @@ raster_datasources={
             }
         },
         "IDW71032_WA_Precip25Pct_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71032_WA_Precip25Pct_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71032_WA_Precip25Pct_SFC.nc"),
             "name":"25% Confidence Precipitation Amount",
             "sort_key":("weather","percipitation"),
             "metadata_f":{
@@ -910,7 +910,7 @@ raster_datasources={
             }
         },
         "IDW71033_WA_Precip50Pct_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71033_WA_Precip50Pct_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71033_WA_Precip50Pct_SFC.nc"),
             "name":"50% Confidence Precipitation Amount",
             "sort_key":("weather","percipitation"),
             "metadata_f":{
@@ -934,7 +934,7 @@ raster_datasources={
             }
         },
         "IDW71034_WA_WxIcon_SFC_ICON":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71034_WA_WxIcon_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71034_WA_WxIcon_SFC.nc"),
             "name":"Weather icon",
             "sort_key":("weather",),
             "metadata_f":{
@@ -959,7 +959,7 @@ raster_datasources={
             "required":True
         },
         "IDW71034_WA_WxIcon_SFC_DESC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71034_WA_WxIcon_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71034_WA_WxIcon_SFC.nc"),
             "name":"Weather",
             "sort_key":("weather",),
             "metadata_f":{
@@ -983,7 +983,7 @@ raster_datasources={
             }
         },
         "IDW71068_WA_ApparentT_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71068_WA_ApparentT_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71068_WA_ApparentT_SFC.nc"),
             "name":"Apparent temperature",
             "sort_key":("weather","temperature"),
             "metadata_f":{
@@ -1006,7 +1006,7 @@ raster_datasources={
             }
         },
         "IDW71069_WA_SigWaveHgt_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71069_WA_SigWaveHgt_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71069_WA_SigWaveHgt_SFC.nc"),
             "name":"Total significant wave height",
             "sort_key":("weather","other"),
             "metadata_f":{
@@ -1029,7 +1029,7 @@ raster_datasources={
             }
         },
         "IDW71071_WA_WindMagKmh_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71071_WA_WindMagKmh_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71071_WA_WindMagKmh_SFC.nc"),
             "name":"Wind speed (km/h)",
             "sort_key":("weather","wind"),
             "metadata_f":{
@@ -1054,7 +1054,7 @@ raster_datasources={
             "required":True
         },
         "IDW71072_WA_WindGustKmh_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71072_WA_WindGustKmh_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71072_WA_WindGustKmh_SFC.nc"),
             "name":"Wind gust",
             "sort_key":("weather","wind"),
             "metadata_f":{
@@ -1079,7 +1079,7 @@ raster_datasources={
             "required":True
         },
         "IDW71089_WA_Wind_Dir_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71089_WA_Wind_Dir_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71089_WA_Wind_Dir_SFC.nc"),
             "name":"Wind direction",
             "sort_key":("weather","wind"),
             "metadata_f":{
@@ -1105,7 +1105,7 @@ raster_datasources={
             "required":True
         },
         "IDW71090_WA_DailyPoP_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71090_WA_DailyPoP_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71090_WA_DailyPoP_SFC.nc"),
             "name":"Probability of precipitation at least 0.2mm",
             "sort_key":("weather","precipitation"),
             "var" :"precip_chance",
@@ -1129,7 +1129,7 @@ raster_datasources={
             }
         },
         "IDW71092_WA_Swell_Dir_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71092_WA_Swell_Dir_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71092_WA_Swell_Dir_SFC.nc"),
             "name":"Swell direction",
             "sort_key":("weather","other"),
             "metadata_f":{
@@ -1153,7 +1153,7 @@ raster_datasources={
             }
         },
         "IDW71094_WA_WxThunderstorms_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71094_WA_WxThunderstorms_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71094_WA_WxThunderstorms_SFC.nc"),
             "name":"Thunderstorms",
             "sort_key":("weather","other"),
             "metadata_f":{
@@ -1176,7 +1176,7 @@ raster_datasources={
             }
         },
         "IDW71096_WA_WxPrecipitationFrozen_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71096_WA_WxPrecipitationFrozen_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71096_WA_WxPrecipitationFrozen_SFC.nc"),
             "name":"Frozen precipitation",
             "sort_key":("weather","other"),
             "metadata_f":{
@@ -1199,7 +1199,7 @@ raster_datasources={
             }
         },
         "IDW71097_WA_WxPrecipitation_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71097_WA_WxPrecipitation_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71097_WA_WxPrecipitation_SFC.nc"),
             "name":"Precipitation",
             "sort_key":("weather","precipitation"),
             "metadata_f":{
@@ -1222,7 +1222,7 @@ raster_datasources={
             }
         },
         "IDW71102_WA_WxFog_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71102_WA_WxFog_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71102_WA_WxFog_SFC.nc"),
             "name":"Fog",
             "sort_key":("weather","other"),
             "metadata_f":{
@@ -1245,7 +1245,7 @@ raster_datasources={
             }
         },
         "IDW71107_WA_WxFrost_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71107_WA_WxFrost_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71107_WA_WxFrost_SFC.nc"),
             "name":"Frost",
             "sort_key":("weather","other"),
             "metadata_f":{
@@ -1268,7 +1268,7 @@ raster_datasources={
             }
         },
         "IDW71109_WA_MixHgt_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71109_WA_MixHgt_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71109_WA_MixHgt_SFC.nc"),
             "name":"Mixing height",
             "sort_key":("weather","other"),
             "metadata_f":{
@@ -1291,7 +1291,7 @@ raster_datasources={
             }
         },
         "IDW71110_WA_WindMagKmh_1500mAMSL":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71110_WA_WindMagKmh_1500mAMSL.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71110_WA_WindMagKmh_1500mAMSL.nc"),
             "name":"1500m wind speed",
             "sort_key":("weather","wind"),
             "metadata_f":{
@@ -1315,7 +1315,7 @@ raster_datasources={
             }
         },
         "IDW71111_WA_Wind_Dir_1500mAMSL":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71111_WA_Wind_Dir_1500mAMSL.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71111_WA_Wind_Dir_1500mAMSL.nc"),
             "name":"1500m wind direction",
             "sort_key":("weather","wind"),
             "metadata_f":{
@@ -1340,7 +1340,7 @@ raster_datasources={
             }
         },
         "IDW71112_WA_WindMagKmh_3000mAMSL":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71112_WA_WindMagKmh_3000mAMSL.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71112_WA_WindMagKmh_3000mAMSL.nc"),
             "name":"3000m wind speed",
             "sort_key":("weather","wind"),
             "metadata_f":{
@@ -1364,7 +1364,7 @@ raster_datasources={
             }
         },
         "IDW71113_WA_Wind_Dir_3000mAMSL":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71113_WA_Wind_Dir_3000mAMSL.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71113_WA_Wind_Dir_3000mAMSL.nc"),
             "name":"3000m wind direction",
             "sort_key":("weather","wind"),
             "metadata_f":{
@@ -1389,7 +1389,7 @@ raster_datasources={
             }
         },
         "IDW71114_WA_LAL2_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71114_WA_LAL2_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71114_WA_LAL2_SFC.nc"),
             "name":"Thunderstorm activity level",
             "sort_key":("weather","other"),
             "metadata_f":{
@@ -1412,7 +1412,7 @@ raster_datasources={
             }
         },
         "IDW71115_WA_CHaines_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71115_WA_CHaines_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71115_WA_CHaines_SFC.nc"),
             "name":"Continuous Haines index",
             "sort_key":("weather","other"),
             "metadata_f":{
@@ -1435,7 +1435,7 @@ raster_datasources={
             }
         },
         "IDW71116_WA_MaxFDI_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71116_WA_MaxFDI_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71116_WA_MaxFDI_SFC.nc"),
             "name":"Maximum fire danger index",
             "sort_key":("bushfire",),
             "metadata_f":{
@@ -1458,7 +1458,7 @@ raster_datasources={
             }
         },
         "IDW71117_WA_FFDI_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71117_WA_FFDI_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71117_WA_FFDI_SFC.nc"),
             "name":"Forest fire danger index",
             "sort_key":("bushfire",'forest'),
             "metadata_f":{
@@ -1481,7 +1481,7 @@ raster_datasources={
             }
         },
         "IDW71118_WA_MaxFFDI_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71118_WA_MaxFFDI_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71118_WA_MaxFFDI_SFC.nc"),
             "name":"Maximum forest fire danger index",
             "sort_key":("bushfire",'forest'),
             "metadata_f":{
@@ -1504,7 +1504,7 @@ raster_datasources={
             }
         },
         "IDW71119_WA_Hrs50FFDI_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71119_WA_Hrs50FFDI_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71119_WA_Hrs50FFDI_SFC.nc"),
             "name":"Hours of FFDI above 50 threshold",
             "sort_key":("bushfire",'forest'),
             "metadata_f":{
@@ -1527,7 +1527,7 @@ raster_datasources={
             }
         },
         "IDW71120_WA_Hrs75FFDI_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71120_WA_Hrs75FFDI_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71120_WA_Hrs75FFDI_SFC.nc"),
             "name":"Hours of FFDI above 75 threshold",
             "sort_key":("bushfire",'forest'),
             "metadata_f":{
@@ -1550,7 +1550,7 @@ raster_datasources={
             }
         },
         "IDW71121_WA_Hrs100FFDI_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71121_WA_Hrs100FFDI_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71121_WA_Hrs100FFDI_SFC.nc"),
             "name":"Hours of FFDI above 100 threshold",
             "sort_key":("bushfire",'forest'),
             "metadata_f":{
@@ -1573,7 +1573,7 @@ raster_datasources={
             }
         },
         "IDW71122_WA_GFDI_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71122_WA_GFDI_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71122_WA_GFDI_SFC.nc"),
             "name":"Grassland fire danger index",
             "sort_key":("bushfire","grassland"),
             "metadata_f":{
@@ -1596,7 +1596,7 @@ raster_datasources={
             }
         },
         "IDW71123_WA_MaxGFDI_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71123_WA_MaxGFDI_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71123_WA_MaxGFDI_SFC.nc"),
             "name":"Maximum grassland fire danger index",
             "sort_key":("bushfire","grassland"),
             "metadata_f":{
@@ -1619,7 +1619,7 @@ raster_datasources={
             }
         },
         "IDW71124_WA_Hrs50GFDI_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71124_WA_Hrs50GFDI_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71124_WA_Hrs50GFDI_SFC.nc"),
             "name":"Hours of GFDI above 50 threshold",
             "sort_key":("bushfire","grassland"),
             "metadata_f":{
@@ -1642,7 +1642,7 @@ raster_datasources={
             }
         },
         "IDW71125_WA_Hrs75GFDI_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71125_WA_Hrs75GFDI_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71125_WA_Hrs75GFDI_SFC.nc"),
             "name":"Hours of GFDI above 75 threshold",
             "sort_key":("bushfire","grassland"),
             "metadata_f":{
@@ -1665,7 +1665,7 @@ raster_datasources={
             }
         },
         "IDW71126_WA_Hrs100GFDI_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71126_WA_Hrs100GFDI_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71126_WA_Hrs100GFDI_SFC.nc"),
             "name":"Hours of GFDI above 100 threshold",
             "sort_key":("bushfire","grassland"),
             "metadata_f":{
@@ -1688,7 +1688,7 @@ raster_datasources={
             }
         },
         "IDW71127_WA_DF_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71127_WA_DF_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71127_WA_DF_SFC.nc"),
             "name":"Drought factor",
             "sort_key":("bushfire",),
             "metadata_f":{
@@ -1711,7 +1711,7 @@ raster_datasources={
             }
         },
         "IDW71132_WA_Hrs32GFDI_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71132_WA_Hrs32GFDI_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71132_WA_Hrs32GFDI_SFC.nc"),
             "name":"Hours of GFDI above 32 threshold",
             "sort_key":("bushfire","grassland"),
             "metadata_f":{
@@ -1734,7 +1734,7 @@ raster_datasources={
             }
         },
         "IDW71139_WA_Curing_SFC":{
-            #"file":os.path.join(settings.BOM_HOME,"adfd","IDW71139_WA_Curing_SFC.nc.gz"),
+            #"file":os.path.join(settings.BOM_HOME,"adfd","IDW71139_WA_Curing_SFC.nc"),
             "file":os.path.join(settings.BOM_HOME,"adfd","IDZ10148_AUS_FSE_curing_SFC.nc"),
             "name":"Grassland curing index",
             "sort_key":("bushfire","grassland"),
@@ -1758,7 +1758,7 @@ raster_datasources={
             }
         },
         "IDW71144_WA_GrassFuelLoad_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71144_WA_GrassFuelLoad_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71144_WA_GrassFuelLoad_SFC.nc"),
             "name":"Grassland fuel load",
             "sort_key":("bushfire","grassland"),
             "metadata_f":{
@@ -1781,7 +1781,7 @@ raster_datasources={
             }
         },
         "IDW71147_WA_KBDI_SFC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71147_WA_KBDI_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71147_WA_KBDI_SFC.nc"),
             "name":"Keetch-Byram drought index (Observed)",
             "sort_key":("bushfire",),
             "metadata_f":{
@@ -1804,7 +1804,7 @@ raster_datasources={
             }
         },
         "IDW71152_WA_DailyWxIcon_SFC_ICON":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71152_WA_DailyWxIcon_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71152_WA_DailyWxIcon_SFC.nc"),
             "name":"Weather icon",
             "sort_key":("weather",),
             "time_mapping":{"00:00:00":"12:00:00"},
@@ -1829,7 +1829,7 @@ raster_datasources={
             }
         },
         "IDW71152_WA_DailyWxIcon_SFC_DESC":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71152_WA_DailyWxIcon_SFC.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71152_WA_DailyWxIcon_SFC.nc"),
             "name":"Weather",
             "sort_key":("weather",),
             "time_mapping":{"00:00:00":"12:00:00"},
@@ -1854,7 +1854,7 @@ raster_datasources={
             }
         },
         "IDW71199_WA_WindMagKmh_1000mAMSL":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71199_WA_WindMagKmh_1000mAMSL.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71199_WA_WindMagKmh_1000mAMSL.nc"),
             "name":"1000m wind speed",
             "sort_key":("weather","wind"),
             "metadata_f":{
@@ -1878,7 +1878,7 @@ raster_datasources={
             }
         },
         "IDW71200_WA_Wind_Dir_1000mAMSL":{
-            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71200_WA_Wind_Dir_1000mAMSL.nc.gz"),
+            "file":os.path.join(settings.BOM_HOME,"adfd","IDW71200_WA_Wind_Dir_1000mAMSL.nc"),
             "name":"1000m wind direction",
             "sort_key":("weather","wind"),
             "metadata_f":{

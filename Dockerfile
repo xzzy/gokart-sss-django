@@ -1,7 +1,7 @@
 # Prepare the base environment.
-FROM ubuntu:22.04 as builder_base_govapp
+FROM ubuntu:24.04 as builder_base_govapp
 MAINTAINER asi@dbca.wa.gov.au
-
+SHELL ["/bin/bash", "-c"]
 ENV DEBIAN_FRONTEND=noninteractive
 #ENV DEBUG=True
 ENV TZ=Australia/Perth
@@ -18,11 +18,18 @@ RUN apt-get clean
 RUN apt-get update
 RUN apt-get upgrade -y
 RUN apt-get install --no-install-recommends -y curl wget git libmagic-dev gcc binutils libproj-dev gdal-bin python3 python3-setuptools python3-dev python3-pip tzdata cron rsyslog gunicorn
-RUN apt-get install --no-install-recommends -y libpq-dev patch libreoffice
+RUN apt-get install --no-install-recommends -y libpq-dev patch libreoffice virtualenv 
 RUN apt-get install --no-install-recommends -y postgresql-client mtr htop vim  sudo
-RUN apt-get install --no-install-recommends -y bzip2 pdftk
-RUN apt-get install --no-install-recommends -y libgdal-dev build-essential
+RUN apt-get install --no-install-recommends -y bzip2 pdftk unzip
+RUN apt-get install --no-install-recommends -y software-properties-common 
 RUN ln -s /usr/bin/python3 /usr/bin/python
+
+# Install GDAL
+RUN add-apt-repository ppa:ubuntugis/ubuntugis-unstable
+RUN apt update
+RUN apt-get install --no-install-recommends -y gdal-bin python3-gdal
+RUN apt-get install --no-install-recommends -y libgdal-dev build-essential
+
 
 # Install nodejs
 RUN update-ca-certificates
@@ -36,22 +43,17 @@ RUN chmod +x install_node.sh && ./install_node.sh
 RUN apt-get update
 RUN apt-get install -y nodejs
 RUN apt-get install -y uglifyjs
-RUN pip install npm
 RUN npm install -g browserify
 RUN npm install -g npm-run-all
 RUN npm install -g closure-util
 
 # Install nodejs
-COPY cron /etc/cron.d/dockercron
+COPY python-cron python-cron
 COPY startup.sh pre_startup.sh /
 COPY ./timezone /etc/timezone
 COPY sss sss
 COPY packages packages
-RUN chmod 0644 /etc/cron.d/dockercron && \
-    crontab /etc/cron.d/dockercron && \
-    touch /var/log/cron.log && \
-    service cron start && \
-    chmod 755 /startup.sh && \
+RUN chmod 755 /startup.sh && \
     chmod +s /startup.sh && \
     chmod 755 /pre_startup.sh && \
     chmod +s /pre_startup.sh && \
@@ -65,20 +67,36 @@ RUN chmod 0644 /etc/cron.d/dockercron && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
     touch /app/rand_hash
 
+# Default Scripts
+RUN wget https://raw.githubusercontent.com/dbca-wa/wagov_utils/main/wagov_utils/bin/default_script_installer.sh -O /tmp/default_script_installer.sh
+RUN chmod 755 /tmp/default_script_installer.sh
+RUN /tmp/default_script_installer.sh
+
 RUN chmod 755 /pre_startup.sh
 # Install Python libs from requirements.txt.
 FROM builder_base_govapp as python_libs_govapp
 
 USER oim
-RUN PATH=/app/.local/bin:$PATH
-COPY --chown=oim:oim requirements.txt ./
+RUN virtualenv /app/venv
 
-RUN pip install -r requirements.txt
+ENV PATH=/app/venv/bin:$PATH
+RUN whereis python
+COPY --chown=oim:oim requirements.txt ./
+COPY --chown=oim:oim src src
+COPY --chown=oim:oim .git .git
+COPY --chown=oim:oim package.json ./
+# COPY --chown=oim:oim package-lock.json ./
+COPY --chown=oim:oim profile.py ./
+RUN pip3 install -r requirements.txt
+RUN pip3 install npm
 #\ && rm -rf /var/lib/{apt,dpkg,cache,log}/ /tmp/* /var/tmp/*
+
+RUN npm install --loglevel verbose
+RUN npm run build
 
 # Install the project (ensure that frontend projects have been built prior to this step).
 FROM python_libs_govapp
-COPY  --chown=oim:oim gunicorn.ini manage.py ./
+COPY --chown=oim:oim gunicorn.ini manage.py uwsgi_prod.ini ./
 RUN touch /app/.env
 
 RUN python manage.py collectstatic --noinput
@@ -94,5 +112,5 @@ RUN chmod 777 /app/tmp/
 
 EXPOSE 8080
 HEALTHCHECK --interval=1m --timeout=5s --start-period=10s --retries=3 CMD ["wget", "-q", "-O", "-", "http://localhost:8080/"]
-CMD ["/pre_startup.sh"]
+CMD ["/bin/bash", "-c", "/startup.sh"]
 

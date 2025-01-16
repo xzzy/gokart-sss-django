@@ -1,25 +1,31 @@
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, Http404
 from django import conf
 from django.views.decorators.csrf import csrf_exempt
 from wagov_utils.components.proxy.views import proxy_view
 from django.core.cache import cache
 from django.template.loader import render_to_string
+from django.shortcuts import render 
+from django.db.models import Q, Max
+from django.contrib.auth.models import User
 from sss import raster
 from sss import sss_gdal
 from sss import spatial as sss_spatial
+import os 
 import requests
 import base64
 import datetime
 import json
 import pathlib
+import re
 from io import BytesIO
-from sss.models import UserProfile
+from sss.models import UserProfile, Proxy, MapServer, SpatialDataCalculation
 from sss import models as sss_models
 from sss.serializers import ProfileSerializer, AccountDetailsSerializer
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from sss import utils_cache
 from django.conf import settings
+from jinja2 import Template, Environment, FileSystemLoader
 
 def api_catalogue(request, *args, **kwargs):
     if request.user.is_authenticated:
@@ -166,36 +172,57 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
     proxy_response_content = base64.b64decode(base64_json["content"].encode())
     http_response =   HttpResponse(proxy_response_content, content_type=base64_json['content_type'], status=base64_json['status_code'])    
     http_response.headers['Django-Cache-Expiry']= str(base64_json['cache_expiry']) + " seconds"
+    http_response.headers['Cache-Control'] = 'public, max-age=' + str(CACHE_EXPIRY)
     return http_response
 
 
+def proxy_object(request_path):
+    proxy_dict = {}
+
+    if not proxy_dict:
+        try:
+            proxy = Proxy.objects.get(
+                active=True,
+                request_path=request_path,
+            )
+        except Proxy.DoesNotExist:
+            raise
+        else:
+            proxy_dict = {
+                "proxy_url": proxy.proxy_url,
+                "basic_auth_enabled": proxy.basic_auth_enabled,
+                "username": proxy.username,
+                "password": proxy.password,
+            }
+    return proxy_dict
+
+
+
 @csrf_exempt
-def mapProxyView(request, path):
-    if request.user.is_authenticated:
-        queryString = request.META['QUERY_STRING']
-        remoteurl = None
-        auth_user = None
-        auth_password = None
+def mapProxyView(request, request_path, path):
+    if not request.user.is_authenticated:
+        raise ValidationError("User is not authenticated")
 
-        if 'kmi-proxy' in request.path:
-            remoteurl = conf.settings.KMI_API_URL + '/' + path 
-            auth_user = conf.settings.KMI_AUTH2_BASIC_AUTH_USER
-            auth_password = conf.settings.KMI_AUTH2_BASIC_AUTH_PASSWORD
-        
-        elif 'kb-proxy' in request.path:
-            remoteurl = conf.settings.KB_API_URL + '/' + path 
-            auth_user = conf.settings.KB_AUTH2_BASIC_AUTH_USER
-            auth_password = conf.settings.KB_AUTH2_BASIC_AUTH_PASSWORD
-        
-        elif 'hotspots-proxy' in request.path:
-            remoteurl = conf.settings.HOTSPOT_API_URL + '/' + path
+    queryString = request.META["QUERY_STRING"]
+    username = request.user.username
+    auth_user = None
+    auth_password = None
 
-        response = process_proxy(request, remoteurl, queryString, auth_user, auth_password)
-        return response
+    try:
+        proxy = proxy_object(request_path)
+    except Proxy.DoesNotExist:
+        raise Http404(f"No active Proxy entry found for {username} and {request_path}")
     else:
-        raise ValidationError('User is not authenticated')
+        if proxy.get("basic_auth_enabled"):
+            auth_user = proxy.get("username")
+            auth_password = proxy.get("password")
+        remoteurl = proxy.get("proxy_url") +"/"+ path
+    response = process_proxy(request, remoteurl, queryString, auth_user, auth_password)
+
+    return response
+
     
-   
+
 
 # @csrf_exempt
 # def kbProxyView(request, path):
@@ -221,7 +248,11 @@ def mapProxyView(request, path):
 
 def environment_config(request):
     context = {'settings': conf.settings}
-    template_date = render_to_string('sss/environment_config.js', context)    
+    mapServer = {}
+    for object in MapServer.objects.all():
+        mapServer[object.name] = object.url
+    context['mapserver'] = mapServer
+    template_date = render_to_string('sss/environment_config.js', context)   
     return HttpResponse(template_date, content_type='text/javascript')
 
 def cataloguev2(request):
@@ -269,12 +300,24 @@ def cataloguev2(request):
         for c_csw in catalogue_csw:
             json_cs_csw = json.loads(c_csw.json_data)
             json_cs_csw['map_server_name'] = "kmi"
-            json_cs_csw['map_server_url'] = "/kmi-proxy/geoserver"
+            kmi_url = MapServer.objects.get(name='kmi').url
+            json_cs_csw['map_server_url'] = kmi_url
             catalogue_array.append(json_cs_csw)
 
         context = {'settings': conf.settings}
         #template_date = render_to_string('sss/cataloguev2.json', context)    
         return HttpResponse(json.dumps(catalogue_array), content_type='text/json')
+
+def gokart_js(request):
+    context = {'settings': conf.settings}
+    template_date = render_to_string('sss/gokart.js', context)   
+    return HttpResponse(template_date, content_type='text/javascript')
+
+def gokart_client(request):
+    context = {'settings': conf.settings}
+    response = render(request, 'sss/client.html', context)
+    response.headers["X-FRAME-OPTIONS"] = "ALLOWALL"
+    return response
 
 def sso_profile(request):
     data= '{"authenticated": true, "email": "test.test@dbca.wa.gov.au", "username": "test.test@dbca.wa.gov.au", "first_name": "Test", "last_name": "Test", "full_name": "Test Test", "groups": "TEST,TEST1,TEST_ADMIN_TEAM,TEST_DEV_TEAM", "logout_url": "/sso/auth_logout", "session_key": "000.000.000.000.000|AUTH2-01|000dddeeefffff|1-auth2018eeedddfffgghhhtttyuuhgg", "auth_cache_hit": "success", "Frame_Options": "DENY", "Content_Type_Options": "nosniff", "client_logon_ip": "000.000.000.000", "access_token": "eeddfffuuiiidlkdldkdkdldkllksdlkdlkkjasdlksajlkdjkhlsajkdsajdlkas", "access_token_created": "2023-07-19 10:24:54", "access_token_expireat": "2023-08-16 23:59:59", "idp": "staff"}'
@@ -391,11 +434,12 @@ def spatial(request):
         #     content_type = 'text/html'
         # else: 
         #     content_type = 'text/html'
-        content_type = 'text/html'
-        response = HttpResponse(data, content_type=content_type)    
+        
+        content_type = 'application/json'
+        response = HttpResponse(json.dumps(data), content_type=content_type)    
         return response    
     else:
-        raise ValidationError('User is not authenticated')
+        return HttpResponse('User is not authenticated', content_type='text/plain', status=500)
 
 @csrf_exempt
 def gdal(request,fmt):
@@ -422,7 +466,7 @@ def gdal(request,fmt):
         return response
        
     else:
-        raise ValidationError('User is not authenticated')
+        return HttpResponse('User is not authenticated', content_type='text/plain', status=500)
 
 @csrf_exempt
 def gdal_ogrinfo(request):
@@ -432,6 +476,8 @@ def gdal_ogrinfo(request):
         resp = sss_gdal.ogrinfo(request) 
         content_type='text/plain'
         output = ""
+        if (isinstance(resp['output'], str)):
+            return HttpResponse(resp['output'], content_type=content_type, status=500)
         if resp['format'] == 'json':
             content_type=resp['content_type']
             output = json.dumps(resp['output'])
@@ -442,7 +488,7 @@ def gdal_ogrinfo(request):
         response = HttpResponse(output, content_type=content_type)    
         return response    
     else:
-        raise ValidationError('User is not authenticated')
+        return HttpResponse('User is not authenticated', content_type=content_type, status=500)
 @csrf_exempt
 def gdal_download(request, fmt):
 
@@ -450,14 +496,216 @@ def gdal_download(request, fmt):
         if settings.EMAIL_INSTANCE == "UAT" or settings.EMAIL_INSTANCE == "DEV":
             instance_format = settings.EMAIL_INSTANCE+'_'    
         resp = sss_gdal.download(request,fmt)
-        print (resp)
         output = resp['output']
         if resp['outputfile']:
             with open(pathlib.Path(resp['outputfile']), 'rb') as f:
                 output = f.read()
-        
+        else:
+            return HttpResponse(output, content_type='text/plain', status=500)
         response = HttpResponse(output, content_type=resp['filemime'])  
         response["Content-Disposition"] = "attachment;filename='{}'".format(resp["outputfilename"])
         return response    
     else:
-        raise ValidationError('User is not authenticated')    
+        return HttpResponse('User is not authenticated', content_type='text/plain', status=500)    
+    
+def himawari8(request, target):
+    last_updatetime = request.GET.get('updatetime')
+    request_url = request.build_absolute_uri()
+    baseUrl = request_url[0:request_url.find("/hi8")]
+    key = "himawari8.{}".format(target)
+    result = None
+    getcaps = None
+    FIREWATCH_HTTPS_VERIFY = True
+    firewatch_caps_url = conf.settings.SRSS_URL + "/mapproxy/firewatch/service?service=wms&request=getcapabilities"
+
+    if cache.get("himware18") is not None:
+        if cache.get(key) is not None:
+            result = json.loads(cache.get(key))
+        else:
+            getcaps = cache.get("himware18")
+    else:
+        resp = requests.get(firewatch_caps_url, verify=FIREWATCH_HTTPS_VERIFY)
+        resp.raise_for_status()
+        getcaps = resp.content
+        getcaps = getcaps.decode("utf-8")
+        cache.set("himawari8", getcaps, 60 * 10)  # cache for 10 mins
+
+    if not result:
+    #     # Oct-2023: Himarwari layer names updated from *_HI8_* to *_HI9_*
+        layernames = re.findall("\w+HI9\w+{}\.\w+".format(target), getcaps)
+        layers = []
+
+        for layer in layernames:
+            layers.append([settings.PERTH_TIMEZONE.localize(datetime.datetime.strptime(re.findall("\w+_(\d+)_\w+", layer)[0], "%Y%m%d%H%M")), layer])
+
+        layers = sorted(layers,key=lambda layer:layer[0])
+        for layer in layers:
+            layer[0] = (layer[0]).strftime("%a %b %d %Y %H:%M:%S AWST")
+
+        result = {
+            "servers": [baseUrl + conf.settings.FIREWATCH_SERVICE],
+            "layers": layers,
+            # "updatetime":layers[len(layers) - 1][0]
+        }
+        if len(layers) > 0:
+            result["updatetime"] = layers[len(layers) - 1][0]
+        else:
+            result["updatetime"] = None
+
+        cache.set(key, json.dumps(result), 60*10)  # cache for 10 mins
+    if len(result["layers"]) == 0:
+        return HttpResponse(status=404)
+    elif last_updatetime and last_updatetime == result["updatetime"]:
+        return "{}"
+    else:
+        content_type = 'application/json'
+        json_data = json.dumps(result)
+        response = HttpResponse(json_data, content_type=content_type)
+        return response
+   
+@csrf_exempt
+def weatherforecast(request):
+    try:
+        if settings.WEATHERFORECAST_URL:
+            if request.method == 'POST':
+                requestData = request.POST.get("data")
+                if requestData:
+                    requestData = json.loads(requestData)
+                else:
+                    return JsonResponse({"error": "Request data is missing"}, status=400)
+
+                requestData["weatherforecast_url"] = settings.WEATHERFORECAST_URL
+                requestData["weatherforecast_user"] = settings.WEATHERFORECAST_USER
+                requestData["weatherforecast_password"] = settings.WEATHERFORECAST_PASSWORD
+
+                template_dir = os.path.join(settings.JINJA2_BASE_TEMPLATE, 'weather')
+                jinja_env = Environment(loader=FileSystemLoader(template_dir))
+                
+                template = jinja_env.get_template('weatherforecast.html')
+
+                rendered_template = template.render(
+                    envType=settings.ENV_TYPE,
+                    request_time=datetime.datetime.now(settings.PERTH_TIMEZONE),
+                    **requestData
+                )
+                return HttpResponse(rendered_template)
+
+            else:
+                return JsonResponse({"error": "Invalid request method"}, status=405)
+        else:
+            return HttpResponse("Path '/weatherforecast' Not Found", content_type="text/plain", status=404)
+
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return JsonResponse({"error": "An error occurred"}, status=500)
+
+@csrf_exempt    
+def bfrs_calculation_queue(request):
+    if request.user.is_authenticated:
+        bfrs = request.POST.get('bfrs')
+        features = request.POST.get("features")
+        options = request.POST.get("options")
+        user_email = request.user.email
+        tasks = request.POST.get("tasks")
+        user = User.objects.get(email=user_email)
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        log_entry = "Added by {} on {}".format(user_email, current_time)
+        caculation_queue_object = SpatialDataCalculation.objects.create(bfrs=bfrs, features=features, tasks=tasks, options=options, calculation_status=SpatialDataCalculation.CALCULATION_STATUS[0][0], user=user, logs=log_entry)
+        content_type = 'application/json'
+        data = {"bfrs": bfrs, "calculation_status": caculation_queue_object.calculation_status}
+        response = HttpResponse(json.dumps(data), content_type=content_type)    
+        return response    
+    else:
+        return HttpResponse('User is not authenticated', content_type='text/plain', status=500)
+
+@csrf_exempt
+def spatial_calculation_progress(request, *args, **kwargs):
+    if request.user.is_authenticated:
+        bfrs = request.POST.get('bfrs')
+        tasks = request.POST.get('tasks')
+        spatial_data = request.POST.get('spatial_data')
+        calculation_object = SpatialDataCalculation.objects.filter(bfrs=bfrs).last()
+        calculation_object.tasks = tasks
+        if (spatial_data != "" and spatial_data != "null"):
+            calculation_object.spatial_data = spatial_data
+        calculation_object.save()
+        last_uploaded_date = calculation_object.created.astimezone(conf.settings.PERTH_TIMEZONE).strftime('%a %b %d %Y %H:%M:%S AWST')
+        submitter = calculation_object.user.email
+        if(calculation_object.output):
+            result = json.loads(calculation_object.output.replace("'", '"').replace("nan", "null"))
+        else:
+            result = ""
+        output = {"status": calculation_object.calculation_status, "result": result, "last_uploaded_date":last_uploaded_date, "submitter":submitter, "feature": calculation_object.features, "spatial_data": calculation_object.spatial_data }
+        
+        if(calculation_object.calculation_status == SpatialDataCalculation.CALCULATION_STATUS[3][0]):
+            output["error"] = calculation_object.error
+        
+        output = json.dumps(output)
+        return HttpResponse(output, content_type='application/json')
+    else:
+        raise ValidationError('User is not authenticated') 
+
+def update_tasks(request, *args, **kwargs):
+    if request.user.is_authenticated:
+        bfrs = request.GET.get('bfrs')
+        tasks = request.GET.get('tasks')
+        tasks_list = json.loads(tasks)
+        calculation_object = SpatialDataCalculation.objects.filter(bfrs=bfrs).last()
+        if tasks_list:
+            calculation_object.tasks = tasks
+            calculation_object.save()
+        
+        return JsonResponse({"tasks":"updated"})
+    else:
+        raise ValidationError('User is not authenticated') 
+
+@csrf_exempt
+def load_bfrs_status(request, *args, **kwargs):
+    if request.user.is_authenticated:
+        # Get the latest entry for each unique bfrs
+        latest_entries = SpatialDataCalculation.objects.all().values('bfrs').annotate(latest_id=Max('id'))
+
+        # Extract the IDs of the latest entries
+        latest_ids = [entry['latest_id'] for entry in latest_entries]
+
+        # Filter the queryset with the latest entries and the required statuses
+        bfrs_in_queue = SpatialDataCalculation.objects.filter(
+            Q(id__in=latest_ids) &
+            (Q(calculation_status=SpatialDataCalculation.CALCULATION_STATUS[0][0]) | 
+             Q(calculation_status=SpatialDataCalculation.CALCULATION_STATUS[1][0]) |
+             Q(calculation_status=SpatialDataCalculation.CALCULATION_STATUS[2][0]) |
+             Q(calculation_status=SpatialDataCalculation.CALCULATION_STATUS[3][0]))
+        )
+
+        bfrs_list = [{'bfrs': obj.bfrs, 'feature': obj.features, 'tasks': obj.tasks, 'spatial_data': obj.spatial_data} for obj in bfrs_in_queue]
+        return JsonResponse({'bfrs_list': bfrs_list})
+    else:
+        return JsonResponse({'status': 'error', 'message': 'User not authenticated'}, status=401)
+
+@csrf_exempt
+def clear_queue(request, *args, **kwargs):
+    if request.user.is_authenticated:
+        bfrs = request.POST.get('bfrs')
+        status = request.POST.get('status')
+        removed = request.POST.get('removed')
+        bfrs_in_queue = SpatialDataCalculation.objects.filter(
+            bfrs = bfrs
+        ).last()
+        if 'error' in status.lower():
+            bfrs_in_queue.calculation_status = SpatialDataCalculation.CALCULATION_STATUS[5][0]
+        else:
+            bfrs_in_queue.calculation_status = SpatialDataCalculation.CALCULATION_STATUS[4][0]
+        user = request.user.email
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        if removed == 'true':
+            log_entry = "Removed by {} on {}".format(user, current_time)
+        else:
+            log_entry = "Completed by {} on {}".format(user, current_time)
+        if bfrs_in_queue.logs is None:
+            bfrs_in_queue.logs = ''
+        bfrs_in_queue.logs += f"\n{log_entry}"
+        bfrs_in_queue.save()
+        return JsonResponse({'bfrs': bfrs})
+    else:
+        return JsonResponse({'status': 'error', 'message': 'User not authenticated'}, status=401)
+    

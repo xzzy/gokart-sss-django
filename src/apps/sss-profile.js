@@ -3,18 +3,18 @@ let gokartProfile=  {
     "version":"16.11.1",
     "distributionType":"release",
     "description":"Spatial Support System v3 (Django)",
-    "repositoryBranch":"main",
-    "lastCommit":"b9cad5d",
-    "commitDate":"Fri Dec 15 14:12:23 2023 +0800",
-    "commitMessage":"Rename API url api call for catalogue",
+    "repositoryBranch":"sss_vue1.0",
+    "lastCommit":"418295c",
+    "commitDate":"Tue Nov 19 12:10:36 2024 +0800",
+    "commitMessage":"Fix issue with email not working",
     "commitAuthor":"Jason Moore <jason.moore@dbca.wa.gov.au>",
     "build":{
-        "datetime":"2023-12-15 17:43:05 AWST(+0800)",
-        "date":"2023-12-15 AWST(+0800)",
-        "time":"17-43-05 AWST(+0800)",
+        "datetime":"2024-11-28 12:10:43 AWST(+0800)",
+        "date":"2024-11-28 AWST(+0800)",
+        "time":"12-10-43 AWST(+0800)",
         "platform":"Linux",
         "host":"sss-django-dev",
-        "vendorMD5":"7KwixgOJOsrNFSL4ETvwKg"
+        "vendorMD5":"FYXOW_CjXOytISCRjH6yeA"
     }
 }
 export default gokartProfile

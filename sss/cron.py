@@ -51,3 +51,14 @@ class SyncCatalogueCSWDataCronJob(CronJobBase):
         log.info("CRON JOB: syncing catalogue data from csw..")
 
         management.call_command("sync_catalogue_from_csw")              
+        
+class SpatialDataCalculationJob(CronJobBase):
+    RUN_EVERY_MINS = 2
+
+    schedule = Schedule(run_every_mins=RUN_EVERY_MINS)
+    code = 'sss.cron.spatial_data_calculations'
+
+    def do(self):
+        log.info("CRON JOB: Calculating Spatial Data..")
+
+        management.call_command("spatial_data_calculations")     

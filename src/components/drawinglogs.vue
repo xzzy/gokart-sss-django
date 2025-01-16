@@ -207,11 +207,17 @@
             vm.settings.undoLimit = -1
         },
         addFeatures:function(features) {
+
             if (features instanceof ol.Collection) {
+                
                 features = features.getArray()
+                
+
             } else if (!Array.isArray(features)) {
+               
                 features = [features]
             } 
+
             this.addLog(["C",JSON.parse(this.$root.geojson.writeFeatures(features))])
         },
         removeFeatures:function(features) {
@@ -256,8 +262,18 @@
         },
         cleanLogs: function() {
             if (window.confirm('This will clear all change logs, and you can\'t undo/redo previous drawings anymore. Are you sure?')) {
+                this.annotations.setTool('Pan')
                 this.drawingLogs.splice(0,this.drawingLogs.length)
+                allFeatures = this.annotations.features.getArray()
+                for (let index = 0; index < allFeatures.length; index++) {
+                    if (index >= 0 && index < allFeatures.length) {
+                        this.annotations.features.removeAt(index);
+                        index--;
+                    }
+                }
                 this.redoPointer = 0
+                this.redoSteps = 0
+                this.drawingLogs.length = 0
             }
         },
         undo:function() {
@@ -304,8 +320,14 @@
                             }
                             f.setGeometry(feature.getGeometry())
                             f.getGeometry().on("change",vm._eventHandlers["geometry:change"](f,feature.get('id')))
-                            vm.annotations.ui.modifyInter.dispatchEvent(new ol.interaction.Modify.Event("featuresmodified",new ol.Collection([f]),null))
-                        }
+                            var modifiedFeatures = new ol.Collection([f]);
+                            var event = {
+                            type: 'featuresmodified',
+                            features: modifiedFeatures,
+                            originalEvent: null
+                            };
+                            vm.annotations.ui.modifyInter.dispatchEvent(event);
+                            }
                     })
                 } else if (vm.drawingLogs[undoIndex][0] === 'P') {
                     //Change feature property log; 
@@ -377,7 +399,14 @@
                             }
                             f.setGeometry(feature.getGeometry())
                             f.getGeometry().on("change",vm._eventHandlers["geometry:change"](f,feature.get('id')))
-                            vm.annotations.ui.modifyInter.dispatchEvent(new ol.interaction.Modify.Event("featuresmodified",new ol.Collection([f]),null))
+
+                            var modifiedFeatures = new ol.Collection([f]);
+                            var event = {
+                            type: 'featuresmodified',
+                            features: modifiedFeatures,
+                            originalEvent: null
+                            };
+                            vm.annotations.ui.modifyInter.dispatchEvent(event);
                         }
                     })
                 } else if (vm.drawingLogs[vm.redoPointer][0] === 'P') {

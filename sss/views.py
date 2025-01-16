@@ -31,4 +31,6 @@ class HomePage(base.TemplateView):
         else:
             return shortcuts.render(request, self.error_template, context)
         # Render Template and Return
+
+
         

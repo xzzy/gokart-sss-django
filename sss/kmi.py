@@ -80,14 +80,15 @@ def get_layermetadata(layerids,kmiserver=None,results={}):
         url = None
         for layer_ws,layers in layers.items():
             if layer_ws:
-                url = "{}/{}/wms?service=wms&version=1.1.1&request=GetCapabilities".format(kmiserver,layer_ws)
+                url = "{}/geoserver/{}/wms?service=wms&version=1.1.1&request=GetCapabilities".format(kmiserver,layer_ws)
             else:
-                url = "{}/wms?service=wms&version=1.1.1&request=GetCapabilities".format(kmiserver)
-    
+                url = "{}/geoserver/wms?service=wms&version=1.1.1&request=GetCapabilities".format(kmiserver)
+            auth_request = requests.auth.HTTPBasicAuth(settings.KMI_AUTH2_BASIC_AUTH_USER,settings.KMI_AUTH2_BASIC_AUTH_PASSWORD)
             res = requests.get(
                 url,
                 verify=False,
-                cookies=session_cookie
+                auth=auth_request,
+                # cookies=session_cookie
             )
             res.raise_for_status()
     
@@ -214,14 +215,16 @@ def get_layerdefinition(layerids,kmiserver=None,results={}):
         url = None
         for layer_ws,layers in layers.items():
             if layer_ws:
-                url = "{}/{}/wfs?request=DescribeFeatureType&version=2.0.0&service=WFS&outputFormat=application%2Fjson&typeName=".format(kmiserver,layer_ws,",".join(layers))
+                url = "{}/geoserver/{}/wfs?request=DescribeFeatureType&version=2.0.0&service=WFS&outputFormat=application%2Fjson&typeName={}".format(kmiserver,layer_ws,",".join(layers))
             else:
-                url = "{}/wfs?request=DescribeFeatureType&version=2.0.0&service=WFS&outputFormat=application%2Fjson&typeName=".format(kmiserver,",".join(layers))
+                url = "{}/geoserver/wfs?request=DescribeFeatureType&version=2.0.0&service=WFS&outputFormat=application%2Fjson&typeName={}".format(kmiserver,",".join(layers))
 
+            auth_request = requests.auth.HTTPBasicAuth(settings.KMI_AUTH2_BASIC_AUTH_USER,settings.KMI_AUTH2_BASIC_AUTH_PASSWORD)
             res = requests.get(
                 url,
                 verify=False,
-                cookies=session_cookie
+                auth=auth_request,
+                # cookies=session_cookie
             )
             res.raise_for_status()
             layersdata = res.json()
@@ -264,10 +267,10 @@ def get_layerdefinition(layerids,kmiserver=None,results={}):
                     elif len(result["geometry_properties"]) > 1:
                         #have more than one geometry properties, try to find the right one
                         if layer_ws:
-                            url = "{}/{}/ows?service=WFS&version=2.0.0&request=GetFeature&typeName={}&count=1&outputFormat=application%2Fjson".format(kmiserver,layer_ws,layerid)
+                            url = "{}/geoserver/{}/ows?service=WFS&version=2.0.0&request=GetFeature&typeName={}&count=1&outputFormat=application%2Fjson".format(kmiserver,layer_ws,layerid)
                         else:
-                            url = "{}/ows?service=WFS&version=2.0.0&request=GetFeature&typeName={}&count=1&outputFormat=application%2Fjson".format(kmiserver,layerid)
-                        auth_request = requests.auth.HTTPBasicAuth(settings.AUTH2_BASIC_AUTH_USER,settings.KMI_AUTH2_BASIC_AUTH_PASSWORD)
+                            url = "{}/geoserver/ows?service=WFS&version=2.0.0&request=GetFeature&typeName={}&count=1&outputFormat=application%2Fjson".format(kmiserver,layerid)
+                        auth_request = requests.auth.HTTPBasicAuth(settings.KMI_AUTH2_BASIC_AUTH_USER,settings.KMI_AUTH2_BASIC_AUTH_PASSWORD)
                         res = requests.get(
                             url,
                             verify=False,

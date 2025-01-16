@@ -19,7 +19,9 @@ var labelGrat = function (optOptions) {
     },
     latLabelPosition: 0.98
   }
-  ol.Graticule.call(this, optOptions)
+
+  // new ol.layer.Graticule.call(this, optOptions)
+  new ol.layer.Graticule(this, optOptions)
   this.meridiansLabels_ = []
   this.parallelsLabels_ = []
   this.baseTextStyle_ = {
@@ -40,7 +42,7 @@ var labelGrat = function (optOptions) {
   this.latLabelPosition_ = options.latLabelPosition !== undefined ? ol.math.clamp(options.latLabelPosition, 0, 1) : 1
   this.setMap(options.map !== undefined ? options.map : null)
 }
-ol.inherits(labelGrat, ol.Graticule)
+ol.inherits(labelGrat, ol.layer.Graticule)
 labelGrat.intervals_ = [5, 2, 1, 0.5, 0.2, 0.1, 0.05, 0.01, 0.005, 0.002, 0.001]
 labelGrat.prototype.addMeridianLabel_ = function (lon, squaredTolerance, extent, index) {
   var textPoint = this.getMeridianPoint_(lon, squaredTolerance, extent, index)
@@ -213,21 +215,22 @@ ol.LabelGraticule = labelGrat
 var DEFAULT_OVERVIEWMAP_MIN_RATIO = ol.OVERVIEWMAP_MIN_RATIO
 var DEFAULT_OVERVIEWMAP_MAX_RATIO = ol.OVERVIEWMAP_MAX_RATIO
 
-var DefaultOverviewMap = ol.control.OverviewMap
+var DefaultOverviewMap =  ol.control.OverviewMap
 
-ol.control.OverviewMap = function(options){
-    options = options || {}
-    this.min_ratio = options.min_ratio || DEFAULT_OVERVIEWMAP_MIN_RATIO
-    this.max_ratio = options.max_ratio || DEFAULT_OVERVIEWMAP_MAX_RATIO
-    DefaultOverviewMap.call(this,options)
-    return this
-}
-ol.inherits(ol.control.OverviewMap,DefaultOverviewMap)
+// ol.control.OverviewMap = function(options){
+//     options = options || {}
+//     this.min_ratio = options.min_ratio || DEFAULT_OVERVIEWMAP_MIN_RATIO
+//     this.max_ratio = options.max_ratio || DEFAULT_OVERVIEWMAP_MAX_RATIO
+//     // DefaultOverviewMap.call(this,options)
+//     new DefaultOverviewMap(this,options)
+//     return this
+// }
+//ol.inherits(ol.control.OverviewMap,DefaultOverviewMap)
 
-ol.control.OverviewMap.render = function(mapEvent) {
-    this.validateExtent_();
-    this.updateBox_();
-};
+// ol.control.OverviewMap.render = function(mapEvent) {
+//     this.validateExtent_();
+//     this.updateBox_();
+// };
 
 
 new ol.Collection(["validateExtent_","resetExtent_"]).forEach(function(name,index) {
@@ -260,5 +263,81 @@ ol.Map.prototype.simulateEvent = function(type, x, y, opt_shiftKey) {
     });
     this.handleMapBrowserEvent(new ol.MapBrowserPointerEvent(type, this, event));
   }
+
+  
+  // Copied from openlayers 4.1.1
+  ol.events.EventType = {
+    /**
+     * Generic change event. Triggered when the revision counter is increased.
+     * @event ol.events.Event#change
+     * @api
+     */
+    CHANGE: 'change',
+  
+    CLICK: 'click',
+    DBLCLICK: 'dblclick',
+    DRAGENTER: 'dragenter',
+    DRAGOVER: 'dragover',
+    DROP: 'drop',
+    ERROR: 'error',
+    KEYDOWN: 'keydown',
+    KEYPRESS: 'keypress',
+    LOAD: 'load',
+    MOUSEDOWN: 'mousedown',
+    MOUSEMOVE: 'mousemove',
+    MOUSEOUT: 'mouseout',
+    MOUSEUP: 'mouseup',
+    MOUSEWHEEL: 'mousewheel',
+    MSPOINTERDOWN: 'MSPointerDown',
+    RESIZE: 'resize',
+    TOUCHSTART: 'touchstart',
+    TOUCHMOVE: 'touchmove',
+    TOUCHEND: 'touchend',
+    WHEEL: 'wheel'
+  };
+
+
+  ol.interaction.Draw.Mode_ = {
+    CIRCLE : "Circle",
+    LINE_STRING : "LineString",
+    POINT : "Point",
+    POLYGON : "Polygon",
+  }
+
+/**
+ * @private
+ * @param {number} degrees Degrees.
+ * @param {string} hemispheres Hemispheres.
+ * @param {number=} opt_fractionDigits The number of digits to include
+ *    after the decimal point. Default is `0`.
+ * @return {string} String.
+ */
+ol.coordinate.degreesToStringHDMS_ = function(degrees, hemispheres, opt_fractionDigits) {
+  var normalizedDegrees = ol.math.modulo(degrees + 180, 360) - 180;
+  var x = Math.abs(3600 * normalizedDegrees);
+  var dflPrecision = opt_fractionDigits || 0;
+  var precision = Math.pow(10, dflPrecision);
+
+  var deg = Math.floor(x / 3600);
+  var min = Math.floor((x - deg * 3600) / 60);
+  var sec = x - (deg * 3600) - (min * 60);
+  sec = Math.ceil(sec * precision) / precision;
+
+  if (sec >= 60) {
+    sec = 0;
+    min += 1;
+  }
+
+  if (min >= 60) {
+    min = 0;
+    deg += 1;
+  }
+
+  return deg + '\u00b0 ' + ol.string.padNumber(min, 2) + '\u2032 ' +
+    ol.string.padNumber(sec, 2, dflPrecision) + '\u2033 ' +
+    hemispheres.charAt(normalizedDegrees < 0 ? 1 : 0);
+};
+
+
 export default ol
 
