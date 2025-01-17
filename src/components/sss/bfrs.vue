@@ -2272,7 +2272,13 @@
         }
         this.bushfireMapLayer.getSource().retrieveFeatures(filter,function(features){
           console.log("BFRS retrieveFeatures");
-          console.log(features); 
+          console.log(features);
+          if(feat.get('status') === 'in_queue' && feat.get('original_status') === 'new'){
+            var clear_queue = vm.clearQueue(withConfirm=true)
+                if(!clear_queue){
+                    return
+                }
+            }
           if (features && features.length) {
             vm.initBushfire(features[0])
             features[0].inViewport = ol.extent.containsCoordinate(vm.map.extent,vm.originpointCoordinate(features[0]))
