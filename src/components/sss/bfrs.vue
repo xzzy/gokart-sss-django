@@ -2278,7 +2278,10 @@
             features[0].inViewport = ol.extent.containsCoordinate(vm.map.extent,vm.originpointCoordinate(features[0]))
             if(feat.get('status') === 'in_queue'){
                 vm.target_feature = feat
-                vm.clearQueue(withConfirm=true)
+                var clear_queue = vm.clearQueue(withConfirm=true)
+                if(!clear_queue){
+                    return
+                }
             }
             if (vm.taskDialog) {
                 vm.taskDialog.close();
@@ -2913,7 +2916,9 @@
             if(vm.taskDialog || vm.taskDialog.isActive){
                 vm.taskDialog.close()
             }
+            return true;
         }
+        return false;
     },
 
 	  importList: function () {
