@@ -624,7 +624,11 @@ def spatial_calculation_progress(request, *args, **kwargs):
         bfrs = request.POST.get('bfrs')
         tasks = request.POST.get('tasks')
         spatial_data = request.POST.get('spatial_data')
-        calculation_object = SpatialDataCalculation.objects.filter(bfrs=bfrs).last()
+        if 'new bushfire' in bfrs.lower():
+            # only fetch the bushfire uploaded by the user in case of new bushfire
+            calculation_object = SpatialDataCalculation.objects.filter(bfrs=bfrs, user=request.user).last()
+        else:
+            calculation_object = SpatialDataCalculation.objects.filter(bfrs=bfrs).last()
         calculation_object.tasks = tasks
         if (spatial_data != "" and spatial_data != "null"):
             calculation_object.spatial_data = spatial_data
@@ -650,7 +654,11 @@ def update_tasks(request, *args, **kwargs):
         bfrs = request.GET.get('bfrs')
         tasks = request.GET.get('tasks')
         tasks_list = json.loads(tasks)
-        calculation_object = SpatialDataCalculation.objects.filter(bfrs=bfrs).last()
+        if 'new bushfire' in bfrs.lower():
+            # only update the bushfire uploaded by the user in case of new bushfire
+            calculation_object = SpatialDataCalculation.objects.filter(bfrs=bfrs, user=request.user).last()
+        else:
+            calculation_object = SpatialDataCalculation.objects.filter(bfrs=bfrs).last()
         if tasks_list:
             calculation_object.tasks = tasks
             calculation_object.save()
@@ -688,9 +696,13 @@ def clear_queue(request, *args, **kwargs):
         bfrs = request.POST.get('bfrs')
         status = request.POST.get('status')
         removed = request.POST.get('removed')
-        bfrs_in_queue = SpatialDataCalculation.objects.filter(
-            bfrs = bfrs
-        ).last()
+        if 'new bushfire' in bfrs.lower():
+            # only delete the bushfire uploaded by the user in case of new bushfire
+            bfrs_in_queue = SpatialDataCalculation.objects.filter(bfrs=bfrs, user=request.user).last()
+        else:
+            bfrs_in_queue = SpatialDataCalculation.objects.filter(
+                bfrs = bfrs
+            ).last()
         if 'error' in status.lower():
             bfrs_in_queue.calculation_status = SpatialDataCalculation.CALCULATION_STATUS[5][0]
         else:
