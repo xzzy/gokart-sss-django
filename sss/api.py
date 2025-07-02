@@ -141,14 +141,18 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
 
     cache_times_strings = utils_cache.get_proxy_cache()
     CACHE_EXPIRY=300
+    BROWSER_CACHE_EXPIRY = None
 
     proxy_cache = cache.get(query_string_remote_url)
 
     for cts in cache_times_strings:
         if cts['layer_name'] in query_string_remote_url:
             CACHE_EXPIRY = cts['cache_expiry']
+            if cts['browser_expiry']:
+                BROWSER_CACHE_EXPIRY = cts['browser_expiry']
         #print (cts['layer_name'])
-
+    if BROWSER_CACHE_EXPIRY is None:
+        BROWSER_CACHE_EXPIRY = CACHE_EXPIRY
     #print (CACHE_EXPIRY)
     if proxy_cache is None:
         #print ("NO CACHE")
@@ -173,7 +177,7 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
     proxy_response_content = base64.b64decode(base64_json["content"].encode())
     http_response =   HttpResponse(proxy_response_content, content_type=base64_json['content_type'], status=base64_json['status_code'])    
     http_response.headers['Django-Cache-Expiry']= str(base64_json['cache_expiry']) + " seconds"
-    http_response.headers['Cache-Control'] = 'public, max-age=' + str(CACHE_EXPIRY)+', must-revalidate'
+    http_response.headers['Cache-Control'] = 'public, max-age=' + str(BROWSER_CACHE_EXPIRY)+', must-revalidate'
     return http_response
 
 

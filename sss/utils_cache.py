@@ -20,7 +20,7 @@ def get_proxy_cache():
         proxy_cache_query = ProxyCache.objects.all()
         
         for pr in proxy_cache_query:
-            proxy_cache_array.append({'layer_name': pr.layer_name, 'cache_expiry' : pr.cache_expiry})
+            proxy_cache_array.append({'layer_name': pr.layer_name, 'cache_expiry' : pr.cache_expiry, 'browser_expiry': pr.browser_expiry})
 
         cache.set('utils_cache.get_proxy_cache()', proxy_cache_array, 86400)
     else:
