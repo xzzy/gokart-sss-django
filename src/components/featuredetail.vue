@@ -181,10 +181,6 @@
                         url = vm.env.kmiService + "/wfs?service=wfs&version=2.0&request=GetFeature&outputFormat=application%2Fjson&typeNames=" + getDetailLayerId(vm.layer.id) + bbox
                     }
                     var isOpen = $("#userdialog").is(":visible")
-                    console.log("check few")
-                    console.log(isOpen)
-                    console.log(!vm.feature_processing)
-                    console.log(vm.layer.id)
                     if (!isOpen && !vm.feature_processing) {
                         vm.feature_processing = true
                         $.ajax({
