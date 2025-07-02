@@ -14,7 +14,7 @@ class UserProfileAdmin(admin.ModelAdmin):
 
 @admin.register(models.ProxyCache)
 class ProxyCacheAdmin(admin.ModelAdmin):
-    list_display = ('id', 'layer_name', 'created', 'cache_expiry', 'active')
+    list_display = ('id', 'layer_name', 'created', 'cache_expiry', 'active','browser_expiry')
     readonly_fields = ['created',]
 
 @admin.register(models.BomSyncList)
