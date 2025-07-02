@@ -187,7 +187,6 @@
                         url:url,
                         dataType:"json",
                         success: function (response, stat, xhr) {
-                            console.log("inside the response")
                             if (response.totalFeatures < 1) {
                                 vm.warning = true
                                 vm.feature_processing = false
@@ -279,7 +278,6 @@
                         },
                         error: function (xhr,status,message) {
                             vm.warning = true
-                            console.log("set false2")
                             vm.feature_processing = false
                             alert(xhr.status + " : " + (xhr.responseText || message))
                         },
