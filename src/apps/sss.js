@@ -147,7 +147,7 @@ var persistentData = {
   },
   // id followed by properties to merge into catalogue
   activeLayers: [
-    ['dpaw:resource_tracking_live', {}],
+    [env.resourceTrackingLiveLayer, {}],
     ['cddp:state_map_base', {}]
   ],
   // blank annotations
@@ -181,7 +181,7 @@ if (result) {
           delete store["activeLayers"]
       }
       var storedData = utils.extend(JSON.parse(JSON.stringify(persistentData)), store || {}, volatileData)
-      storedData['activeLayers'] = storedData['activeLayers'].filter(layer => layer[0] !== 'dpaw:resource_tracking_history');
+      storedData['activeLayers'] = storedData['activeLayers'].filter(layer => !layer[0].includes("resource_tracking_history"));
       global.gokart = new Vue({
         el: 'body',
         components: {
