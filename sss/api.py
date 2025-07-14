@@ -255,7 +255,8 @@ def environment_config(request):
     context = {'settings': conf.settings}
     mapServer = {}
     for object in MapServer.objects.all():
-        mapServer[object.name] = object.url
+        key = object.name.replace(' ', '_').lower()
+        mapServer[key] = object.url
     context['mapserver'] = mapServer
     template_date = render_to_string('sss/environment_config.js', context)   
     return HttpResponse(template_date, content_type='text/javascript')

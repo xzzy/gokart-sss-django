@@ -224,6 +224,7 @@ BUSHFIRE_FIREBOUNDARY_LATEST_LAYER=decouple.config("BUSHFIRE_FIREBOUNDARY_LATEST
 BUSHFIRE_LAYER=decouple.config("BUSHFIRE_LAYER", default="dpaw:bushfire")
 BUSHFIRE_FIREBOUNDARY_LAYER=decouple.config("BUSHFIRE_FIREBOUNDARY_LAYER", default="dpaw:bushfire_fireboundary")
 RESOURCE_TRACKING_LIVE_LAYER=decouple.config("RESOURCE_TRACKING_LIVE_LAYER", default="dpaw:resource_tracking_live")
+RESOURCE_TRACKING_HISTORY_LAYER=decouple.config("RESOURCE_TRACKING_HISTORY_LAYER", default="dpaw:resource_tracking_history")
 
 EMAIL_INSTANCE = decouple.config("EMAIL_INSTANCE", default="PROD")
 NON_PROD_EMAIL = decouple.config("NON_PROD_EMAIL", default="")
