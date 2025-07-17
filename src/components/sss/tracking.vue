@@ -320,13 +320,13 @@
       },
       trackingLayer: function() {
         
-        return this.$root.catalogue.getLayer('dpaw:resource_tracking_live')
+        return this.$root.catalogue.getLayer(this.env.resourceTrackingLiveLayer)
       },
       trackingMapLayer: function() {
         return this.$root.map?this.$root.map.getMapLayer(this.trackingLayer):undefined
       },
       historyLayer: function() {
-        return this.$root.catalogue.getLayer('dpaw:resource_tracking_history')
+        return this.$root.catalogue.getLayer(this.env.resourceTrackingHistoryLayer)
       },
       historyMapLayer: function() {
         return this.$root.map?this.$root.map.getMapLayer(this.historyLayer):undefined
@@ -1043,13 +1043,13 @@
 
       trackingStatus.phaseBegin("load_resources", 30, "Load resources", false, true)
       
-      var _addResourceFunc = addResourceFunc(resourceTrackingStyleFunc('dpaw:resource_tracking_live'))
+      var _addResourceFunc = addResourceFunc(resourceTrackingStyleFunc(env.resourceTrackingLiveLayer))
       
 
       this.$root.fixedLayers.push({
         type: 'WFSLayer',
         name: 'Resource Tracking',
-        id: 'dpaw:resource_tracking_live',
+        id: env.resourceTrackingLiveLayer,
         features: vm._featurelist,
         cql_filter: vm.getSourceFilter(),
         getFeatureInfo: function (f) {
@@ -1123,14 +1123,14 @@
       }, {
         type: 'WFSLayer',
         name: 'Resource Tracking History',
-        id: 'dpaw:resource_tracking_history',
+        id: env.resourceTrackingHistoryLayer,
         onadd: function(addResource) {
             return function(f){
                 if (f.getGeometry() instanceof ol.geom.Point) {
                     addResource(f)
                 }
             }
-        }(addResourceFunc(resourceTrackingStyleFunc('dpaw:resource_tracking_history'))),
+        }(addResourceFunc(resourceTrackingStyleFunc(env.resourceTrackingHistoryLayer))),
         cql_filter: false,
         getFeatureInfo: function (f) {
             if (f.getGeometry() instanceof ol.geom.Point) {
@@ -1262,7 +1262,7 @@
 
 
         vm.map.olmap.on("removeLayer",function(ev){
-          if (ev.mapLayer.get('id') === "dpaw:resource_tracking_live") {
+          if (ev.mapLayer.get('id') === this.env.resourceTrackingLiveLayer) {
               vm.features.clear()
               vm._featurelist.clear()
           }
