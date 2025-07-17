@@ -996,7 +996,7 @@ def download(request, fmt):
         cookies = settings.SESSION_COOKIE_NAME
 
         loaddir = os.path.join(workdir,"load")
-        os.mkdir(loaddir)
+        os.makedirs(loaddir, exist_ok=True)
 
         loadedDatasources = {}
         if layers:
@@ -1168,7 +1168,7 @@ def download(request, fmt):
                     
         #convert and union the layers
         outputdir = os.path.join(workdir,"output")
-        os.mkdir(outputdir)
+        os.makedirs(outputdir, exist_ok=True)
 
         unsupported_layers = []
         #print "{}".format(layers)
@@ -1183,7 +1183,7 @@ def download(request, fmt):
         outputFiles = []
 
         vrtdir = os.path.join(workdir,"vrt")
-        os.mkdir(vrtdir)
+        os.makedirs(vrtdir, exist_ok=True)
 
         #import ipdb;ipdb.set_trace()
         for layer in layers:
