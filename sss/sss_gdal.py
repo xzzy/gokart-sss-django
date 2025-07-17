@@ -87,9 +87,8 @@ def gdal_convert(request, fmt):
     jpg = request.FILES.get("jpg")
     title = request.POST.get("title") or "Quick Print"
     sso_user = request.headers.get("X-email", "unknown")
-    workdir = str(settings.BASE_DIR)  + "/" + settings.TEMP_DIR
-    os.makedirs(workdir, exist_ok=True)
-    path = os.path.join(workdir, instance_format + '_' + jpg.name)
+    workdir = tempfile.mkdtemp()    
+    path = os.path.join(workdir, instance_format+'_'+jpg.name)
     output_filepath = path + "." + fmt
     
     #--    
@@ -691,8 +690,7 @@ def ogrinfo(request):
     # needs gdal 1.10+
     #import ipdb;ipdb.set_trace()
     datasource = request.FILES.get("datasource")
-    workdir = str(settings.BASE_DIR)  + "/" + settings.TEMP_DIR
-    os.makedirs(workdir, exist_ok=True)
+    workdir = tempfile.mkdtemp()
 
     try:
         #datasource.save(workdir)
@@ -990,8 +988,7 @@ def download(request, fmt):
 
         #import ipdb;ipdb.set_trace()
         #load data sources
-        workdir = str(settings.BASE_DIR)  + "/" + settings.TEMP_DIR
-        os.makedirs(workdir, exist_ok=True)
+        workdir = tempfile.mkdtemp()
 
         cookies = settings.SESSION_COOKIE_NAME
 
