@@ -1289,7 +1289,7 @@
 	  
       // loader for vector layers with hover querying
       createWFSLayer: function (options) {
-        if((!options.id.includes("resource_tracking_history") || options.cql_filter !== false)){
+        if (!options || !options.id || !options.id.includes("resource_tracking_history") || options.cql_filter !== false) {
           if (options.mapLayer) return options.mapLayer
           var vm = this
           var url = this.env.kmiService + "/wfs"
