@@ -1048,7 +1048,8 @@
 
       this.$root.fixedLayers.push({
         type: 'WFSLayer',
-        name: 'Resource Tracking',
+        // name: 'Resource Tracking',
+        name: 'DBCA Resource Tracking (Live)',
         id: env.resourceTrackingLiveLayer,
         features: vm._featurelist,
         cql_filter: vm.getSourceFilter(),
@@ -1122,7 +1123,8 @@
         }
       }, {
         type: 'WFSLayer',
-        name: 'Resource Tracking History',
+        // name: 'Resource Tracking History',
+        name: 'DBCA Resource Tracking History (Live)',
         id: env.resourceTrackingHistoryLayer,
         onadd: function(addResource) {
             return function(f){
