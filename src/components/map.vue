@@ -2478,7 +2478,7 @@
               if (position >= 0) {
                   $.each(ev.element.layer.dependentLayers, function(index,l){
                       if (!l.map_server_url){
-                          catalogue_layer = vm.$root.catalogue.getLayer(l.id)
+                          catalogue_layer = vm.$root.catalogue.getLayer(ev.element.layer.id)
                           if(catalogue_layer && catalogue_layer.map_server_url){
                             l['map_server_url'] = catalogue_layer.map_server_url}
                         }
@@ -2494,6 +2494,8 @@
                   })
               }
             }
+            console.log("afterwards")
+            console.log(ev.element.layer)
         })
 
         vm.olmap.on("changeLayerOrder", function(ev){
