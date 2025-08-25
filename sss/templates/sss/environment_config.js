@@ -39,6 +39,14 @@ var env = {
 
     },
     overviewLayer:"{{ settings.OVERVIEW_LAYER }}",
-    hotspotsUrl:"{{mapserver.hotspots}}"
+    hotspotsUrl:"{{mapserver.hotspots}}",
+    bushfireListLayer:"{{ settings.BUSHFIRELIST_LATEST_LAYER }}",
+    bushfireLatestLayer:"{{ settings.BUSHFIRE_LATEST_LAYER }}",
+    bushfireFinalFireBoundaryLatestLayer:"{{ settings.BUSHFIRE_FINAL_FIREBOUNDARY_LATEST_LAYER }}",
+    bushfireFireBoundaryLatestLayer:"{{ settings.BUSHFIRE_FIREBOUNDARY_LATEST_LAYER }}",
+    bushfireLayer:"{{ settings.BUSHFIRE_LAYER }}",
+    bushfireFireBoundaryLayer:"{{ settings.BUSHFIRE_FIREBOUNDARY_LAYER }}",
+    
+    
 };
 
