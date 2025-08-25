@@ -472,7 +472,7 @@
         return this.selectRevision && this.selectedFeatures.getLength()
       },
       bushfireLayer: function() {
-        return this.$root.catalogue.getLayer("dpaw:bushfirelist_latest")
+        return this.$root.catalogue.getLayer(this.env.bushfireListLayer)
       },
       bushfireMapLayer: function() {
         return this.$root.map?this.$root.map.getMapLayer(this.bushfireLayer):undefined
@@ -534,7 +534,7 @@
                     }
 
                     var labelStyle = null
-                    if (res < 0.003 && geometries.length > 0 && feat.get('fire_number') && vm.bushfireLabels && !vm.$root.active.isHidden(vm.map.getMapLayer("dpaw:bushfirelist_latest"))) {
+                    if (res < 0.003 && geometries.length > 0 && feat.get('fire_number') && vm.bushfireLabels && !vm.$root.active.isHidden(vm.map.getMapLayer(this.env.bushfireListLayer))) {
                       labelStyle = labelStyleFunc.call(feat, res)
                       labelStyle.setGeometry(geometries[0])
                     }
@@ -604,7 +604,7 @@
       },
       showFireboundary:function(newValue,oldValue) {
         var vm = this
-        this.map.enableDependentLayer(this.bushfireMapLayer,"dpaw:bushfire_final_fireboundary_latest",newValue)
+        this.map.enableDependentLayer(this.bushfireMapLayer,this.env.bushfireFinalFireBoundaryLatestLayer,newValue)
         $.each(this._featurelist.getArray(),function(index,feature){
             if (vm.isFireboundaryDrawable(feature)) {
                 feature.getGeometry().changed()
@@ -756,14 +756,14 @@
           var selectedFinalBushfires = vm.selectedFeatures.getArray().filter(function(f) {return !vm.isFireboundaryDrawable(f)})
           if (selectedFinalBushfires.length === 0) {
             if (vm.selectedFinalFireboundaryMapLayer.show) {
-                vm.map.enableDependentLayer(vm.bushfireMapLayer,"dpaw:bushfire_final_fireboundary_latest" + "_selected",false)
+                vm.map.enableDependentLayer(vm.bushfireMapLayer,this.env.bushfireFinalFireBoundaryLatestLayer + "_selected",false)
             }
           } else {
             vm.selectedFinalFireboundaryMapLayer.setParams({
                 cql_filter:"fire_number in ('" + selectedFinalBushfires.map(function(f){return f.get('fire_number')}).join("','") +  "')"
             })
             if (!vm.selectedFinalFireboundaryMapLayer.show) {
-                vm.map.enableDependentLayer(vm.bushfireMapLayer,"dpaw:bushfire_final_fireboundary_latest" + "_selected",true)
+                vm.map.enableDependentLayer(vm.bushfireMapLayer,this.env.bushfireFinalFireBoundaryLatestLayer + "_selected",true)
             }
           }
         },wait)
@@ -1001,7 +1001,7 @@
                         if (validateType === "getSpatialData") {
                             //during saving, check agaist the fire boundary
                             $.ajax({
-                                url:vm.env.kmiService + "/wfs?service=wfs&version=2.0&request=GetPropertyValue&valueReference=fire_number&typeNames=" + getLayerId("dpaw:bushfire_final_fireboundary_latest") + "&cql_filter=(fire_number='" + feat.get('fire_number') + "')and (CONTAINS(fire_boundary,POINT(" + originPoint[1]  + " " + originPoint[0] + ")))",
+                                url:vm.env.kmiService + "/wfs?service=wfs&version=2.0&request=GetPropertyValue&valueReference=fire_number&typeNames=" + getLayerId(this.env.bushfireFinalFireBoundaryLatestLayer) + "&cql_filter=(fire_number='" + feat.get('fire_number') + "')and (CONTAINS(fire_boundary,POINT(" + originPoint[1]  + " " + originPoint[0] + ")))",
                                 dataType:"xml",
                                 success: function (response, stat, xhr) {
                                     if (response.firstChild && response.firstChild.children && response.firstChild.children.length > 0) {
@@ -2075,7 +2075,7 @@
                                     originPoint = originPoint.getCoordinates()
 
                                         $.ajax({
-                                        url:vm.env.kmiService + "/wfs?service=wfs&version=2.0&request=GetPropertyValue&valueReference=fire_number&typeNames=" + getLayerId("dpaw:bushfire_final_fireboundary_latest") + "&cql_filter=(fire_number='" + feat.get('fire_number') + "')and (CONTAINS(fire_boundary,POINT(" + originPoint[1]  + " " + originPoint[0] + ")))",
+                                        url:vm.env.kmiService + "/wfs?service=wfs&version=2.0&request=GetPropertyValue&valueReference=fire_number&typeNames=" + getLayerId(this.env.bushfireFinalFireBoundaryLatestLayer) + "&cql_filter=(fire_number='" + feat.get('fire_number') + "')and (CONTAINS(fire_boundary,POINT(" + originPoint[1]  + " " + originPoint[0] + ")))",
                                         dataType:"xml",
                                         success: function (response, stat, xhr) {
                                                 if (!response.firstChild || !response.firstChild.children || response.firstChild.children.length === 0) {
@@ -2545,8 +2545,8 @@
         }
         //console.log("originpoint filter = " + originpoint_filter)
         //console.log("bbox = " + bbox)
-        var bushfireLayer = getLayerId((downloadType === "listed")?"dpaw:bushfire_latest":"dpaw:bushfire")
-        var fireboundaryLayer = getLayerId((downloadType === "listed")?"dpaw:bushfire_fireboundary_latest":"dpaw:bushfire_fireboundary")
+        var bushfireLayer = getLayerId((downloadType === "listed")?this.env.bushfireLatestLayer:this.env.bushfireLayer)
+        var fireboundaryLayer = getLayerId((downloadType === "listed")?this.env.bushfireFireBoundaryLatestLayer:this.env.bushfireFireBoundaryLayer)
         var options = null
         if (downloadType === "history" ) {
             options = {
@@ -4197,7 +4197,7 @@
 
       vm.loadRegions()
       vm.ui = {}
-      var toolConfig = {features:vm.features, selectedFeatures:vm.selectedFeatures, mapLayers:function(layer){return layer.get("id") === "dpaw:bushfirelist_latest"}}
+      var toolConfig = {features:vm.features, selectedFeatures:vm.selectedFeatures, mapLayers:function(layer){return layer.get("id") === this.env.bushfireListLayer}}
       /*
       vm.ui.translateInter = vm.annotations.translateInterFactory()(toolConfig)
       vm.ui.translateInter.on("translateend",function(ev){
@@ -4239,7 +4239,7 @@
         }
       })($.extend({selectMode:"geometry"},toolConfig))
 
-      vm.ui.modifyInter = vm.annotations.modifyInterFactory()({features:vm.selectedFeatures,mapLayers:function(layer){return layer.get("id") === "dpaw:bushfirelist_latest" }})
+      vm.ui.modifyInter = vm.annotations.modifyInterFactory()({features:vm.selectedFeatures,mapLayers:function(layer){return layer.get("id") === this.env.bushfireListLayer }})
       vm.ui.modifyInter.on("featuresmodified",function(ev){
           if (ev.features.getLength() === 1 ) {
             vm.validateBushfire(ev.features.item(0),"modifyBushfire")
@@ -4543,7 +4543,7 @@
       this.$root.fixedLayers.push({
         type: 'WFSLayer',
         name: 'Bushfire Report',
-        id: "dpaw:bushfirelist_latest",
+        id: this.env.bushfireListLayer,
         getFeatureInfo: function (f) {
             return {name: f.get("fire_number"), img: map.getBlob(f, ['icon', 'tint']), comments: f.get('name') + "(" + (vm._reportStatusName[f.get('report_status')] || vm._reportStatusName[99999]) + ")"}
         },
@@ -4557,16 +4557,16 @@
             {
                 type: 'TileLayer',
                 name: 'Fire Boundary of Bushfire Final Report',
-                id: "dpaw:bushfire_final_fireboundary_latest",
+                id: this.env.bushfireFinalFireBoundaryLatestLayer,
                 autoAdd:false,
                 inheritRefresh: true
             },
             {
                 type: 'ImageLayer',
                 name: 'Fire Boundary of Selected Bushfire Final Report',
-                id: "dpaw:bushfire_final_fireboundary_latest",
-                // style: getLayerId("dpaw:bushfire_final_fireboundary_latest") + ".selected",
-                mapLayerId:"dpaw:bushfire_final_fireboundary_latest" + "_selected",
+                id: this.env.bushfireFinalFireBoundaryLatestLayer,
+                // style: getLayerId(this.env.bushfireFinalFireBoundaryLatestLayer) + ".selected",
+                mapLayerId:this.env.bushfireFinalFireBoundaryLatestLayer + "_selected",
                 autoAdd:false,
                 inheritRefresh: true
             }
@@ -4752,7 +4752,7 @@
         })
 
         vm.map.olmap.on("removeLayer",function(ev){
-            if (ev.mapLayer.get('id') === "dpaw:bushfirelist_latest") {
+            if (ev.mapLayer.get('id') === this.env.bushfireListLayer) {
                 vm.features.clear()
                 vm._featurelist.clear()
             }
