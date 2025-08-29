@@ -2480,7 +2480,18 @@
                       if (!l.map_server_url){
                           catalogue_layer = vm.$root.catalogue.getLayer(ev.element.layer.id)
                           if(catalogue_layer && catalogue_layer.map_server_url){
-                            l['map_server_url'] = catalogue_layer.map_server_url}
+                              l['map_server_url'] = catalogue_layer.map_server_url
+                            }
+                            else{
+                              //layer does not exist in catalogue
+                              //added support for kb-layers thats not in catalogue
+                              if (ev.element.layer.id.startsWith("kaartdijin-boodja-private")){
+                                      l['map_server_url'] = vm.env.kbService 
+                                  }
+                              else {
+                                  l['map_server_url'] = vm.env.kmiService
+                              }
+                            }
                         }
                       if (!l.element) {
                           l.element = vm['create' + l.type](l)
@@ -2494,8 +2505,6 @@
                   })
               }
             }
-            console.log("afterwards")
-            console.log(ev.element.layer)
         })
 
         vm.olmap.on("changeLayerOrder", function(ev){
