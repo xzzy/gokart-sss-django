@@ -51,7 +51,7 @@ import Tether from 'tether'
 // Guided tour lib
 import Shepherd from 'tether-shepherd'
 //pdf generator
-import jsPDF from 'jspdf/dist/jspdf.umd'
+import jsPDF from 'jspdf/dist/jspdf.umd.js'
 import interact from 'interact.js'
 import hash from "object-hash"
 import utils from './utils.js'
