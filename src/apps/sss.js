@@ -384,7 +384,7 @@ if (result) {
             },
             timelineRefresh:300,
             fetchTimelineUrl:function(lastUpdatetime){
-                return '/hi8/AHI_TKY_b321?updatetime=' + lastUpdatetime
+                return '/hi8/AHI_TKY_FHS?updatetime=' + lastUpdatetime
             },
             setTimeIndex:function(layer, tileLayer, previousTimeline, defaultFunc) {
                 var timeIndex = null
