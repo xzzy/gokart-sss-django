@@ -534,7 +534,7 @@
                     }
 
                     var labelStyle = null
-                    if (res < 0.003 && geometries.length > 0 && feat.get('fire_number') && vm.bushfireLabels && !vm.$root.active.isHidden(vm.map.getMapLayer(vm.env.bushfireListLayer))) {
+                    if (vm.map.olmap.getView().getResolution() < 0.003 && geometries.length > 0 && feat.get('fire_number') && vm.bushfireLabels && !vm.$root.active.isHidden(vm.map.getMapLayer(vm.env.bushfireListLayer))) {
                       labelStyle = labelStyleFunc.call(feat, res)
                       labelStyle.setGeometry(geometries[0])
                     }
