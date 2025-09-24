@@ -27,6 +27,7 @@ from rest_framework.exceptions import ValidationError
 from sss import utils_cache
 from django.conf import settings
 from jinja2 import Template, Environment, FileSystemLoader
+from django.core.exceptions import ObjectDoesNotExist
 
 def api_catalogue(request, *args, **kwargs):
     if request.user.is_authenticated:
@@ -306,7 +307,10 @@ def cataloguev2(request):
         for c_csw in catalogue_csw:
             json_cs_csw = json.loads(c_csw.json_data)
             json_cs_csw['map_server_name'] = "kmi"
-            kmi_url = MapServer.objects.get(name='kmi').url
+            try:
+                kmi_url = MapServer.objects.get(name='kmi').url
+            except MapServer.DoesNotExist:
+                kmi_url = None
             json_cs_csw['map_server_url'] = kmi_url
             catalogue_array.append(json_cs_csw)
 
