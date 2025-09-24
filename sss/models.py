@@ -81,6 +81,7 @@ class UserProfile(models.Model):
 class ProxyCache(models.Model):
     layer_name = models.CharField(max_length=500)
     cache_expiry = models.IntegerField(default=300)
+    browser_expiry = models.IntegerField(null=True,blank=True,default=None)
     active = models.BooleanField(default=True)
     created = models.DateTimeField(default=timezone.now)
 

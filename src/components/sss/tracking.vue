@@ -160,8 +160,8 @@
               </div>
               <div class="small-5">
                 <a title="Zoom to selected" class="button" @click="map.zoomToSelected()" ><i class="fa fa-search"></i></a>
-                <a title="Download list as geoJSON" class="button" @click="downloadList()" ><i class="fa fa-download"></i></a>
-                <a title="Download all or selected as CSV" class="button" href="{{selectRevision&&env.resourceTrackingService}}/devices.csv?{{downloadSelectedCSV()}}" target="_blank" ><i class="fa fa-table"></i></a>
+                <a title="Download list as geoJSON" class="button" href="{{selectRevision&&env.resourceTrackingService}}/devices/download" ><i class="fa fa-download"></i></a>
+                <a title="Download all or selected as CSV" class="button" href="{{selectRevision&&env.resourceTrackingService}}/devices/download/?format=csv&{{downloadSelectedCSV()}}" target="_blank" ><i class="fa fa-table"></i></a>
               </div>
             </div>
             <div id="history-panel" v-show="toggleHistory">
@@ -320,13 +320,13 @@
       },
       trackingLayer: function() {
         
-        return this.$root.catalogue.getLayer('dpaw:resource_tracking_live')
+        return this.$root.catalogue.getLayer(this.env.resourceTrackingLiveLayer)
       },
       trackingMapLayer: function() {
         return this.$root.map?this.$root.map.getMapLayer(this.trackingLayer):undefined
       },
       historyLayer: function() {
-        return this.$root.catalogue.getLayer('dpaw:resource_tracking_history')
+        return this.$root.catalogue.getLayer(this.env.resourceTrackingHistoryLayer)
       },
       historyMapLayer: function() {
         return this.$root.map?this.$root.map.getMapLayer(this.historyLayer):undefined
@@ -509,7 +509,7 @@
         }
         var filter = ""
         if (this.showDBCAResource) {
-            filter += "'fleetcare','iriditrak','dplus','spot','other'"
+            filter += "'fleetcare','iriditrak','dplus','spot','other','netstar'"
         }
         if (this.showDFESResource) {
             if (filter !== "") filter += ","
@@ -613,6 +613,7 @@
           if (this.selectedFeatures.getLength() > 0) {
               deviceFilter = 'deviceid__in=' + this.selectedFeatures.getArray().map(function(o) {return o.get("deviceid")}).join(",") + ""
           }
+          console.log(deviceFilter)
           return deviceFilter
       },
       clearHistory: function () {
@@ -1042,13 +1043,14 @@
 
       trackingStatus.phaseBegin("load_resources", 30, "Load resources", false, true)
       
-      var _addResourceFunc = addResourceFunc(resourceTrackingStyleFunc('dpaw:resource_tracking_live'))
+      var _addResourceFunc = addResourceFunc(resourceTrackingStyleFunc(env.resourceTrackingLiveLayer))
       
 
       this.$root.fixedLayers.push({
         type: 'WFSLayer',
-        name: 'Resource Tracking',
-        id: 'dpaw:resource_tracking_live',
+        // name: 'Resource Tracking',
+        name: 'DBCA Resource Tracking (Live)',
+        id: env.resourceTrackingLiveLayer,
         features: vm._featurelist,
         cql_filter: vm.getSourceFilter(),
         getFeatureInfo: function (f) {
@@ -1121,15 +1123,16 @@
         }
       }, {
         type: 'WFSLayer',
-        name: 'Resource Tracking History',
-        id: 'dpaw:resource_tracking_history',
+        // name: 'Resource Tracking History',
+        name: 'DBCA Resource Tracking History (Live)',
+        id: env.resourceTrackingHistoryLayer,
         onadd: function(addResource) {
             return function(f){
                 if (f.getGeometry() instanceof ol.geom.Point) {
                     addResource(f)
                 }
             }
-        }(addResourceFunc(resourceTrackingStyleFunc('dpaw:resource_tracking_history'))),
+        }(addResourceFunc(resourceTrackingStyleFunc(env.resourceTrackingHistoryLayer))),
         cql_filter: false,
         getFeatureInfo: function (f) {
             if (f.getGeometry() instanceof ol.geom.Point) {
@@ -1261,7 +1264,7 @@
 
 
         vm.map.olmap.on("removeLayer",function(ev){
-          if (ev.mapLayer.get('id') === "dpaw:resource_tracking_live") {
+          if (ev.mapLayer.get('id') === this.env.resourceTrackingLiveLayer) {
               vm.features.clear()
               vm._featurelist.clear()
           }

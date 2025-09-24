@@ -10,6 +10,7 @@ from django.contrib.auth.models import User
 from sss import raster
 from sss import sss_gdal
 from sss import spatial as sss_spatial
+import shutil
 import os 
 import requests
 import base64
@@ -141,14 +142,18 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
 
     cache_times_strings = utils_cache.get_proxy_cache()
     CACHE_EXPIRY=300
+    BROWSER_CACHE_EXPIRY = None
 
     proxy_cache = cache.get(query_string_remote_url)
 
     for cts in cache_times_strings:
         if cts['layer_name'] in query_string_remote_url:
             CACHE_EXPIRY = cts['cache_expiry']
+            if cts['browser_expiry']:
+                BROWSER_CACHE_EXPIRY = cts['browser_expiry']
         #print (cts['layer_name'])
-
+    if BROWSER_CACHE_EXPIRY is None:
+        BROWSER_CACHE_EXPIRY = CACHE_EXPIRY
     #print (CACHE_EXPIRY)
     if proxy_cache is None:
         #print ("NO CACHE")
@@ -173,7 +178,7 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
     proxy_response_content = base64.b64decode(base64_json["content"].encode())
     http_response =   HttpResponse(proxy_response_content, content_type=base64_json['content_type'], status=base64_json['status_code'])    
     http_response.headers['Django-Cache-Expiry']= str(base64_json['cache_expiry']) + " seconds"
-    http_response.headers['Cache-Control'] = 'public, max-age=' + str(CACHE_EXPIRY)+', must-revalidate'
+    http_response.headers['Cache-Control'] = 'public, max-age=' + str(BROWSER_CACHE_EXPIRY)+', must-revalidate'
     return http_response
 
 
@@ -251,7 +256,8 @@ def environment_config(request):
     context = {'settings': conf.settings}
     mapServer = {}
     for object in MapServer.objects.all():
-        mapServer[object.name] = object.url
+        key = object.name.replace(' ', '_').lower()
+        mapServer[key] = object.url
     context['mapserver'] = mapServer
     template_date = render_to_string('sss/environment_config.js', context)   
     return HttpResponse(template_date, content_type='text/javascript')
@@ -451,8 +457,9 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 def gdal(request, fmt):
     if request.user.is_authenticated:
         print("GENERATING: " + fmt)
-        if settings.EMAIL_INSTANCE == "UAT" or settings.EMAIL_INSTANCE == "DEV":
-            instance_format = settings.EMAIL_INSTANCE + '_'
+        instance_format = settings.EMAIL_INSTANCE + '_'
+        # if settings.EMAIL_INSTANCE == "UAT" or settings.EMAIL_INSTANCE == "DEV":
+        #     instance_format = settings.EMAIL_INSTANCE + '_'
         
         jpg = request.FILES.get("jpg")
         chunk = request.FILES.get("chunk")
@@ -477,9 +484,15 @@ def gdal(request, fmt):
             start = int(request.POST.get("start"))
             end = int(request.POST.get("end"))
             total_size = int(request.POST.get("totalSize"))
+            upload_id = request.POST.get("upload_id")
+            workdir = os.path.join(str(settings.BASE_DIR), settings.TEMP_DIR)
+            upload_folder = os.path.join(workdir, str(upload_id))
+            os.makedirs(upload_folder, exist_ok=True)
 
-            # Use a temporary file to store chunks
-            temp_filename = instance_format + "upload_temp_file.jpg"
+            # Create a temp file
+            temp_filename = os.path.join(upload_folder, instance_format + "upload_temp_file.jpg")
+
+            # Write the chunk into the file at the correct offset
             with open(temp_filename, 'ab') as temp_file:
                 temp_file.seek(start)
                 temp_file.write(chunk.read())
@@ -489,7 +502,7 @@ def gdal(request, fmt):
                     merged_jpg = SimpleUploadedFile(name=instance_format + "merged.jpg", content=final_file.read(), content_type='image/jpeg')
                     print('file size')
                     print(os.path.getsize(temp_filename))
-                    os.remove(temp_filename)
+                    shutil.rmtree(upload_folder, ignore_errors=True)
                     request.FILES['jpg'] = merged_jpg
                     
                     try:
