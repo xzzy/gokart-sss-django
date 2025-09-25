@@ -301,10 +301,7 @@ def cataloguev2(request):
         for c_csw in catalogue_csw:
             json_cs_csw = json.loads(c_csw.json_data)
             json_cs_csw['map_server_name'] = "kmi"
-            try:
-                kmi_url = MapServer.objects.get(name='kmi').url
-            except MapServer.DoesNotExist:
-                kmi_url = None
+            kmi_url = MapServer.objects.get(name='kmi').url
             json_cs_csw['map_server_url'] = kmi_url
             catalogue_array.append(json_cs_csw)
 
