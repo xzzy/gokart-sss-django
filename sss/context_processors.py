@@ -24,5 +24,5 @@ def variables(request):
         "GIT_COMMIT_HASH": conf.settings.GIT_COMMIT_HASH,
         "DJANGO_SETTINGS": conf.settings,
         "settings": conf.settings,
-        "kmi_url": kmi_url
+        "kmi_url": base_url + kmi_server
     }
