@@ -9,6 +9,7 @@ import re
 import json
 import traceback
 from jinja2 import Template
+from pathlib import Path
 
 from sss import s3
 from sss import common
@@ -98,6 +99,20 @@ def gdal_convert(request, fmt):
     for chunk in file_content.chunks():
         fout.write(chunk)
     fout.close()
+
+
+    # copy input and output file to temp disk storage
+    disk_temp_dir = "/" + settings.TEMP_DIR + "/temp_storage"
+    os.makedirs(disk_temp_dir, exist_ok=True)
+
+    input_temp_path = os.path.join(disk_temp_dir, os.path.basename(path))
+    shutil.copy2(path, input_temp_path)
+
+    output_temp_path = os.path.join(disk_temp_dir, os.path.basename(output_filepath))
+
+    path = input_temp_path
+    output_filepath = output_temp_path
+
     #---
     #shutil.copy(jpg.name, workdir)
     #jpg.save(workdir)
@@ -122,6 +137,11 @@ def gdal_convert(request, fmt):
             for chunk in file_content.chunks():
                 fout.write(chunk)
             fout.close()
+            
+            # copy legend file to temp disk storage
+            legend_temp_path = os.path.join(disk_temp_dir, os.path.basename(legends_path))
+            shutil.copy2(legends_path, legend_temp_path)
+            legends_path = legend_temp_path
 
             
     else:
@@ -973,7 +993,7 @@ def download(request, fmt):
         cookies = settings.SESSION_COOKIE_NAME
 
         loaddir = os.path.join(workdir,"load")
-        os.mkdir(loaddir)
+        os.makedirs(loaddir, exist_ok=True)
 
         loadedDatasources = {}
         if layers:
@@ -1145,7 +1165,7 @@ def download(request, fmt):
                     
         #convert and union the layers
         outputdir = os.path.join(workdir,"output")
-        os.mkdir(outputdir)
+        os.makedirs(outputdir, exist_ok=True)
 
         unsupported_layers = []
         #print "{}".format(layers)
@@ -1160,7 +1180,7 @@ def download(request, fmt):
         outputFiles = []
 
         vrtdir = os.path.join(workdir,"vrt")
-        os.mkdir(vrtdir)
+        os.makedirs(vrtdir, exist_ok=True)
 
         #import ipdb;ipdb.set_trace()
         for layer in layers:

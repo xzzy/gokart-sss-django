@@ -789,7 +789,7 @@
         this.printStatus.layout.height = this.paperSizes[this.paperSize][1]
         //adjust the map for printing.
         if (this.settings.print.retainBoundingbox) {
-            this.printStatus.layout.size = [this.printStatus.dpmm * this.printStatus.layout.width, this.printStatus.dpmm * this.printStatus.layout.height]
+            this.printStatus.layout.size = [this.dpmm * this.printStatus.layout.width, this.dpmm * this.printStatus.layout.height]
             this.olmap.setSize(this.printStatus.layout.size)
             this.olmap.getView().fit(this.printStatus.oldLayout.extent, this.olmap.getSize())
             this.printStatus.layout.scale = (this.settings.print.snapToFixedScale)?this.$root.map.getFixedScale():this.$root.map.getScale()
@@ -798,15 +798,27 @@
             }
         } else {
             this.printStatus.layout.scale = (this.settings.print.snapToFixedScale)?this.$root.map.getFixedScale(this.printStatus.oldLayout.scale):this.printStatus.oldLayout.scale
-            this.printStatus.layout.size = [this.printStatus.dpmm * this.printStatus.layout.width, this.printStatus.dpmm * this.printStatus.layout.height]
+            this.printStatus.layout.size = [this.dpmm * this.printStatus.layout.width, this.dpmm * this.printStatus.layout.height]
             this.olmap.setSize(this.printStatus.layout.size)
             if (this.settings.print.snapToFixedScale) {
                 this.$root.map.setScale(this.printStatus.layout.scale)
             }
         }
         // Add scale line to the printed map
+        const resolution = ol.proj.getPointResolution(
+          "EPSG:4326",
+          this.olmap.getView().getResolution(),
+          this.olmap.getView().getCenter(),
+          'm',
+        );
+        const dpi = 96;
+        const inchesPerMeter = 1000 / 25.4;
+        newscale = resolution * inchesPerMeter * dpi / 1000;
+
+        //resolution adjusted according to the printed map
+        vm.olmap.getView().setResolution(this.olmap.getView().getResolution() * this.printStatus.layout.scale / newscale);
         const scaleLine = new ol.control.ScaleLine({ bar: true, text: true, minWidth: 125 });
-        scaleLine.setDpi(150);
+        scaleLine.setDpi(this.dpmm*25.4);
         vm.olmap.addControl(scaleLine);
 
         //extent is changed because the scale is adjusted to the closest fixed scale, recalculated the extent again
@@ -868,7 +880,7 @@
       var _func = function(legendData) {
           try {
               // Function to split the Blob into chunks and send each chunk
-              var sendChunk = function(start) {
+              var sendChunk = function(start, uploadId) {
                   var end = Math.min(start + vm.chunkSize * 1024, blob.size); // 200KB
                   var chunk = blob.slice(start, end);
 
@@ -878,6 +890,7 @@
                   formData.append('start', start);
                   formData.append('end', end);
                   formData.append('totalSize', blob.size);
+                  formData.append('upload_id', uploadId);
 
                   if (format === "pdf" && legendData) {
                       formData.append('legends', legendData, name + '.legend.pdf');
@@ -898,7 +911,7 @@
                       if (req.status >= 200 && req.status < 300) {
                           if (end < blob.size) {
                               // Send the next chunk
-                              sendChunk(end);
+                              sendChunk(end, uploadId);
                           } else {
                               saveAs(req.response, name + '.' + format);
                           }
@@ -926,9 +939,13 @@
 
                   req.send(formData);
               };
-
+              
+              var uploadId = ([1e7]+-1e3+-4e3+-8e3+-1e11)
+                .replace(/[018]/g, c =>
+                  (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+                );
               // Start sending chunks
-              sendChunk(0);
+              sendChunk(0,uploadId);
           } catch (error) {
               alert('An error occurred: ' + error.message);
           }

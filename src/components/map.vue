@@ -1289,10 +1289,13 @@
 	  
       // loader for vector layers with hover querying
       createWFSLayer: function (options) {
-        if((options.id !== "dpaw:resource_tracking_history" || options.cql_filter !== false)){
+        if (!options || !options.id || !options.id.includes("resource_tracking_history") || options.cql_filter !== false) {
           if (options.mapLayer) return options.mapLayer
           var vm = this
           var url = this.env.kmiService + "/wfs"
+          if (options.id.startsWith("kaartdijin-boodja-private")){
+            url = this.env.kbService + "/wfs"
+          }
           var withCredentialsSetting = true
           if (options.id.startsWith('hotspots:')) {
             withCredentialsSetting = false
@@ -1858,6 +1861,12 @@
         else{
           layer_id = options.identifier
         }
+        if (layer_id.startsWith("kaartdijin-boodja-private")){
+            url = this.env.kbService 
+        }
+        else {
+              url = this.env.kmiService
+          }
         var layer = $.extend({
           opacity: 1,
           name: 'Mapbox Outdoors',
@@ -1866,7 +1875,7 @@
           tileSize: 1024,
           style: '',
           projection: 'EPSG:4326',
-          wmts_url: this.env.kmiService + "/gwc/service/wmts"
+          wmts_url: url + "/gwc/service/wmts"
         }, options)
         // // wmts_url: this.env.kmiService+ "/gwc/service/wmts"
         // create a tile grid using the stock KMI resolutions
@@ -2469,9 +2478,20 @@
               if (position >= 0) {
                   $.each(ev.element.layer.dependentLayers, function(index,l){
                       if (!l.map_server_url){
-                          catalogue_layer = vm.$root.catalogue.getLayer(l.id)
+                          catalogue_layer = vm.$root.catalogue.getLayer(ev.element.layer.id)
                           if(catalogue_layer && catalogue_layer.map_server_url){
-                            l['map_server_url'] = catalogue_layer.map_server_url}
+                              l['map_server_url'] = catalogue_layer.map_server_url
+                            }
+                            else{
+                              //layer does not exist in catalogue
+                              //added support for kb-layers thats not in catalogue
+                              if (ev.element.layer.id.startsWith("kaartdijin-boodja-private")){
+                                      l['map_server_url'] = vm.env.kbService 
+                                  }
+                              else {
+                                  l['map_server_url'] = vm.env.kmiService
+                              }
+                            }
                         }
                       if (!l.element) {
                           l.element = vm['create' + l.type](l)
@@ -2760,8 +2780,14 @@
               layers = [layers]
           }
           var _getFeature = function(index) {
+            if (getLayerId(layers[index]["id"]).startsWith("kaartdijin-boodja-private")){
+                  url = vm.env.kbService 
+              }
+            else {
+                url = vm.env.kmiService
+            }
             $.ajax({
-                url:vm.env.kmiService + "/wfs?service=wfs&version=2.0&request=GetFeature&typeNames=" + getLayerId(layers[index]["id"]) + "&outputFormat=json&cql_filter=CONTAINS(" + (layers[index]["geom_field"] || "wkb_geometry") + ",POINT(" + coordinate[1]  + " " + coordinate[0] + "))",
+                url:url + "/wfs?service=wfs&version=2.0&request=GetFeature&typeNames=" + getLayerId(layers[index]["id"]) + "&outputFormat=json&cql_filter=CONTAINS(" + (layers[index]["geom_field"] || "wkb_geometry") + ",POINT(" + coordinate[1]  + " " + coordinate[0] + "))",
                 dataType:"json",
                 success: function (response, stat, xhr) {
                    if (response.totalFeatures === 0) {
@@ -2878,8 +2904,14 @@
           var vm = this
           var _getPosition = function(index) {
             var buffered = turf.bbox(turf.buffer(turf.point(coordinate),buffers[index],"kilometers"))
+            if (getLayerId("cddp:townsite_points").startsWith("kaartdijin-boodja-private")){
+                  url = vm.env.kbService 
+              }
+            else {
+                url = vm.env.kmiService
+            }
             $.ajax({
-                url:vm.env.kmiService + "/wfs?service=wfs&version=2.0&request=GetFeature&typeNames=" + getLayerId("cddp:townsite_points") + "&outputFormat=json&bbox=" + buffered[1] + "," + buffered[0] + "," + buffered[3] + "," + buffered[2],
+                url:url + "/wfs?service=wfs&version=2.0&request=GetFeature&typeNames=" + getLayerId("cddp:townsite_points") + "&outputFormat=json&bbox=" + buffered[1] + "," + buffered[0] + "," + buffered[3] + "," + buffered[2],
                 dataType:"json",
                 success: function (response, stat, xhr) {
                    if (response.totalFeatures === 0) {

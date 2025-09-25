@@ -36,7 +36,7 @@ class Command(BaseCommand):
                     if csw_obj.identifier != cd['identifier'] or csw_json_hash.hexdigest() != sss_json_hash.hexdigest():                        
                         csw_obj.identifier=cd['identifier']
                         csw_obj.json_data=json.dumps(cd)
-                        csw_obj.active=True
+                        # csw_obj.active=True
                         csw_obj.updated = timezone.now() 
                         csw_obj.removed_from_csw=False
                         csw_obj.save()

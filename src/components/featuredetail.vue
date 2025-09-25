@@ -14,7 +14,8 @@
         layer:{},
         layers:[],
         showLayers:false,
-        warning:false
+        warning:false,
+        feature_processing:false,
       }
 
     },
@@ -42,7 +43,10 @@
         return this.layers
       }
     },
-    watch:{
+    watch: {
+        'active.olLayers': function () {
+            this.set_featureinfo_layer();
+        }
     },
     // methods callable from inside the template
     methods: {
@@ -114,6 +118,11 @@
                 vm._featureinfo_layer["title"] = layer["title"]
                 return false
            }
+           if (layer && layer.type && layer.type === 'WFSLayer') {
+                vm._featureinfo_layer["id"] = layer['id']
+                vm._featureinfo_layer["title"] = layer["title"]
+                return false
+           }
         })
       },
     },
@@ -171,17 +180,27 @@
 
                     var bbox = "&bbox=" + bottomRight[1] + "," + topLeft[0] + "," + topLeft[1] + "," + bottomRight[0] + ",urn:ogc:def:crs:EPSG:4326"
                     var url = null
-                    if (vm.layer !== vm._featureinfo_layer && vm.layer.tags && vm.layer.tags.some(function(o) {return o.name === "detail_link"} )) {
-                        url = vm.env.kmiService + "/wfs?service=wfs&version=2.0&request=GetFeature&count=1&outputFormat=application%2Fjson&typeNames=" + getDetailLayerId(vm.layer.id) + bbox
-                    } else {
-                        url = vm.env.kmiService + "/wfs?service=wfs&version=2.0&request=GetFeature&outputFormat=application%2Fjson&typeNames=" + getDetailLayerId(vm.layer.id) + bbox
+                    if (vm.layer.id.startsWith("kaartdijin-boodja-private")){
+                            url = vm.env.kbService 
+                        }
+                    else {
+                        url = vm.env.kmiService
                     }
-                    $.ajax({
+                    if (vm.layer !== vm._featureinfo_layer && vm.layer.tags && vm.layer.tags.some(function(o) {return o.name === "detail_link"} )) {
+                        url = url + "/wfs?service=wfs&version=2.0&request=GetFeature&count=1&outputFormat=application%2Fjson&typeNames=" + getDetailLayerId(vm.layer.id) + bbox
+                    } else {
+                        url = url + "/wfs?service=wfs&version=2.0&request=GetFeature&outputFormat=application%2Fjson&typeNames=" + getDetailLayerId(vm.layer.id) + bbox
+                    }
+                    var isOpen = $("#userdialog").is(":visible")
+                    if (!isOpen && !vm.feature_processing) {
+                        vm.feature_processing = true
+                        $.ajax({
                         url:url,
                         dataType:"json",
                         success: function (response, stat, xhr) {
                             if (response.totalFeatures < 1) {
                                 vm.warning = true
+                                vm.feature_processing = false
                                 return
                             }
 
@@ -194,6 +213,7 @@
                                 var messages = []
                                 $.each(response.features[0].properties,function(key,value) {
                                     if (['ogc_fid','md5_rowhash'].indexOf(key) >= 0){
+                                        vm.feature_processing = false
                                         return
                                     }
                                     if (vm.dialog.isLink(value)) {
@@ -223,6 +243,7 @@
                                     var vm = this
                                     $.each(response.features[index - 1].properties,function(key,value) {
                                         if (['ogc_fid','md5_rowhash'].indexOf(key) >= 0){
+                                            vm.feature_processing = false
                                             return
                                         }
                                         vm.messages[propertyIndex][1][0]= value
@@ -264,16 +285,18 @@
                                     footer:footer
                                 })
                             }
+                            vm.feature_processing = false
                         },
                         error: function (xhr,status,message) {
                             vm.warning = true
+                            vm.feature_processing = false
                             alert(xhr.status + " : " + (xhr.responseText || message))
                         },
                         xhrFields: {
                             withCredentials: true
                         }
                     })
-                    
+                    }
                     return false
                 }
             });

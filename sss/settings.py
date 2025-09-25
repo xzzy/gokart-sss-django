@@ -34,7 +34,7 @@ SECRET_KEY = decouple.config("SECRET_KEY")
 MAPBOX_ACCESS_TOKEN = decouple.config("MAPBOX_ACCESS_TOKEN", default="default")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = decouple.config("DEBUG", default=False, cast=bool)
 
 ALLOWED_HOSTS=[""]
 if DEBUG is True:
@@ -224,6 +224,7 @@ BUSHFIRE_FIREBOUNDARY_LATEST_LAYER=decouple.config("BUSHFIRE_FIREBOUNDARY_LATEST
 BUSHFIRE_LAYER=decouple.config("BUSHFIRE_LAYER", default="dpaw:bushfire")
 BUSHFIRE_FIREBOUNDARY_LAYER=decouple.config("BUSHFIRE_FIREBOUNDARY_LAYER", default="dpaw:bushfire_fireboundary")
 RESOURCE_TRACKING_LIVE_LAYER=decouple.config("RESOURCE_TRACKING_LIVE_LAYER", default="dpaw:resource_tracking_live")
+RESOURCE_TRACKING_HISTORY_LAYER=decouple.config("RESOURCE_TRACKING_HISTORY_LAYER", default="dpaw:resource_tracking_history")
 
 EMAIL_INSTANCE = decouple.config("EMAIL_INSTANCE", default="PROD")
 NON_PROD_EMAIL = decouple.config("NON_PROD_EMAIL", default="")
@@ -245,6 +246,8 @@ BOM_FTP_USERNAME = decouple.config("BOM_FTP_USERNAME", default="")
 BOM_FTP_PASSWORD = decouple.config("BOM_FTP_PASSWORD", default="")
 BOM_FTP_DIRECTORY = decouple.config("BOM_FTP_DIRECTORY", default="")
 
+TEMP_DIR = decouple.config("TEMP_DIR", default="tmp")
+
 PERTH_TIMEZONE = datetime.datetime.now(pytz.timezone('Australia/Perth')).tzinfo
 
 # Django Timezone
@@ -262,4 +265,4 @@ CACHES = {
 }
 ENV_TYPE=decouple.config("ENV_TYPE", default="DEV")
 ENABLE_AUTH2_GROUPS=True
-
+FILE_UPLOAD_PERMISSIONS = None

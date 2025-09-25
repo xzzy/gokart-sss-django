@@ -184,7 +184,7 @@ div.ol-previewmap.ol-uncollapsible {
         this.adjustHeight()
       },
       preview: function (l) {
-        if(l.mapLayerId !== "dpaw:resource_tracking_history"){
+        if (!l || !l.mapLayerId || !l.mapLayerId.includes("resource_tracking_history")) {
           if (this.layer === l) {
             return
           }
@@ -258,7 +258,7 @@ div.ol-previewmap.ol-uncollapsible {
 
         // make the layer match the state
         if (checked) {
-          if(layer.mapLayerId == "dpaw:resource_tracking_history" && layer.cql_filter == false) {
+          if (layer && layer.mapLayerId && layer.mapLayerId.includes("resource_tracking_history") && layer.cql_filter === false) {
             alert("Please add a resource to view the history.")
             event.target.checked = false
             return 

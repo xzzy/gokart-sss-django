@@ -360,7 +360,7 @@ ol.control.ScaleLine.prototype.updateElement_ = function() {
     center,
     pointResolutionUnits,
   );
-  pointResolution = pointResolution * 0.92;
+  pointResolution = pointResolution * 0.91315;
 
   const minWidth =
     (this.minWidth_ * (this.dpi_ || DEFAULT_DPI)) / DEFAULT_DPI;
@@ -485,7 +485,7 @@ ol.control.ScaleLine.prototype.getScaleForResolution = function(){
   );
   const dpi = this.dpi_ || DEFAULT_DPI;
   const inchesPerMeter = 1000 / 25.4;
-  return resolution * inchesPerMeter * dpi * 0.9237;
+  return resolution * inchesPerMeter * dpi ;
 }
 
 
