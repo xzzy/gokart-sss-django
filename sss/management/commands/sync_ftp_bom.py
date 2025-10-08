@@ -19,12 +19,12 @@ class Command(BaseCommand):
             print(str(current_time) + " : Starting BOM Sync")
             
             BOM_HOME_LOCAL = conf.settings.BOM_HOME
+            BOM_SYNC_FOLDER = conf.settings.BOM_SYNC_FOLDER
             bom_ftp_server = conf.settings.BOM_FTP_SERVER
             bom_ftp_username = conf.settings.BOM_FTP_USERNAME
             bom_ftp_password = conf.settings.BOM_FTP_PASSWORD
             bom_ftp_directory = conf.settings.BOM_FTP_DIRECTORY
 
-            BOM_SYNC_FOLDER = conf.settings.BOM_SYNC_FOLDER
             temp_dir = os.path.join(BOM_SYNC_FOLDER)
             os.makedirs(temp_dir, exist_ok=True)
             os.makedirs(os.path.join(BOM_HOME_LOCAL, bom_ftp_directory), exist_ok=True)
