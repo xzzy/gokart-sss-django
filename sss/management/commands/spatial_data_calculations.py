@@ -14,7 +14,6 @@ class Command(BaseCommand):
         start_time = datetime.datetime.now()
         self.stdout.write(f"{start_time} : Starting Spatial Data Calculations")
 
-        # Get or create the single log entry for this command
         try:
             log_entry, created = ManagementCommandStatus.objects.get_or_create(
                 command=self.command_name
@@ -28,7 +27,6 @@ class Command(BaseCommand):
                 calculation_status=SpatialDataCalculation.CALCULATION_STATUS[0][0]
             )
             
-            # --- Main Processing Loop ---
             for sd in imported_spatial_data:
                 try:
                     self.stdout.write(f"Processing: {sd.bfrs}")
@@ -69,19 +67,15 @@ class Command(BaseCommand):
                         
                     self.stdout.write(f"Calculation Error: {sd.bfrs}")
 
-            # --- Successful Command Completion ---
             end_time = datetime.datetime.now()
             duration_seconds = int((end_time - start_time).total_seconds())
 
-            # Update the ManagementCommandStatus entry
             log_entry.completion_time = end_time
             log_entry.duration = duration_seconds
             log_entry.save()
             
             self.stdout.write(self.style.SUCCESS(f"Spatial Data Calculations completed successfully in {duration_seconds} seconds."))
 
-        except Exception as e: 
-            # Catch all unhandled exceptions (e.g., database connection issues outside the loop)
+        except Exception as e:
             self.stderr.write(self.style.ERROR(f"FATAL ERROR running {self.command_name}: {e}"))
             self.stderr.write(self.style.ERROR(traceback.format_exc()))
-            # No update to log_entry.completion_time or duration, leaving old successful run details intact.
