@@ -28,6 +28,8 @@ from sss import utils_cache
 from django.conf import settings
 from jinja2 import Template, Environment, FileSystemLoader
 from django.core.exceptions import ObjectDoesNotExist
+from sss.models import ManagementCommandStatus
+from django.utils import timezone
 
 def api_catalogue(request, *args, **kwargs):
     if request.user.is_authenticated:
@@ -767,4 +769,23 @@ def clear_queue(request, *args, **kwargs):
         return JsonResponse({'bfrs': bfrs})
     else:
         return JsonResponse({'status': 'error', 'message': 'User not authenticated'}, status=401)
+
+@csrf_exempt
+def command_status(request, *args, **kwargs):
+    # Get all successfully completed command statuses
+    completed_commands = ManagementCommandStatus.objects.filter(
+        completion_time__isnull=False
+    )
+    sss_data = {}
+    now = timezone.now()
+
+    for command_status in completed_commands:
+        time_difference = now - command_status.completion_time
+        seconds_ago = int(time_difference.total_seconds())
+        sss_data[command_status.command] = seconds_ago
+        
+    response_data = {
+        'sss': sss_data
+    }
     
+    return JsonResponse(response_data)

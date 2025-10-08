@@ -5,6 +5,10 @@ from sss import models
 @admin.register(models.District)
 class DistrictAdmin(admin.ModelAdmin):
     raw_id_fields = ('region',)
+    
+@admin.register(models.ManagementCommandStatus)
+class ManagementCommandStatusAdmin(admin.ModelAdmin):
+    list_display = ['command', 'completion_time', 'duration']
 
 @admin.register(models.UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
