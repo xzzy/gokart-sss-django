@@ -8,6 +8,7 @@ import os, errno
 import time
 import datetime
 from sss import models
+import shutil
 
 class Command(BaseCommand):
     help = 'Sync BOM Data files to local storage'
@@ -16,13 +17,15 @@ class Command(BaseCommand):
         try:
             current_time = datetime.datetime.now()
             print(str(current_time) + " : Starting BOM Sync")
+            
             BOM_HOME_LOCAL = conf.settings.BOM_HOME
+            BOM_SYNC_FOLDER = conf.settings.BOM_SYNC_FOLDER
             bom_ftp_server = conf.settings.BOM_FTP_SERVER
             bom_ftp_username = conf.settings.BOM_FTP_USERNAME
             bom_ftp_password = conf.settings.BOM_FTP_PASSWORD
             bom_ftp_directory = conf.settings.BOM_FTP_DIRECTORY
 
-            temp_dir = os.path.join(BOM_HOME_LOCAL, 'temp')
+            temp_dir = os.path.join(BOM_SYNC_FOLDER)
             os.makedirs(temp_dir, exist_ok=True)
             os.makedirs(os.path.join(BOM_HOME_LOCAL, bom_ftp_directory), exist_ok=True)
 
@@ -67,24 +70,31 @@ class Command(BaseCommand):
             for temp_file_name in os.listdir(temp_dir):
                 temp_file_path = os.path.join(temp_dir, temp_file_name)
                 local_file_path = os.path.join(BOM_HOME_LOCAL, bom_ftp_directory, temp_file_name)
-
                 if temp_file_name.endswith('.nc.gz'):
                     # Attempt to unzip .gz file
                     try:
                         subprocess.check_call(["gzip", "-k", "-f", "-q", "-d", temp_file_path])
                         unzipped_file_path = temp_file_path[:-3]  # Remove .gz extension
-
-                        # Move both .gz and unzipped .nc file to BOM_HOME_LOCAL
-                        os.replace(temp_file_path, local_file_path)
-                        os.replace(unzipped_file_path, os.path.join(BOM_HOME_LOCAL, bom_ftp_directory, os.path.basename(unzipped_file_path)))
+                        
+                        # Copy both .gz and unzipped .nc file to BOM_HOME_LOCAL
+                        shutil.copy2(temp_file_path, local_file_path)
+                        shutil.copy2(unzipped_file_path, os.path.join(BOM_HOME_LOCAL, bom_ftp_directory, os.path.basename(unzipped_file_path)))
+                        
+                        # Delete the original files
+                        os.remove(temp_file_path)
+                        os.remove(unzipped_file_path)
+                        
                     except subprocess.CalledProcessError:
                         print(f"Unzipping failed for {temp_file_name}")
                         os.remove(temp_file_path)
                         continue  # Skip to the next iteration if unzipping fails
 
                 elif temp_file_name.endswith('.nc'):
-                    # Move .nc file directly to BOM_HOME_LOCAL
-                    os.replace(temp_file_path, local_file_path)
+                    # Copy .nc file directly to BOM_HOME_LOCAL
+                    shutil.copy2(temp_file_path, local_file_path)
+                    
+                    # Delete the original file
+                    os.remove(temp_file_path)
 
         except Exception as e:
             print("ERROR running BOM SYNC")
