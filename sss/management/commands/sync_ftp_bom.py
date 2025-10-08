@@ -77,8 +77,8 @@ class Command(BaseCommand):
                         unzipped_file_path = temp_file_path[:-3]  # Remove .gz extension
                         
                         # Copy both .gz and unzipped .nc file to BOM_HOME_LOCAL
-                        shutil.copy2(temp_file_path, local_file_path)
-                        shutil.copy2(unzipped_file_path, os.path.join(BOM_HOME_LOCAL, bom_ftp_directory, os.path.basename(unzipped_file_path)))
+                        shutil.copyfile(temp_file_path, local_file_path)
+                        shutil.copyfile(unzipped_file_path, os.path.join(BOM_HOME_LOCAL, bom_ftp_directory, os.path.basename(unzipped_file_path)))
                         
                         # Delete the original files
                         os.remove(temp_file_path)
@@ -91,7 +91,7 @@ class Command(BaseCommand):
 
                 elif temp_file_name.endswith('.nc'):
                     # Copy .nc file directly to BOM_HOME_LOCAL
-                    shutil.copy2(temp_file_path, local_file_path)
+                    shutil.copyfile(temp_file_path, local_file_path)
                     
                     # Delete the original file
                     os.remove(temp_file_path)
