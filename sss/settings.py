@@ -245,6 +245,7 @@ BOM_FTP_SERVER = decouple.config("BOM_FTP_SERVER", default="")
 BOM_FTP_USERNAME = decouple.config("BOM_FTP_USERNAME", default="")
 BOM_FTP_PASSWORD = decouple.config("BOM_FTP_PASSWORD", default="")
 BOM_FTP_DIRECTORY = decouple.config("BOM_FTP_DIRECTORY", default="")
+BOM_SYNC_FOLDER = decouple.config("BOM_FTP_DIRECTORY", default="/tmp/sss_bom_sync/")
 
 TEMP_DIR = decouple.config("TEMP_DIR", default="tmp")
 
