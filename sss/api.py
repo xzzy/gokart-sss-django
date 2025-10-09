@@ -772,6 +772,8 @@ def clear_queue(request, *args, **kwargs):
 
 @csrf_exempt
 def command_status(request, *args, **kwargs):
+    if request.user.is_authenticated is False:
+        return JsonResponse({'status': 'error', 'message': 'User not authenticated'}, status=401)
     # Get all successfully completed command statuses
     completed_commands = ManagementCommandStatus.objects.filter(
         completion_time__isnull=False
