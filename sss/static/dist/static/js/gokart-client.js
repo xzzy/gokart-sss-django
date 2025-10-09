@@ -100,20 +100,19 @@ GokartClient.prototype.call = function(method,options,module,ignoreIfNotOpen){
     var postMessageFunc = function() {
 
         if (vm.debug) console.log(Date() + " : " + vm.app + " is opened and send request to " + vm.app + " through postMessage. request = " + request)
-        vm.gokartWindow.postMessage(request,window.location.origin);
 
         vm._clearTimeoutTask();
         if (vm.debug) console.log(Date() + " : Create a timeout task to resend the request  if postMessage to " + vm.app + " is timeout. timeout = 1 seconds" )
         vm.timeoutTask = setTimeout(function(){
             vm.timeoutTask = null
+            localStorage.setItem(vm.channelNamePrefix + method,request)
             if (vm.debug) console.log(Date() + " : post request to " + vm.app + " timeout")
-            sendMessage()
-        },1000)
+            
+        },100)
     }
 
     var syncMessageFunc = function() {
         if (vm.debug) console.log(Date() + " : Sent request to " + vm.app + " through localStorage. request = " + request)
-        localStorage.setItem(vm.channelNamePrefix + method,request)
         vm._clearTimeoutTask()
         if (ignoreIfNotOpen) {
             return
@@ -128,7 +127,7 @@ GokartClient.prototype.call = function(method,options,module,ignoreIfNotOpen){
                 vm.gokartWindow = window.open(vm.serverUrl )
             }
             postMessageFunc()
-        },2000)
+        },100)
     }
 
     sendMessage = function() {

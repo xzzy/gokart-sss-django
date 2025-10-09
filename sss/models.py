@@ -109,6 +109,22 @@ class BomSyncList(models.Model):
             return f"{self.file_name}"
 
 
+class ManagementCommandStatus(models.Model):
+
+    command = models.CharField(max_length=255, null=True, blank=True)
+    completion_time = models.DateTimeField(null=True, blank=True)
+    duration = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        app_label = 'sss'
+        verbose_name = "Management Command Status"
+        verbose_name_plural = "Management Command Status"
+        ordering = ['-completion_time']
+
+    def __str__(self):
+        return self.command
+
+
 class MapServer(models.Model):                
         name = models.CharField(max_length=500, null=True, blank=True)
         url =  models.CharField(max_length=500, null=True, blank=True)
