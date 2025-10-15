@@ -1254,8 +1254,8 @@
 
 	thermalStatus.phaseBegin("load_hotspots", 30, "Load hotspots", false, true)
 	  this.$root.fixedLayers.push({
-		  // type: 'WFSLayer',
-		  type: 'TileLayer',
+		//   type: 'WFSLayer',
+		  type: 'ImageLayer',
 		  name: 'Thermal Imaging Hotspots',
 		  id: 'hotspots:hotspot_centroids',
 		  features: vm._featurelist,
