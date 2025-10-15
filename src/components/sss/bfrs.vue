@@ -1000,13 +1000,8 @@
                         originPoint = originPoint.getCoordinates()
                         if (validateType === "getSpatialData") {
                             //during saving, check agaist the fire boundary
-                            if (getLayerId(vm.env.bushfireFinalFireBoundaryLatestLayer).startsWith("kaartdijin-boodja-private")){
-                                    url = vm.env.kbService 
-                            }
-                            else {
-                                url = vm.env.kmiService
-                            }
-
+                            const layer_id = getLayerId(vm.env.bushfireFinalFireBoundaryLatestLayer);
+                            url = getLayerUrl(layer_id, vm.env);
                             $.ajax({
                                 url:url + "/wfs?service=wfs&version=2.0&request=GetPropertyValue&valueReference=fire_number&typeNames=" + getLayerId(vm.env.bushfireFinalFireBoundaryLatestLayer) + "&cql_filter=(fire_number='" + feat.get('fire_number') + "')and (CONTAINS(fire_boundary,POINT(" + originPoint[1]  + " " + originPoint[0] + ")))",
                                 dataType:"xml",
@@ -2080,12 +2075,8 @@
                                         var checkTask = vm._taskManager.addTask(feat,"postsave","check_originpoint","Check origin within fire shape",utils.RUNNING)
                                     }
                                         originPoint = originPoint.getCoordinates()
-                                        if (getLayerId(vm.env.bushfireFinalFireBoundaryLatestLayer).startsWith("kaartdijin-boodja-private")){
-                                                url = vm.env.kbService 
-                                        }
-                                        else {
-                                            url = vm.env.kmiService
-                                        }
+                                        const layer_id = getLayerId(vm.env.bushfireFinalFireBoundaryLatestLayer);
+                                        url = getLayerUrl(layer_id, vm.env);
 
                                         $.ajax({
                                         url:url + "/wfs?service=wfs&version=2.0&request=GetPropertyValue&valueReference=fire_number&typeNames=" + getLayerId(vm.env.bushfireFinalFireBoundaryLatestLayer) + "&cql_filter=(fire_number='" + feat.get('fire_number') + "')and (CONTAINS(fire_boundary,POINT(" + originPoint[1]  + " " + originPoint[0] + ")))",

@@ -1861,12 +1861,7 @@
         else{
           layer_id = options.identifier
         }
-        if (layer_id.startsWith("kaartdijin-boodja-private")){
-            url = this.env.kbService 
-        }
-        else {
-              url = this.env.kmiService
-          }
+        const url = getLayerUrl(layer_id, this.env);
         var layer = $.extend({
           opacity: 1,
           name: 'Mapbox Outdoors',
@@ -2254,6 +2249,13 @@
         if (options.base) {
           options.format = 'image/jpeg'
         }
+        if (options.map_server_url){
+          url = options.map_server_url
+        }
+        else{
+          url = getLayerUrl(options.id, this.env);
+        }
+        
         var layer = $.extend({
           opacity: 1,
           name: 'Mapbox Outdoors',
@@ -2262,9 +2264,8 @@
           tileSize: 1024,
           style: '',
           projection: 'EPSG:4326',
-          wms_url: options.map_server_url + "/wms"
+          wms_url: url + "/wms"
         }, options)
-
         // create a tile source
         var imgSource = new ol.source.ImageWMS({
           url: layer.wms_url,
@@ -2477,22 +2478,17 @@
               var position = vm.olmap.getLayers().getArray().findIndex(function(l){return l === ev.element})
               if (position >= 0) {
                   $.each(ev.element.layer.dependentLayers, function(index,l){
-                      if (!l.map_server_url){
-                          catalogue_layer = vm.$root.catalogue.getLayer(ev.element.layer.id)
-                          if(catalogue_layer && catalogue_layer.map_server_url){
-                              l['map_server_url'] = catalogue_layer.map_server_url
-                            }
-                            else{
-                              //layer does not exist in catalogue
-                              //added support for kb-layers thats not in catalogue
-                              if (ev.element.layer.id.startsWith("kaartdijin-boodja-private")){
-                                      l['map_server_url'] = vm.env.kbService 
-                                  }
-                              else {
-                                  l['map_server_url'] = vm.env.kmiService
-                              }
-                            }
+                    if (!l.map_server_url) {
+                        const catalogue_layer = vm.$root.catalogue.getLayer(ev.element.layer.id);
+
+                        if (catalogue_layer && catalogue_layer.map_server_url) {
+                            l.map_server_url = catalogue_layer.map_server_url;
+                        } else {
+                            //added support for kb-layers thats not in catalogue
+                            // Layer not in catalogue, fallback to getLayerUrl
+                            l.map_server_url = getLayerUrl(ev.element.layer.id, vm.env);
                         }
+                    }
                       if (!l.element) {
                           l.element = vm['create' + l.type](l)
                           l.element.setOpacity(l.opacity || 1)
@@ -2780,12 +2776,8 @@
               layers = [layers]
           }
           var _getFeature = function(index) {
-            if (getLayerId(layers[index]["id"]).startsWith("kaartdijin-boodja-private")){
-                  url = vm.env.kbService 
-              }
-            else {
-                url = vm.env.kmiService
-            }
+            const layer_id = getLayerId(layers[index]["id"]);
+            url = getLayerUrl(layer_id, vm.env);
             $.ajax({
                 url:url + "/wfs?service=wfs&version=2.0&request=GetFeature&typeNames=" + getLayerId(layers[index]["id"]) + "&outputFormat=json&cql_filter=CONTAINS(" + (layers[index]["geom_field"] || "wkb_geometry") + ",POINT(" + coordinate[1]  + " " + coordinate[0] + "))",
                 dataType:"json",

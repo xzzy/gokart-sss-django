@@ -27,6 +27,15 @@ global.tour = tour
 global.getLayerId = function(id) {
     return (env && env.layerMapping && env.layerMapping[id]) || id
 }
+global.getLayerUrl = function(layer_id, env) {
+  if (layer_id.startsWith("kaartdijin-boodja-private")) {
+      return env.kbService;
+  } else if (layer_id.startsWith("hotspots:")) {
+      return env.hotspotsUrl + "/wfs";
+  } else {
+      return env.kmiService;
+  }
+},
 //sometimes we use a different layer to get the detail layer information.
 global.getDetailLayerId = function(id) {
     return (env && env.detailLayerMapping && env.detailLayerMapping[id]) || (env && env.layerMapping && env.layerMapping[id]) || id
