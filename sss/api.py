@@ -30,6 +30,7 @@ from jinja2 import Template, Environment, FileSystemLoader
 from django.core.exceptions import ObjectDoesNotExist
 from sss.models import ManagementCommandStatus
 from django.utils import timezone
+from datetime import timedelta
 
 def api_catalogue(request, *args, **kwargs):
     if request.user.is_authenticated:
@@ -716,25 +717,49 @@ def update_tasks(request, *args, **kwargs):
     else:
         raise ValidationError('User is not authenticated') 
 
+
+
 @csrf_exempt
 def load_bfrs_status(request, *args, **kwargs):
     if request.user.is_authenticated:
         # Get the latest entry for each unique bfrs
         latest_entries = SpatialDataCalculation.objects.all().values('bfrs').annotate(latest_id=Max('id'))
-
-        # Extract the IDs of the latest entries
         latest_ids = [entry['latest_id'] for entry in latest_entries]
 
-        # Filter the queryset with the latest entries and the required statuses
-        bfrs_in_queue = SpatialDataCalculation.objects.filter(
-            Q(id__in=latest_ids) &
-            (Q(calculation_status=SpatialDataCalculation.CALCULATION_STATUS[0][0]) | 
+        # Common status filter
+        status_filter = (
+            Q(calculation_status=SpatialDataCalculation.CALCULATION_STATUS[0][0]) | 
             Q(calculation_status=SpatialDataCalculation.CALCULATION_STATUS[1][0]) |
             Q(calculation_status=SpatialDataCalculation.CALCULATION_STATUS[2][0]) |
-            Q(calculation_status=SpatialDataCalculation.CALCULATION_STATUS[3][0]))
+            Q(calculation_status=SpatialDataCalculation.CALCULATION_STATUS[3][0])
+        )
+
+        # Filter the main queryset
+        bfrs_in_queue = SpatialDataCalculation.objects.filter(
+            Q(id__in=latest_ids) & status_filter
         ).exclude(bfrs__icontains="new bushfire")
 
-        bfrs_list = [{'bfrs': obj.bfrs, 'feature': obj.features, 'tasks': obj.tasks, 'spatial_data': obj.spatial_data} for obj in bfrs_in_queue]
+        # Filter 'New Bushfire' entries for the current user in the last 24 hours with same status conditions
+        twenty_four_hours_ago = timezone.now() - timedelta(hours=24)
+        new_bushfires = SpatialDataCalculation.objects.filter(
+            bfrs__istartswith="New Bushfire",
+            user=request.user,
+            created__gte=twenty_four_hours_ago
+        ).filter(status_filter)
+
+        # Combine both querysets
+        combined_queryset = list(bfrs_in_queue) + list(new_bushfires)
+
+        bfrs_list = [
+            {
+                'bfrs': obj.bfrs,
+                'feature': obj.features,
+                'tasks': obj.tasks,
+                'spatial_data': obj.spatial_data
+            }
+            for obj in combined_queryset
+        ]
+
         return JsonResponse({'bfrs_list': bfrs_list})
     else:
         return JsonResponse({'status': 'error', 'message': 'User not authenticated'}, status=401)
