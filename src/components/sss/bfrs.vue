@@ -1878,17 +1878,18 @@
                 }
 
                 if (region_task) {
-                    url = getLayerUrl(getLayerId(vm.env.regionLayer), vm.env)
-                    var geom_name = (url === vm.env.kbService) ? "SHAPE" : "wkb_geometry";
+                    url_prefix = getLayerUrl(getLayerId(vm.env.regionLayer), vm.env)
+                    var geom_name = (url_prefix === vm.env.kbService) ? "SHAPE" : "wkb_geometry";
                     region_task.setStatus(utils.RUNNING)
                     $.ajax({
-                        url:url + "/wfs?service=wfs&version=2.0&request=GetFeature&typeNames=" + getLayerId(vm.env.regionLayer) + "&outputFormat=json&cql_filter=CONTAINS(" + geom_name + ",POINT(" + originPoint[1]  + " " + originPoint[0] + "))",
+                        url:url_prefix + "/wfs?service=wfs&version=2.0&request=GetFeature&typeNames=" + getLayerId(vm.env.regionLayer) + "&outputFormat=json&cql_filter=CONTAINS(" + geom_name + ",POINT(" + originPoint[1]  + " " + originPoint[0] + "))",
                         dataType:"json",
                         success: function (response, stat, xhr) {
                             if (response.totalFeatures === 0) {
                                 spatialData["region"] = null
-                            } else {
-                                spatialData["region"] = response.features[0].properties["region"]
+                            } 
+                            else {
+                                spatialData["region"] = url_prefix === vm.env.kbService ? response.features[0].properties["DRG_REGION_NAME"] : response.features[0].properties["region"];   
                             }
                             region_task.setStatus(utils.SUCCEED)
                             vm._getSpatialDataCallback(feat,caller,callback,failedCallback,spatialData)
@@ -1905,17 +1906,18 @@
                 }
 
                 if (district_task) {
-                    url = getLayerUrl(getLayerId(vm.env.districtLayer), vm.env)
-                    var geom_name = (url === vm.env.kbService) ? "SHAPE" : "wkb_geometry";
+                    url_prefix = getLayerUrl(getLayerId(vm.env.districtLayer), vm.env)
+                    var geom_name = (url_prefix === vm.env.kbService) ? "SHAPE" : "wkb_geometry";
                     district_task.setStatus(utils.RUNNING)
                     $.ajax({
-                        url:url + "/wfs?service=wfs&version=2.0&request=GetFeature&typeNames=" + getLayerId(vm.env.districtLayer) + "&outputFormat=json&cql_filter=CONTAINS(" + geom_name + ",POINT(" + originPoint[1]  + " " + originPoint[0] + "))",
+                        url:url_prefix + "/wfs?service=wfs&version=2.0&request=GetFeature&typeNames=" + getLayerId(vm.env.districtLayer) + "&outputFormat=json&cql_filter=CONTAINS(" + geom_name + ",POINT(" + originPoint[1]  + " " + originPoint[0] + "))",
                         dataType:"json",
                         success: function (response, stat, xhr) {
                             if (response.totalFeatures === 0) {
                                 spatialData["district"] = null
                             } else {
-                                spatialData["district"] = response.features[0].properties["district"]
+                                spatialData["district"] = url_prefix === vm.env.kbService ? response.features[0].properties["ADMIN_ZONE"] : response.features[0].properties["district"];
+                                 
                             }
                             district_task.setStatus(utils.SUCCEED)
                             vm._getSpatialDataCallback(feat,caller,callback,failedCallback,spatialData)
