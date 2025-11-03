@@ -1916,7 +1916,7 @@
                             if (response.totalFeatures === 0) {
                                 spatialData["district"] = null
                             } else {
-                                spatialData["district"] = url_prefix === vm.env.kbService ? response.features[0].properties["DDT_DISTRICT_NAME"] : response.features[0].properties["district"];
+                                spatialData["district"] = url_prefix === vm.env.kbService ? response.features[0].properties["ADMIN_ZONE"] : response.features[0].properties["district"];
                                  
                             }
                             district_task.setStatus(utils.SUCCEED)
