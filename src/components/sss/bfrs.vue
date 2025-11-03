@@ -1878,9 +1878,11 @@
                 }
 
                 if (region_task) {
+                    url = getLayerUrl(getLayerId(vm.env.regionLayer), vm.env)
+                    var geom_name = (url === vm.env.kbService) ? "SHAPE" : "wkb_geometry";
                     region_task.setStatus(utils.RUNNING)
                     $.ajax({
-                        url:vm.env.kmiService + "/wfs?service=wfs&version=2.0&request=GetFeature&typeNames=" + getLayerId("cddp:dpaw_regions") + "&outputFormat=json&cql_filter=CONTAINS(wkb_geometry,POINT(" + originPoint[1]  + " " + originPoint[0] + "))",
+                        url:url + "/wfs?service=wfs&version=2.0&request=GetFeature&typeNames=" + getLayerId(vm.env.regionLayer) + "&outputFormat=json&cql_filter=CONTAINS(" + geom_name + ",POINT(" + originPoint[1]  + " " + originPoint[0] + "))",
                         dataType:"json",
                         success: function (response, stat, xhr) {
                             if (response.totalFeatures === 0) {
@@ -1903,9 +1905,11 @@
                 }
 
                 if (district_task) {
+                    url = getLayerUrl(getLayerId(vm.env.districtLayer), vm.env)
+                    var geom_name = (url === vm.env.kbService) ? "SHAPE" : "wkb_geometry";
                     district_task.setStatus(utils.RUNNING)
                     $.ajax({
-                        url:vm.env.kmiService + "/wfs?service=wfs&version=2.0&request=GetFeature&typeNames=" + getLayerId("dpaw:pw_districts_fssvers") + "&outputFormat=json&cql_filter=CONTAINS(wkb_geometry,POINT(" + originPoint[1]  + " " + originPoint[0] + "))",
+                        url:url + "/wfs?service=wfs&version=2.0&request=GetFeature&typeNames=" + getLayerId(vm.env.districtLayer) + "&outputFormat=json&cql_filter=CONTAINS(" + geom_name + ",POINT(" + originPoint[1]  + " " + originPoint[0] + "))",
                         dataType:"json",
                         success: function (response, stat, xhr) {
                             if (response.totalFeatures === 0) {

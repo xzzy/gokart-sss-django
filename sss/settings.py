@@ -223,6 +223,8 @@ BUSHFIRE_FINAL_FIREBOUNDARY_LATEST_LAYER=decouple.config("BUSHFIRE_FINAL_FIREBOU
 BUSHFIRE_FIREBOUNDARY_LATEST_LAYER=decouple.config("BUSHFIRE_FIREBOUNDARY_LATEST_LAYER", default="dpaw:bushfire_fireboundary_latest")
 BUSHFIRE_LAYER=decouple.config("BUSHFIRE_LAYER", default="dpaw:bushfire")
 BUSHFIRE_FIREBOUNDARY_LAYER=decouple.config("BUSHFIRE_FIREBOUNDARY_LAYER", default="dpaw:bushfire_fireboundary")
+REGION_LAYER=decouple.config("REGION_LAYER", default="cddp:dpaw_regions")
+DISTRICT_LAYER=decouple.config("DISTRICT_LAYER", default="dpaw:pw_districts_fssvers")
 RESOURCE_TRACKING_LIVE_LAYER=decouple.config("RESOURCE_TRACKING_LIVE_LAYER", default="dpaw:resource_tracking_live")
 RESOURCE_TRACKING_HISTORY_LAYER=decouple.config("RESOURCE_TRACKING_HISTORY_LAYER", default="dpaw:resource_tracking_history")
 

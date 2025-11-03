@@ -28,7 +28,7 @@ global.getLayerId = function(id) {
     return (env && env.layerMapping && env.layerMapping[id]) || id
 }
 global.getLayerUrl = function(layer_id, env) {
-  if (layer_id.startsWith("kaartdijin-boodja-private")) {
+  if (layer_id.startsWith("kaartdijin-boodja")) {
       return env.kbService;
   } else if (layer_id.startsWith("hotspots:")) {
       return env.hotspotsUrl + "/wfs";
