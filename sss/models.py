@@ -161,7 +161,8 @@ CATALOGUE_TYPE = (
     ('TileLayer2','TileLayer2'),
     ('TileWMSLayer','TileWMSLayer'),
     ('WMSLayer','WMSLayer'),    
-    ('ImageLayer','ImageLayer')
+    ('ImageLayer','ImageLayer'),
+    ('WFSLayer','WFSLayer')
 )
 class Catalogue(models.Model):
         title =  models.CharField(max_length=500, null=True, blank=True)
@@ -176,8 +177,8 @@ class Catalogue(models.Model):
         keywords = models.CharField(max_length=500, null=True, blank=True)
         bounding_box = models.TextField(null=True, blank=True, help_text="Maps to pycsw:BoundingBox. It's a WKT geometry")
         crs = models.CharField(max_length=255, null=True, blank=True, help_text='Maps to pycsw:CRS')
-        service_type = models.CharField(max_length=10, null=True, blank=True)
-        service_type_version = models.CharField(max_length=10, null=True, blank=True)
+        service_type = models.CharField(max_length=10, null=True, blank=True, default='WMS')
+        service_type_version = models.CharField(max_length=10, null=True, blank=True, default='1.1.1')
         legend = models.CharField(max_length=500, null=True, blank=True)
         active = models.BooleanField(default=True)
         updated = models.DateTimeField(auto_now_add=True)
