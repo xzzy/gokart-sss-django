@@ -161,7 +161,8 @@ CATALOGUE_TYPE = (
     ('TileLayer2','TileLayer2'),
     ('TileWMSLayer','TileWMSLayer'),
     ('WMSLayer','WMSLayer'),    
-    ('ImageLayer','ImageLayer')
+    ('ImageLayer','ImageLayer'),
+    ('WFSLayer','WFSLayer')
 )
 class Catalogue(models.Model):
         title =  models.CharField(max_length=500, null=True, blank=True)
