@@ -32,7 +32,7 @@ class CatalogueTagInline(admin.TabularInline):
 
 @admin.register(models.Catalogue)
 class Catalogue(admin.ModelAdmin):
-    list_display = ('id', 'identifier', 'type', 'updated', 'created', 'active')
+    list_display = ('id', 'identifier', 'type', 'service_type', 'updated', 'created', 'active')
     readonly_fields = ['updated', 'created',]
     search_fields = ['identifier', 'type'] 
     inlines = [CatalogueTagInline,]  
