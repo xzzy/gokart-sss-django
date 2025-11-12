@@ -33,6 +33,7 @@ class CatalogueTagInline(admin.TabularInline):
 @admin.register(models.Catalogue)
 class Catalogue(admin.ModelAdmin):
     list_display = ('id', 'identifier', 'type', 'service_type', 'updated', 'created', 'active')
+    list_filter = ['type', 'service_type', 'active']
     readonly_fields = ['updated', 'created',]
     search_fields = ['identifier', 'type'] 
     inlines = [CatalogueTagInline,]  
@@ -43,9 +44,10 @@ class MapServer(admin.ModelAdmin):
     readonly_fields = ['updated', 'created',]  
     
 @admin.register(models.CatalogueSyncCSW)
-class MapServer(admin.ModelAdmin):
+class CatalogueSyncCSW(admin.ModelAdmin):
     list_display = ('id', 'identifier', 'active', 'removed_from_csw', 'updated', 'created')
-    search_fields = ('id', 'identifier',)
+    list_filter = ['active', 'removed_from_csw']
+    search_fields = ('id', 'identifier','json_data')
     readonly_fields = ['updated', 'created','json_data','identifier','csw_id']
 
 admin.site.register(models.Region)
