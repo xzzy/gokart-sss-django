@@ -324,9 +324,37 @@ if (result) {
                     this.store.hints = arguments
                 }
               }
-          }
+          },
+          getCookie:function(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(";").shift();
+            return null;
+          },
+          setCookie:function(name, value, days = 365) {
+            const date = new Date();
+            date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+            document.cookie = `${name}=${value}; expires=${date.toUTCString()}; path=/`;
+          },
+          checkAndUpdateCookie:function() {
+            const COOKIE_NAME = "sss_version";
+            const CURRENT_VERSION = env.sssVersion;
+
+            const cookieVersion = this.getCookie(COOKIE_NAME);
+
+            if (!cookieVersion || cookieVersion !== CURRENT_VERSION) {
+              // Either cookie is missing OR version mismatch
+              console.log("Cookie missing or version mismatch. Updating cookie and resetting SSS");
+              this.setCookie(COOKIE_NAME, CURRENT_VERSION);
+                //except settings, clear everything
+                localforage.setItem('sssOfflineStore', {settings:this.$root.persistentData.settings}).then(function (v) {
+                  document.location.reload()
+                })
+            }
         },
+      },
         ready: function () {
+          this.checkAndUpdateCookie();
           var self = this
           self.loading.app.phaseBegin("initialize", 20, "Initialize")
           // setup foundation, svg url support
