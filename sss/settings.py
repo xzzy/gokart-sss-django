@@ -263,8 +263,8 @@ CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': os.path.join(BASE_DIR, 'sss', 'cache'),
-        "OPTIONS": {"MAX_ENTRIES": 500000
-                   'CULL_FREQUENCY': 3,
+        "OPTIONS": {"MAX_ENTRIES": 500000,
+                   'CULL_FREQUENCY': 3
                    },
     }
 }
