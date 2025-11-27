@@ -263,7 +263,7 @@ CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': os.path.join(BASE_DIR, 'sss', 'cache'),
-        "OPTIONS": {"MAX_ENTRIES": 20000},
+        "OPTIONS": {"MAX_ENTRIES": 200000},
     }
 }
 ENV_TYPE=decouple.config("ENV_TYPE", default="DEV")
