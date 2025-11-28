@@ -146,7 +146,7 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
     cache_times_strings = utils_cache.get_proxy_cache()
     CACHE_EXPIRY=300
     BROWSER_CACHE_EXPIRY = None
-
+    CACHE_STATUS = "MISS"
     proxy_cache = cache.get(query_string_remote_url)
 
     for cts in cache_times_strings:
@@ -176,11 +176,13 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
     else:
         print ("---- > USING CACHE < ----")
         print (query_string_remote_url)
+        CACHE_STATUS = "HIT"
         base64_json = json.loads(proxy_cache)
 
     proxy_response_content = base64.b64decode(base64_json["content"].encode())
     http_response =   HttpResponse(proxy_response_content, content_type=base64_json['content_type'], status=base64_json['status_code'])    
-    http_response.headers['Django-Cache-Expiry']= str(base64_json['cache_expiry']) + " seconds"
+    http_response.headers['Django-Cache-Expiry'] = str(base64_json['cache_expiry']) + " seconds"
+    http_response.headers['Django-Cache-Status'] = CACHE_STATUS
     http_response.headers['Cache-Control'] = 'public, max-age=' + str(BROWSER_CACHE_EXPIRY)+', must-revalidate'
     return http_response
 
