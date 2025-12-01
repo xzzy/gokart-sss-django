@@ -19,6 +19,7 @@ class UserProfileAdmin(admin.ModelAdmin):
 @admin.register(models.ProxyCache)
 class ProxyCacheAdmin(admin.ModelAdmin):
     list_display = ('id', 'layer_name', 'created', 'cache_expiry', 'browser_expiry', 'active')
+    search_fields = ['id', 'layer_name']
     readonly_fields = ['created',]
 
 @admin.register(models.BomSyncList)
@@ -41,6 +42,7 @@ class Catalogue(admin.ModelAdmin):
 @admin.register(models.MapServer)
 class MapServer(admin.ModelAdmin):
     list_display = ('id', 'name', 'url', 'created')
+    search_fields = ('id', 'name', 'url')
     readonly_fields = ['updated', 'created',]  
     
 @admin.register(models.CatalogueSyncCSW)
