@@ -146,7 +146,8 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
     cache_times_strings = utils_cache.get_proxy_cache()
     CACHE_EXPIRY=300
     BROWSER_CACHE_EXPIRY = None
-
+    CACHE_STATUS = "MISS"
+    current_date_time = datetime.datetime.strftime(datetime.datetime.now(),"%Y-%m-%d %H:%M:%S")
     proxy_cache = cache.get(query_string_remote_url)
 
     for cts in cache_times_strings:
@@ -167,7 +168,7 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
             auth_details = {"user": auth_user, 'password' : auth_password}
         proxy_response = proxy_view(request, remoteurl, basic_auth=auth_details, cookies={})    
         proxy_response_content_encoded = base64.b64encode(proxy_response.content)
-        base64_json = {"status_code": proxy_response.status_code, "content_type": proxy_response.headers['content-type'], "content" : proxy_response_content_encoded.decode('utf-8'), "cache_expiry": CACHE_EXPIRY}
+        base64_json = {"status_code": proxy_response.status_code, "content_type": proxy_response.headers['content-type'], "content" : proxy_response_content_encoded.decode('utf-8'), "cache_expiry": CACHE_EXPIRY, "current_date_time": current_date_time}
         if proxy_response.status_code in (200, 201):
             #print ("CREATING CACHE")
             cache.set(query_string_remote_url, json.dumps(base64_json), CACHE_EXPIRY)
@@ -178,12 +179,17 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
     else:
         print ("---- > USING CACHE < ----")
         print (query_string_remote_url)
+        CACHE_STATUS = "HIT"
         base64_json = json.loads(proxy_cache)
         BROWSER_CACHE_EXPIRY = base64_json.get("cache_expiry", BROWSER_CACHE_EXPIRY)
 
     proxy_response_content = base64.b64decode(base64_json["content"].encode())
     http_response =   HttpResponse(proxy_response_content, content_type=base64_json['content_type'], status=base64_json['status_code'])    
-    http_response.headers['Django-Cache-Expiry']= str(base64_json['cache_expiry']) + " seconds"
+    http_response.headers['Django-Cache-Expiry'] = str(base64_json['cache_expiry']) + " seconds"
+    http_response.headers['Django-Cache-Status'] = CACHE_STATUS
+    if "current_date_time" in base64_json:
+        http_response.headers['Django-Cache-Datetime'] = base64_json["current_date_time"]
+    
     http_response.headers['Cache-Control'] = 'public, max-age=' + str(BROWSER_CACHE_EXPIRY)+', must-revalidate'
     return http_response
 
