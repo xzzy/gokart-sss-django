@@ -34,6 +34,12 @@ def write_meta_data(filename, json_data):
         json.dump(json_data, file, indent=4)
     # print("JSON file has been created successfully!")
 
+def write_data_to_file(filename, data):
+
+    # Write JSON to a file
+    with open(filename, "w") as file:
+        f.write(data)
+
 def write_data_to_binary_file(filename, binary_data):
     """
     Writes various types of binary data (bytes, packed integers, and a float)
@@ -89,6 +95,11 @@ def read_json_file(filename):
         data = json.load(file)
     return data
 
+def read_data_file(filename):
+  
+    with open(filename, 'r') as file:
+        data = file.read()
+    return data
 
 def set_cache(cache_folder, unique_key, data, cache_expiry, meta_data):
     SPATIAL_TILE_CACHE_DIR = conf.settings.SPATIAL_TILE_CACHE_DIR
