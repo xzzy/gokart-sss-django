@@ -615,7 +615,7 @@ def himawari8(request, target):
     if len(result["layers"]) == 0:
         return HttpResponse(status=404)
     elif last_updatetime and last_updatetime == result["updatetime"]:
-        return "{}"
+        return JsonResponse({}, status=200)
     else:
         content_type = 'application/json'
         json_data = json.dumps(result)
