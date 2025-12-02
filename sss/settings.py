@@ -252,7 +252,7 @@ BOM_SYNC_FOLDER = decouple.config("BOM_FTP_DIRECTORY", default="/tmp/sss_bom_syn
 TEMP_DIR = decouple.config("TEMP_DIR", default="tmp")
 
 PERTH_TIMEZONE = datetime.datetime.now(pytz.timezone('Australia/Perth')).tzinfo
-SPATIAL_TILE_CACHE_DIR = decouple.config("SPATIAL_TILE_CACHE_DIR", default="./spatial_title_cache/")
+SPATIAL_TILE_CACHE_DIR = decouple.config("SPATIAL_TILE_CACHE_DIR", default="./spatial_title_cache")
 
 # Django Timezone
 TIME_ZONE = 'Australia/Perth'
