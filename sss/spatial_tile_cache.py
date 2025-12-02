@@ -192,3 +192,11 @@ def file_iterator(file_name, chunk_size=8192):
             if not chunk:
                 break
             yield chunk
+
+def file_iterator_plain(file_name, chunk_size=8192):
+    with open(file_name, 'r') as f:
+        while True:
+            chunk = f.read(chunk_size)
+            if not chunk:
+                break
+            yield chunk            
