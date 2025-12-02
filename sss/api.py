@@ -148,6 +148,9 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
     get_layers_lc = request.GET.get("layers", None)
     get_layer_lc = request.GET.get("layer", None)   
     get_layers_uc = request.GET.get("LAYERS", None) 
+    get_typename_lc = request.GET.get("typename", None) 
+
+
 
     spatial_tile_folder = "other"
     if get_layers_lc:
@@ -156,7 +159,8 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
         spatial_tile_folder=get_layer_lc        
     if get_layers_uc:
         spatial_tile_folder=get_layers_uc
-
+    if get_typename_lc:
+        spatial_tile_folder=get_typename_lc
     
     query_string_remote_url=remoteurl+'?'+queryString
 
