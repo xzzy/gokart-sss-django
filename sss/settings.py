@@ -252,6 +252,7 @@ BOM_SYNC_FOLDER = decouple.config("BOM_FTP_DIRECTORY", default="/tmp/sss_bom_syn
 TEMP_DIR = decouple.config("TEMP_DIR", default="tmp")
 
 PERTH_TIMEZONE = datetime.datetime.now(pytz.timezone('Australia/Perth')).tzinfo
+SPATIAL_TILE_CACHE_DIR = decouple.config("SPATIAL_TILE_CACHE_DIR", default="./spatial_title_cache")
 
 # Django Timezone
 TIME_ZONE = 'Australia/Perth'
@@ -271,3 +272,5 @@ CACHES = {
 ENV_TYPE=decouple.config("ENV_TYPE", default="DEV")
 ENABLE_AUTH2_GROUPS=True
 FILE_UPLOAD_PERMISSIONS = None
+SESSION_ENGINE = 'django.contrib.sessions.backends.file'
+SESSION_FILE_PATH = decouple.config('SESSION_FILE_PATH', default='/app/session_store/')

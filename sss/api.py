@@ -1,4 +1,4 @@
-from django.http import HttpResponse, JsonResponse, Http404
+from django.http import HttpResponse, JsonResponse, Http404,StreamingHttpResponse
 from django import conf
 from django.views.decorators.csrf import csrf_exempt
 from wagov_utils.components.proxy.views import proxy_view
@@ -31,6 +31,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from sss.models import ManagementCommandStatus
 from django.utils import timezone
 from datetime import timedelta
+from sss import spatial_tile_cache
 
 def api_catalogue(request, *args, **kwargs):
     if request.user.is_authenticated:
@@ -136,11 +137,27 @@ def api_bfrs_region(request, *args, **kwargs):
 #     http_response.headers['Django-Cache-Expiry']= str(base64_json['cache_expiry']) + " seconds"
 #     return http_response
 
+
+
 def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
     proxy_cache= None
     proxy_response = None
     proxy_response_content = None
     base64_json = {}
+
+    get_layers_lc = request.GET.get("layers", None)
+    get_layer_lc = request.GET.get("layer", None)   
+    get_layers_uc = request.GET.get("LAYERS", None) 
+
+    spatial_tile_folder = "other"
+    if get_layers_lc:
+        spatial_tile_folder=get_layers_lc
+    if get_layer_lc:
+        spatial_tile_folder=get_layer_lc        
+    if get_layers_uc:
+        spatial_tile_folder=get_layers_uc
+
+    
     query_string_remote_url=remoteurl+'?'+queryString
 
     cache_times_strings = utils_cache.get_proxy_cache()
@@ -148,8 +165,10 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
     BROWSER_CACHE_EXPIRY = None
     CACHE_STATUS = "MISS"
     current_date_time = datetime.datetime.strftime(datetime.datetime.now(),"%Y-%m-%d %H:%M:%S")
-    proxy_cache = cache.get(query_string_remote_url)
+    # proxy_cache = cache.get(query_string_remote_url)
+    proxy_cache = spatial_tile_cache.get_cache(spatial_tile_folder, query_string_remote_url)
 
+    # print (proxy_cache)
     for cts in cache_times_strings:
         if cts['layer_name'] in query_string_remote_url:
             CACHE_EXPIRY = cts['cache_expiry']
@@ -158,7 +177,8 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
         #print (cts['layer_name'])
     if BROWSER_CACHE_EXPIRY is None:
         BROWSER_CACHE_EXPIRY = CACHE_EXPIRY
-    #print (CACHE_EXPIRY)
+    # proxy_cache = None
+
     if proxy_cache is None:
         #print ("NO CACHE")
         auth_details = None
@@ -166,30 +186,33 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
             auth_details = None
         else:
             auth_details = {"user": auth_user, 'password' : auth_password}
-        proxy_response = proxy_view(request, remoteurl, basic_auth=auth_details, cookies={})    
-        proxy_response_content_encoded = base64.b64encode(proxy_response.content)
-        base64_json = {"status_code": proxy_response.status_code, "content_type": proxy_response.headers['content-type'], "content" : proxy_response_content_encoded.decode('utf-8'), "cache_expiry": CACHE_EXPIRY, "current_date_time": current_date_time}
+        proxy_response = proxy_view(request, remoteurl, basic_auth=auth_details, cookies={})           
+        proxy_response_content_encoded = proxy_response.content
+        base64_json = {"status_code": proxy_response.status_code, "content_type": proxy_response.headers['content-type'], "cache_expiry": CACHE_EXPIRY, "browser_cache_expiry": BROWSER_CACHE_EXPIRY,"current_date_time": current_date_time}
         if proxy_response.status_code in (200, 201):
             #print ("CREATING CACHE")
-            cache.set(query_string_remote_url, json.dumps(base64_json), CACHE_EXPIRY)
+            proxy_cache = spatial_tile_cache.set_cache(spatial_tile_folder,query_string_remote_url,proxy_response.content,CACHE_EXPIRY,base64_json)
         else:
             base64_json["cache_expiry"] = 15
             BROWSER_CACHE_EXPIRY = 15
-            cache.set(query_string_remote_url, json.dumps(base64_json), 15)
+            proxy_cache = spatial_tile_cache.set_cache(spatial_tile_folder,query_string_remote_url,proxy_response.content,15,base64_json)
+            # cache.set(query_string_remote_url, json.dumps(base64_json), 15)
     else:
-        print ("---- > USING CACHE < ----")
-        print (query_string_remote_url)
+        
         CACHE_STATUS = "HIT"
-        base64_json = json.loads(proxy_cache)
-        BROWSER_CACHE_EXPIRY = base64_json.get("cache_expiry", BROWSER_CACHE_EXPIRY)
+        base64_json = spatial_tile_cache.get_meta_data(spatial_tile_folder, query_string_remote_url)
+        BROWSER_CACHE_EXPIRY = base64_json.get("browser_cache_expiry", BROWSER_CACHE_EXPIRY)
+    
+    if proxy_cache[-3:] == 'png' or proxy_cache[-3:] == 'jpg' :
+        http_response =   StreamingHttpResponse(spatial_tile_cache.file_iterator(proxy_cache), content_type=base64_json['content_type'], status=base64_json['status_code'])        
+    else:
+        http_response =   HttpResponse(spatial_tile_cache.read_data_file(proxy_cache), content_type=base64_json['content_type'], status=base64_json['status_code'])        
 
-    proxy_response_content = base64.b64decode(base64_json["content"].encode())
-    http_response =   HttpResponse(proxy_response_content, content_type=base64_json['content_type'], status=base64_json['status_code'])    
     http_response.headers['Django-Cache-Expiry'] = str(base64_json['cache_expiry']) + " seconds"
     http_response.headers['Django-Cache-Status'] = CACHE_STATUS
+    http_response.headers['Django-Cache-File'] = proxy_cache
     if "current_date_time" in base64_json:
         http_response.headers['Django-Cache-Datetime'] = base64_json["current_date_time"]
-    
     http_response.headers['Cache-Control'] = 'public, max-age=' + str(BROWSER_CACHE_EXPIRY)+', must-revalidate'
     return http_response
 
