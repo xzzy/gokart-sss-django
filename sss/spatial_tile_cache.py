@@ -127,13 +127,18 @@ def get_cache(cache_folder, unique_key):
     first_dir = hashkey[0:1]
     second_dir = hashkey[0:2]
     folder_path=SPATIAL_TILE_CACHE_DIR+"/"+cache_folder+"/"+first_dir+"/"+second_dir+"/"
-    file_path=hashkey+".png"
-
+    
     meta_data = get_meta_data(cache_folder, unique_key)
     
+    file_path=hashkey+".txt"
+    
+
     if meta_data:
-        if "current_date_time" in meta_data:
-        
+        if meta_data["content_type"] == "image/png":
+            file_path=hashkey+".png"
+        if meta_data["content_type"] == "image/jpeg":
+            file_path=hashkey+".jpg"        
+        if "current_date_time" in meta_data:            
             dt = datetime.strptime(meta_data["current_date_time"], "%Y-%m-%d %H:%M:%S")
             epoch_time = int(dt.timestamp())
 
@@ -144,19 +149,19 @@ def get_cache(cache_folder, unique_key):
             # print(f"Epoch time from JSON: {epoch_time}")
             # print(f"Current epoch time: {now_epoch}")
             # print(f"Difference in seconds: {difference}")
-        else:         
+        else:                     
             return None
-    else:        
+    else:                
         return None
 
     if difference > int(meta_data["cache_expiry"]):
-        print ("expired : {}".format(unique_key))        
+        print ("expired : {}".format(unique_key))          
         return None
-
-    if os.path.exists(folder_path+file_path):                
+            
+    if os.path.exists(folder_path+file_path):                        
         return folder_path+file_path
         # return read_binary_file(folder_path+file_path)
-    else:     
+    else:        
         return None
 
 def get_meta_data(cache_folder, unique_key):

@@ -156,6 +156,8 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
         spatial_tile_folder=get_layer_lc        
     if get_layers_uc:
         spatial_tile_folder=get_layers_uc
+
+    
     query_string_remote_url=remoteurl+'?'+queryString
 
     cache_times_strings = utils_cache.get_proxy_cache()
