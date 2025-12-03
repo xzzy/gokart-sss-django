@@ -53,7 +53,7 @@ if len(GIT_COMMIT_HASH) == 0:
     if len(GIT_COMMIT_HASH) == 0:
        print ("ERROR: No git hash provided")
 
-VERSION_NO = "2.00"
+VERSION_NO = "2.01"
 
 # Application definition
 
