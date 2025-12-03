@@ -217,7 +217,7 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
     http_response.headers['Django-Cache-File'] = proxy_cache
     if "current_date_time" in base64_json:
         http_response.headers['Django-Cache-Datetime'] = base64_json["current_date_time"]
-    http_response.headers['Cache-Control'] = 'public, max-age=' + str(BROWSER_CACHE_EXPIRY)+', must-revalidate'
+    http_response.headers['Cache-Control'] = 'private, max-age=' + str(BROWSER_CACHE_EXPIRY)+', must-revalidate'
     return http_response
 
 
