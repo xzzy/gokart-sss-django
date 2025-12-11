@@ -250,3 +250,12 @@ class CRSSettings(models.Model):
         
     def __str__(self):
         return dict(self.CRS_CHOICES)[self.crs]
+
+class AccessGroup(models.Model):
+    group_name = models.CharField(max_length=255, unique=True)
+    access_list = models.TextField(null=True, blank=True)
+    active = models.BooleanField(default=True)
+    created = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return self.group_name
