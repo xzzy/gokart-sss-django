@@ -292,8 +292,6 @@ div.ol-previewmap.ol-uncollapsible {
       },
       isKBLayer(l) {
         const id = (l.id || '').toLowerCase().trim();
-        console.log(id)
-        console.log(id.startsWith('kaartdijin-boodja'));
         return id.startsWith('kaartdijin-boodja');
       },
 
