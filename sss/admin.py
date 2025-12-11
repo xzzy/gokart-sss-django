@@ -16,6 +16,11 @@ class UserProfileAdmin(admin.ModelAdmin):
     raw_id_fields = ('user', 'region', 'district')
     readonly_fields = ['created',]
 
+@admin.register(models.AccessGroup)
+class AccessGroupAdmin(admin.ModelAdmin):
+    list_display = ('id', 'group_name', 'active', 'created')
+    readonly_fields = ['created',]
+
 @admin.register(models.ProxyCache)
 class ProxyCacheAdmin(admin.ModelAdmin):
     list_display = ('id', 'layer_name', 'created', 'cache_expiry', 'browser_expiry', 'active')
