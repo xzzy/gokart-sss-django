@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 import requests
+from osgeo import gdal
 import subprocess
 from django import conf
 import ftplib
@@ -93,15 +94,40 @@ class Command(BaseCommand):
             for temp_file_name in os.listdir(temp_dir):
                 temp_file_path = os.path.join(temp_dir, temp_file_name)
                 local_file_path = os.path.join(BOM_HOME_LOCAL, bom_ftp_directory, temp_file_name)
-                
                 if temp_file_name.endswith('.nc.gz'):
                     try:
                         subprocess.check_call(["gzip", "-k", "-f", "-q", "-d", temp_file_path])
                         unzipped_file_path = temp_file_path[:-3]
+
+                        try:
+                            #Checking if the unzipped file can be opened by GDAL
+                            gdal.Open(unzipped_file_path)
+                        except Exception as e:
+                            traceback.print_exc()
+                            try:
+                                if os.path.exists(unzipped_file_path):
+                                    os.remove(unzipped_file_path)
+                                    self.stderr.write(self.style.ERROR(f"ERROR: file could not be opened, REMOVING FILE : {unzipped_file_path}"))
+                                if os.path.exists(temp_file_path):
+                                    self.stderr.write(self.style.ERROR(f"ERROR: file could not be opened, REMOVING FILE : {temp_file_path}"))
+                                    os.remove(temp_file_path)
+                            except Exception:
+                                pass
+                            continue
                         
                         shutil.copyfile(temp_file_path, local_file_path)
                         shutil.copyfile(unzipped_file_path, os.path.join(BOM_HOME_LOCAL, bom_ftp_directory, os.path.basename(unzipped_file_path)))
-                        
+                        # Atomic update for .nc.gz file
+                        tmp_local_file_path = local_file_path + ".tmp"
+                        shutil.copy2(temp_file_path, tmp_local_file_path)
+                        os.rename(tmp_local_file_path, local_file_path)
+
+                        # Atomic update for .nc file
+                        dest_path = os.path.join(BOM_HOME_LOCAL, bom_ftp_directory, os.path.basename(unzipped_file_path))
+                        tmp_dest_path = dest_path + ".tmp"
+                        shutil.copy2(unzipped_file_path, tmp_dest_path)
+                        os.rename(tmp_dest_path, dest_path)
+
                         os.remove(temp_file_path)
                         os.remove(unzipped_file_path)
                         
@@ -111,7 +137,24 @@ class Command(BaseCommand):
                 
                 elif temp_file_name.endswith('.nc'):
                     try:
+                        try:
+                            #Checking if the file can be opened by GDAL
+                            gdal.Open(temp_file_path)
+                        except Exception:
+                            try:
+                                if os.path.exists(temp_file_path):
+                                    self.stderr.write(self.style.ERROR(f"ERROR: file could not be opened, REMOVING FILE : {temp_file_path}"))
+                                    os.remove(temp_file_path)
+                            except Exception:
+                                pass
+                            continue
+
                         shutil.copyfile(temp_file_path, local_file_path)
+                        # Atomic update for .nc file
+                        tmp_local_file_path = local_file_path + ".tmp"
+                        shutil.copy2(temp_file_path, tmp_local_file_path)
+                        os.rename(tmp_local_file_path, local_file_path)
+
                         os.remove(temp_file_path)
                     except Exception:
                         self.stderr.write(self.style.ERROR(f"File copy/delete failed for {temp_file_name}"))
