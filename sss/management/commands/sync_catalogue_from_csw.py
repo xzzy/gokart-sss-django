@@ -65,15 +65,13 @@ class Command(BaseCommand):
 
                 if cs_csw.csw_id in catalogue_ids:
                     if cs_csw.removed_from_csw is True:
-                        csw_obj.updated = timezone.now() 
-                        cs_csw.removed_from_csw=False  
-                        csw_obj.save()   
+                        cs_csw.updated = timezone.now() 
+                        cs_csw.removed_from_csw=False 
                         cs_csw.save()                   
                 else:
                     if cs_csw.removed_from_csw is False:
-                        csw_obj.updated = timezone.now() 
+                        cs_csw.updated = timezone.now() 
                         cs_csw.removed_from_csw=True
-                        csw_obj.save()
                         cs_csw.save()
                 
 
