@@ -64,7 +64,7 @@ class AccountDetailsSerializer(serializers.ModelSerializer):
     last_name = serializers.SerializerMethodField()
     full_name = serializers.SerializerMethodField()
     groups = serializers.SerializerMethodField()
-    can_access = serializers.SerializerMethodField()
+    is_internal_dbca = serializers.SerializerMethodField()
     class Meta:
         model = UserProfile
         fields = (  'authenticated',
@@ -74,7 +74,7 @@ class AccountDetailsSerializer(serializers.ModelSerializer):
                     'last_name',
                     'full_name',
                     'groups',
-                    'can_access',
+                    'is_internal_dbca',
                 )
 
     def get_authenticated(self,obj):
@@ -106,19 +106,21 @@ class AccountDetailsSerializer(serializers.ModelSerializer):
             group_names = ",".join(obj.user.groups.values_list('name', flat=True))
             return group_names
         
-    def get_can_access(self,obj):
+    def get_is_internal_dbca(self,obj):
         if obj.user:
-
-            access_groups_qs = AccessGroup.objects.filter(active=True)
-            if access_groups_qs:
-                access_group = access_groups_qs.first()
-                has_access = False
+            group_name = "Internal DBCA"
+            has_access = False
+            try:
+                access_group = AccessGroup.objects.get(group_name=group_name,active=True)
                 if obj.user.email:
                     for pattern in _compile_patterns(access_group.access_list):
                         if pattern.fullmatch(obj.user.email):
                             has_access = True
                             break
-                    return has_access     
+                    return has_access 
+
+            except AccessGroup.DoesNotExist:
+                return False   
         return False
     
 

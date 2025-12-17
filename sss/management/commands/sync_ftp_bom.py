@@ -12,13 +12,7 @@ import traceback
 from sss import models
 import logging
 
-logger = logging.getLogger(__name__)
-
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(message)s"
-)
+logger = logging.getLogger('cron_tasks')
 
 
 class Command(BaseCommand):
@@ -35,7 +29,7 @@ class Command(BaseCommand):
                 command=self.command_name
             )
         except Exception as e:
-            self.stderr.write(self.style.ERROR(f"Failed to access database for command status: {e}"))
+            logger.error(f"Failed to access database for command status: {e}")
             return
 
         try:
@@ -54,7 +48,7 @@ class Command(BaseCommand):
                 ftp_session = ftplib.FTP(bom_ftp_server, bom_ftp_username, bom_ftp_password)
                 ftp_session.cwd(bom_ftp_directory)
             except Exception:
-                self.stderr.write(self.style.ERROR("ERROR: Could not connect to FTP server."))
+                logger.error("Could not connect to FTP server.")
                 return
 
             bsl = models.BomSyncList.objects.filter(active=True)
@@ -74,8 +68,8 @@ class Command(BaseCommand):
                 try:
                     file_list_count = ftp_session.nlst(file.file_name)
                 except ftplib.all_errors as e:
-                    self.stderr.write(self.style.ERROR(f"ERROR: FTP listing failed for {file.file_name}. Reason: {e}"))
-                    return
+                    logger.error(f"FTP listing failed for {file.file_name}. Reason: {e}")
+                    continue
                 
                 if len(file_list_count) > 0:
                     try:
@@ -83,8 +77,8 @@ class Command(BaseCommand):
                         remote_timestamp = time.mktime(time.strptime(remote_datetime, '%Y%m%d%H%M%S'))
                         remote_file_size = ftp_session.size(file.file_name)
                     except ftplib.all_errors as e:
-                        self.stderr.write(self.style.ERROR(f"ERROR: FTP file details failed for {file.file_name}. Reason: {e}"))
-                        return
+                        logger.error(f"FTP file details failed for {file.file_name}. Reason: {e}")
+                        continue
 
                     local_timestamp = None
                     local_file_size = 0
@@ -93,19 +87,20 @@ class Command(BaseCommand):
                         local_file_size = os.path.getsize(local_file)
                         
                     if local_timestamp == remote_timestamp and local_file_size == remote_file_size:
-                        self.stdout.write(f"{current_time} : No changes to file : {file.file_name}")
+                        logger.info(f"No changes to file : {file.file_name}")
                     else:
-                        self.stdout.write(f"{current_time} : Retrieving File : {file.file_name}")
+                        logger.info(f"Retrieving File : {file.file_name}")
                         try:
                             with open(temp_local_file, 'wb') as temp_file:
                                 ftp_session.retrbinary("RETR " + file.file_name, temp_file.write)
                             os.utime(temp_local_file, (remote_timestamp, remote_timestamp))
                         except Exception:
-                            self.stderr.write(self.style.ERROR(f"ERROR: Unable to retrieve file : {file.file_name}"))
-                            return
+                            logger.error(f"Unable to retrieve file : {file.file_name}")
+                            logger.error(traceback.print_exc())
+                            continue
                 else:
-                    self.stderr.write(self.style.ERROR(f"ERROR: file does not exist on remote server : {file.file_name}"))
-                    return
+                    logger.error(f"file does not exist on remote server : {file.file_name}")
+                    continue
 
             ftp_session.close()
 
@@ -120,14 +115,13 @@ class Command(BaseCommand):
                         try:
                             #Checking if the unzipped file can be opened by GDAL
                             gdal.Open(unzipped_file_path)
-                        except Exception as e:
-                            traceback.print_exc()
+                        except Exception:
                             try:
                                 if os.path.exists(unzipped_file_path):
                                     os.remove(unzipped_file_path)
-                                    logger.error("ERROR: file could not be opened, REMOVING FILE: %s", unzipped_file_path)
+                                    logger.error("file could not be opened, REMOVING FILE: %s", unzipped_file_path)
                                 if os.path.exists(temp_file_path):
-                                    logger.error("ERROR: file could not be opened, REMOVING FILE: %s", temp_file_path)
+                                    logger.error("file could not be opened, REMOVING FILE: %s", temp_file_path)
                                     os.remove(temp_file_path)
                             except Exception:
                                 pass
@@ -148,7 +142,7 @@ class Command(BaseCommand):
                         os.remove(unzipped_file_path)
                         
                     except subprocess.CalledProcessError:
-                        self.stderr.write(self.style.ERROR(f"Unzipping failed for {temp_file_name}"))
+                        logger.error(f"Unzipping failed for {temp_file_name}")
                         return
                 
                 elif temp_file_name.endswith('.nc'):
@@ -159,7 +153,7 @@ class Command(BaseCommand):
                         except Exception:
                             try:
                                 if os.path.exists(temp_file_path):
-                                    logger.error("ERROR: file could not be opened, REMOVING FILE: %s", temp_file_path)
+                                    logger.error("file could not be opened, REMOVING FILE: %s", temp_file_path)
                                     os.remove(temp_file_path)
                             except Exception:
                                 pass
@@ -172,7 +166,7 @@ class Command(BaseCommand):
 
                         os.remove(temp_file_path)
                     except Exception:
-                        self.stderr.write(self.style.ERROR(f"File copy/delete failed for {temp_file_name}"))
+                        logger.error(f"File copy/delete failed for {temp_file_name}")
                         return
             
             # This block only runs on successful completion
@@ -183,10 +177,10 @@ class Command(BaseCommand):
             log_entry.duration = duration_seconds
             log_entry.save()
             
-            self.stdout.write(self.style.SUCCESS(f"BOM Sync completed successfully in {duration_seconds} seconds."))
+            logger.info(f"BOM Sync completed successfully in {duration_seconds} seconds.")
 
         except Exception as e:
             # Any unhandled exceptions will be caught here, but no database update will be made
-            self.stderr.write(self.style.ERROR("ERROR running BOM SYNC"))
-            self.stderr.write(self.style.ERROR(f"An error occurred: {str(e)}"))
+            logger.error("ERROR running BOM SYNC")
+            logger.error(f"An error occurred: {str(e)}")
             return

@@ -274,3 +274,57 @@ ENABLE_AUTH2_GROUPS=True
 FILE_UPLOAD_PERMISSIONS = None
 SESSION_ENGINE = 'django.contrib.sessions.backends.file'
 SESSION_FILE_PATH = decouple.config('SESSION_FILE_PATH', default='/app/session_store/')
+
+# Logging Configuration
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "%(levelname)s %(asctime)s %(module)s %(message)s",
+        },
+    },
+    "handlers": {
+        "console": {
+            "level": decouple.config("LOG_CONSOLE_LEVEL", default="INFO"),
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+        "file": {
+            "level": "INFO",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": os.path.join(BASE_DIR, "logs", "sss.log"),
+            "formatter": "verbose",
+            "maxBytes": 5242880,
+        },
+        "file_cron_tasks": {
+            "level": "INFO",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": os.path.join(BASE_DIR, "logs", "cron_tasks.log"),
+            "formatter": "verbose",
+            "maxBytes": 5242880,
+        },
+    },
+    "loggers": {
+        "": {
+            "handlers": ["file", "console"],
+            "level": decouple.config("LOG_CONSOLE_LEVEL", default="WARNING"),
+            "propagate": True,
+        },
+        "django": {
+            "handlers": ["file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "log": {
+            "handlers": ["file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "cron_tasks": {
+            "handlers": ["file_cron_tasks"],
+            "level": "INFO",
+            "propagate": False,
+        },
+       },
+}
