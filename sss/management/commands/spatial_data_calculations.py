@@ -3,7 +3,7 @@ from sss.models import SpatialDataCalculation, ManagementCommandStatus
 import sss.email as email
 from sss import spatial as sss_spatial
 import traceback
-import datetime
+from django.utils import timezone
 import logging
 
 logger = logging.getLogger('cron_tasks')
@@ -14,7 +14,7 @@ class Command(BaseCommand):
     command_name = 'spatial_data_calculations'
 
     def handle(self, *args, **kwargs):
-        start_time = datetime.datetime.now()
+        start_time = timezone.now()
         logger.info("Starting Spatial Data Calculations")
 
         try:
@@ -70,7 +70,7 @@ class Command(BaseCommand):
                         
                     logger.info(f"Calculation Error: {sd.bfrs}")
 
-            end_time = datetime.datetime.now()
+            end_time = timezone.now()
             duration_seconds = int((end_time - start_time).total_seconds())
 
             log_entry.completion_time = end_time

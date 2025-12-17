@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 import requests
 from django import conf
 from django.core.cache import cache
-import datetime
+from django.utils import timezone
 from sss import models
 import traceback
 import logging
@@ -14,8 +14,8 @@ class Command(BaseCommand):
     command_name = 'fetch_and_cache_bfrs_region_data'
 
     def handle(self, *args, **kwargs):
-        start_time = datetime.datetime.now()
-        logger.info(f"Starting BFRS Region Cache Sync")
+        start_time = timezone.now()
+        logger.info("Starting BFRS Region Cache Sync")
 
         try:
             log_entry, created = models.ManagementCommandStatus.objects.get_or_create(
@@ -36,7 +36,7 @@ class Command(BaseCommand):
                 cache.delete('bfrs_region_cache_data')
                 cache.set('bfrs_region_cache_data', data, 86400)
 
-                end_time = datetime.datetime.now()
+                end_time = timezone.now()
                 duration_seconds = int((end_time - start_time).total_seconds())
 
                 log_entry.completion_time = end_time

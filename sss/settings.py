@@ -322,7 +322,7 @@ LOGGING = {
             "propagate": False,
         },
         "cron_tasks": {
-            "handlers": ["file_cron_tasks"],
+            "handlers": ["file_cron_tasks", "console"],
             "level": "INFO",
             "propagate": False,
         },

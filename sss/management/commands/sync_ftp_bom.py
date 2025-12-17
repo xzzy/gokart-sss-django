@@ -7,6 +7,7 @@ import ftplib
 import os
 import time
 import datetime
+from django.utils import timezone
 import shutil
 import traceback
 from sss import models
@@ -20,8 +21,8 @@ class Command(BaseCommand):
     command_name = 'sync_ftp_bom'
 
     def handle(self, *args, **kwargs):
-        start_time = datetime.datetime.now()
-        self.stdout.write(f"{start_time} : Starting BOM Sync")
+        start_time = timezone.now()
+        logger.info(f"Starting BOM Sync")
 
         # Get or create the single log entry for this command
         try:
@@ -61,7 +62,6 @@ class Command(BaseCommand):
                     os.remove(file_path)
 
             for file in bsl:
-                current_time = datetime.datetime.now()
                 local_file = os.path.join(BOM_HOME_LOCAL, bom_ftp_directory, file.file_name)
                 temp_local_file = os.path.join(temp_dir, file.file_name)
                 
@@ -96,7 +96,7 @@ class Command(BaseCommand):
                             os.utime(temp_local_file, (remote_timestamp, remote_timestamp))
                         except Exception:
                             logger.error(f"Unable to retrieve file : {file.file_name}")
-                            logger.error(traceback.print_exc())
+                            logger.error(traceback.format_exc())
                             continue
                 else:
                     logger.error(f"file does not exist on remote server : {file.file_name}")
@@ -170,7 +170,7 @@ class Command(BaseCommand):
                         return
             
             # This block only runs on successful completion
-            end_time = datetime.datetime.now()
+            end_time = timezone.now()
             duration_seconds = int((end_time - start_time).total_seconds())
 
             log_entry.completion_time = end_time
