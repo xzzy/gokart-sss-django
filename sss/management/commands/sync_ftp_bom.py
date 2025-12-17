@@ -48,6 +48,14 @@ class Command(BaseCommand):
                 return
 
             bsl = models.BomSyncList.objects.filter(active=True)
+
+            # Clear out temp directory
+            files = os.listdir(temp_dir)
+            for f in files:
+                file_path = os.path.join(temp_dir, f)
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
+
             for file in bsl:
                 current_time = datetime.datetime.now()
                 local_file = os.path.join(BOM_HOME_LOCAL, bom_ftp_directory, file.file_name)
@@ -115,8 +123,6 @@ class Command(BaseCommand):
                                 pass
                             continue
                         
-                        shutil.copyfile(temp_file_path, local_file_path)
-                        shutil.copyfile(unzipped_file_path, os.path.join(BOM_HOME_LOCAL, bom_ftp_directory, os.path.basename(unzipped_file_path)))
                         # Atomic update for .nc.gz file
                         tmp_local_file_path = local_file_path + ".tmp"
                         shutil.copy2(temp_file_path, tmp_local_file_path)
@@ -149,7 +155,6 @@ class Command(BaseCommand):
                                 pass
                             continue
 
-                        shutil.copyfile(temp_file_path, local_file_path)
                         # Atomic update for .nc file
                         tmp_local_file_path = local_file_path + ".tmp"
                         shutil.copy2(temp_file_path, tmp_local_file_path)
