@@ -52,7 +52,6 @@ class Command(BaseCommand):
             # Clear out temp directory
             files = os.listdir(temp_dir)
             for f in files:
-                print(f)
                 file_path = os.path.join(temp_dir, f)
                 if os.path.isfile(file_path):
                     os.remove(file_path)
