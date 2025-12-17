@@ -4,6 +4,9 @@ import sss.email as email
 from sss import spatial as sss_spatial
 import traceback
 import datetime
+import logging
+
+logger = logging.getLogger('cron_tasks')
 
 
 class Command(BaseCommand):
@@ -12,14 +15,14 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         start_time = datetime.datetime.now()
-        self.stdout.write(f"{start_time} : Starting Spatial Data Calculations")
+        logger.info("Starting Spatial Data Calculations")
 
         try:
             log_entry, created = ManagementCommandStatus.objects.get_or_create(
                 command=self.command_name
             )
         except Exception as e:
-            self.stderr.write(self.style.ERROR(f"Failed to access database for command status: {e}"))
+            logger.error(f"Failed to access database for command status: {e}")
             return
 
         try:
@@ -29,7 +32,7 @@ class Command(BaseCommand):
             
             for sd in imported_spatial_data:
                 try:
-                    self.stdout.write(f"Processing: {sd.bfrs}")
+                    logger.info(f"Processing: {sd.bfrs}")
                     
                     # 1. Start Calculation
                     sd.calculation_status = SpatialDataCalculation.CALCULATION_STATUS[1][0]
@@ -46,9 +49,9 @@ class Command(BaseCommand):
                         sd.email_sent = True
                         sd.save()
                     except Exception as e:
-                        self.stdout.write(f"Error in Sending Success email for {sd.bfrs}: {e}")
+                        logger.info(f"Error in Sending Success email for {sd.bfrs}: {e}")
                         
-                    self.stdout.write(f"Calculation Completed: {sd.bfrs}")
+                    logger.info(f"Calculation Completed: {sd.bfrs}")
                     
                 except Exception:
                     # Individual SpatialDataCalculation processing failed
@@ -62,10 +65,10 @@ class Command(BaseCommand):
                         sd.email_sent = True
                         sd.save()
                     except Exception as e:
-                        self.stdout.write(f"Error in Sending Failure email for {sd.bfrs}: {e}")
-                        self.stderr.write(self.style.ERROR(traceback.format_exc()))
+                        logger.error(f"Error in Sending Failure email for {sd.bfrs}: {e}")
+                        logger.error(traceback.format_exc())
                         
-                    self.stdout.write(f"Calculation Error: {sd.bfrs}")
+                    logger.info(f"Calculation Error: {sd.bfrs}")
 
             end_time = datetime.datetime.now()
             duration_seconds = int((end_time - start_time).total_seconds())
@@ -74,8 +77,8 @@ class Command(BaseCommand):
             log_entry.duration = duration_seconds
             log_entry.save()
             
-            self.stdout.write(self.style.SUCCESS(f"Spatial Data Calculations completed successfully in {duration_seconds} seconds."))
+            logger.info(f"Spatial Data Calculations completed successfully in {duration_seconds} seconds.")
 
         except Exception as e:
-            self.stderr.write(self.style.ERROR(f"FATAL ERROR running {self.command_name}: {e}"))
-            self.stderr.write(self.style.ERROR(traceback.format_exc()))
+            logger.error(f"FATAL ERROR running {self.command_name}: {e}")
+            logger.error(traceback.format_exc())

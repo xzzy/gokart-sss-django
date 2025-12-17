@@ -207,7 +207,7 @@ RESOURCE_TRACKING_SERVICE_URL=decouple.config("RESOURCE_TRACKING_SERVICE_URL", d
 SRSS_URL=decouple.config("SRSS_URL", default="https://srss-ows-14.landgate.wa.gov.au")
 FIREWATCH_SERVICE=decouple.config("FIREWATCH_SERVICE", default="/geoproxy/firewatch/service/")
 FIREWATCH_HTTPS_VERIFY=decouple.config("FIREWATCH_HTTPS_VERIFY", default=False)
-BFRS_SERVICE_URL=decouple.config("BFRS_SERVICE_URL", default="https://bfrs-uat.dbca.wa.gov.au")
+BFRS_SERVICE_URL="http://localhost:9191"
 DBCA_STATIC_URL=decouple.config("DBCA_STATIC_URL", default="https://static.dbca.wa.gov.au")
 MAPBOX_URL=decouple.config("MAPBOX_URL", default="https://api.mapbox.com")
 OVERVIEW_LAYER=decouple.config("OVERVIEW_LAYER", default="dbca:mapbox-streets-satellite")
@@ -236,7 +236,7 @@ EMAIL_BACKEND = "wagov_utils.components.utils.email_backend.EmailBackend"
 DEFAULT_FROM_EMAIL = decouple.config("DEFAULT_FROM_EMAIL", default="")
 EMAIL_FROM = DEFAULT_FROM_EMAIL
 EMAIL_HOST = decouple.config("EMAIL_HOST", default="")
-SSS_FILE_URL = decouple.config("SSS_FILE_URL", default="https://sss-maps-uat.dbca.wa.gov.au")
+SSS_FILE_URL = "http://localhost:9211"
 CALCULATE_AREA_IN_SEPARATE_PROCESS  = decouple.config("CALCULATE_AREA_IN_SEPARATE_PROCESS", default=False, cast=bool)
 DATA_UPLOAD_MAX_MEMORY_SIZE = decouple.config("DATA_UPLOAD_MAX_MEMORY_SIZE", default=51200000)
 EXPORT_CALCULATE_AREA_FILES_4_DEBUG = decouple.config("EXPORT_CALCULATE_AREA_FILES_4_DEBUG", default="true")
@@ -273,4 +273,66 @@ ENV_TYPE=decouple.config("ENV_TYPE", default="DEV")
 ENABLE_AUTH2_GROUPS=True
 FILE_UPLOAD_PERMISSIONS = None
 SESSION_ENGINE = 'django.contrib.sessions.backends.file'
-SESSION_FILE_PATH = decouple.config('SESSION_FILE_PATH', default='/app/session_store/')
+
+SESSION_COOKIE_NAME = "appA_sessionid"
+CSRF_COOKIE_NAME = "appA_csrftoken"
+LANGUAGE_COOKIE_NAME = "appA_language"
+MESSAGES_COOKIE_NAME = "appA_messages"
+
+# If you use custom auth cookies (e.g., JWT in a cookie)
+AUTH_COOKIE = "appA_auth"
+print("this is the base")
+print(BASE_DIR)
+#Logging Configuration
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "%(levelname)s %(asctime)s %(module)s %(message)s",
+        },
+    },
+    "handlers": {
+        "console": {
+            "level": decouple.config("LOG_CONSOLE_LEVEL", default="INFO"),
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+        "file": {
+            "level": "INFO",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": os.path.join(BASE_DIR, "logs", "sss.log"),
+            "formatter": "verbose",
+            "maxBytes": 5242880,
+        },
+        "file_cron_tasks": {
+            "level": "INFO",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": os.path.join(BASE_DIR, "logs", "cron_tasks.log"),
+            "formatter": "verbose",
+            "maxBytes": 5242880,
+        },
+    },
+    "loggers": {
+        "": {
+            "handlers": ["file", "console"],
+            "level": decouple.config("LOG_CONSOLE_LEVEL", default="WARNING"),
+            "propagate": True,
+        },
+        "django": {
+            "handlers": ["file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "log": {
+            "handlers": ["file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "cron_tasks": {
+            "handlers": ["file_cron_tasks"],
+            "level": "INFO",
+            "propagate": False,
+        },
+       },
+}

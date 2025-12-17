@@ -9,8 +9,9 @@ import datetime
 import json
 import hashlib
 from django.utils import timezone
+import logging
 
-
+logger = logging.getLogger('cron_tasks')
 
 class Command(BaseCommand):
     help = 'Sync GIS catalogue data from CSW'
@@ -69,5 +70,5 @@ class Command(BaseCommand):
 #            print (data)
 
         except Exception as e:
-            self.stderr.write(self.style.ERROR(f"An error occurred: {str(e)}"))
+            logger.error(f"An error occurred: {str(e)}")
             print (e)

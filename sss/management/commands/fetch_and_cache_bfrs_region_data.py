@@ -5,6 +5,9 @@ from django.core.cache import cache
 import datetime
 from sss import models
 import traceback
+import logging
+
+logger = logging.getLogger('cron_tasks')
 
 class Command(BaseCommand):
     help = 'Fetch and cache bfrs region data'
@@ -12,14 +15,14 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         start_time = datetime.datetime.now()
-        self.stdout.write(f"{start_time} : Starting BFRS Region Cache Sync")
+        logger.info(f"Starting BFRS Region Cache Sync")
 
         try:
             log_entry, created = models.ManagementCommandStatus.objects.get_or_create(
                 command=self.command_name
             )
         except Exception as e:
-            self.stderr.write(self.style.ERROR(f"Failed to access database for command status: {e}"))
+            logger.error(f"Failed to access database for command status: {e}")
             return
 
         try:
@@ -40,14 +43,14 @@ class Command(BaseCommand):
                 log_entry.duration = duration_seconds
                 log_entry.save()
                 
-                self.stdout.write(self.style.SUCCESS(f"BFRS Region cache updated successfully in {duration_seconds} seconds."))
+                logger.info(f"BFRS Region cache updated successfully in {duration_seconds} seconds.")
 
             else:
                 error_msg = f"BFRS Region API returned status code {response.status_code}. Response: {data[:200]}"
-                self.stderr.write(self.style.ERROR(error_msg))
+                logger.error(error_msg)
                 return
 
         except Exception as e:
-            self.stderr.write(self.style.ERROR(f"FATAL ERROR running {self.command_name}: {e}"))
-            self.stderr.write(self.style.ERROR(traceback.format_exc()))
+            logger.error(f"FATAL ERROR running {self.command_name}: {e}")
+            logger.error(traceback.format_exc())
             return
