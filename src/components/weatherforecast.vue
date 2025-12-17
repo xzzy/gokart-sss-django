@@ -36,7 +36,7 @@
         }
       },
       tools:function() {
-        if(this.whoami['can_access']){
+        if(this.whoami['is_internal_dbca']){
             return this.forecastTools
         }      
       }
