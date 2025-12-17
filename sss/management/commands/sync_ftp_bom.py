@@ -10,6 +10,16 @@ import datetime
 import shutil
 import traceback
 from sss import models
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(message)s"
+)
+
 
 class Command(BaseCommand):
     help = 'Sync BOM Data files to local storage'
@@ -115,9 +125,9 @@ class Command(BaseCommand):
                             try:
                                 if os.path.exists(unzipped_file_path):
                                     os.remove(unzipped_file_path)
-                                    self.stderr.write(self.style.ERROR(f"ERROR: file could not be opened, REMOVING FILE : {unzipped_file_path}"))
+                                    logger.error("ERROR: file could not be opened, REMOVING FILE: %s", unzipped_file_path)
                                 if os.path.exists(temp_file_path):
-                                    self.stderr.write(self.style.ERROR(f"ERROR: file could not be opened, REMOVING FILE : {temp_file_path}"))
+                                    logger.error("ERROR: file could not be opened, REMOVING FILE: %s", temp_file_path)
                                     os.remove(temp_file_path)
                             except Exception:
                                 pass
@@ -149,7 +159,7 @@ class Command(BaseCommand):
                         except Exception:
                             try:
                                 if os.path.exists(temp_file_path):
-                                    self.stderr.write(self.style.ERROR(f"ERROR: file could not be opened, REMOVING FILE : {temp_file_path}"))
+                                    logger.error("ERROR: file could not be opened, REMOVING FILE: %s", temp_file_path)
                                     os.remove(temp_file_path)
                             except Exception:
                                 pass
