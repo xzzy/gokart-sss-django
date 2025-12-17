@@ -73,6 +73,7 @@ class Command(BaseCommand):
                         csw_obj.updated = timezone.now() 
                         cs_csw.removed_from_csw=True
                         csw_obj.save()
+                cs_csw.save()
 
             # This block only runs on successful completion
             end_time = timezone.now()
