@@ -109,12 +109,15 @@ def set_cache(cache_folder, unique_key, data, cache_expiry, meta_data):
     folder_path=SPATIAL_TILE_CACHE_DIR+"/"+cache_folder+"/"+first_dir+"/"+second_dir+"/"
     
     file_path=hashkey+".txt"
-    if meta_data["content_type"] == "image/png":
+    if "image/png" in meta_data["content_type"]:
         file_path=hashkey+".png"
-    if meta_data["content_type"] == "image/jpeg":
+    if "image/jpeg" in meta_data["content_type"]:
         file_path=hashkey+".jpg"
+    if "application/json" in meta_data["content_type"]:
+        file_path=hashkey+".json"
+        
 
-    meta_data_file_path = hashkey+".json"
+    meta_data_file_path = hashkey+"-meta.json"
     os.makedirs(folder_path, exist_ok=True)
     write_data_to_binary_file(folder_path+file_path,data)
     write_meta_data(folder_path+meta_data_file_path, meta_data)
@@ -134,10 +137,13 @@ def get_cache(cache_folder, unique_key):
     
 
     if meta_data:
-        if meta_data["content_type"] == "image/png":
+        if "image/png" in meta_data["content_type"]:
             file_path=hashkey+".png"
-        if meta_data["content_type"] == "image/jpeg":
-            file_path=hashkey+".jpg"        
+        if "image/jpeg" in meta_data["content_type"]:
+            file_path=hashkey+".jpg"
+        if "application/json" in meta_data["content_type"]:
+            file_path=hashkey+".json"
+
         if "current_date_time" in meta_data:            
             dt = datetime.strptime(meta_data["current_date_time"], "%Y-%m-%d %H:%M:%S")
             epoch_time = int(dt.timestamp())
@@ -170,7 +176,7 @@ def get_meta_data(cache_folder, unique_key):
     first_dir = hashkey[0:1]
     second_dir = hashkey[0:2]
     folder_path=SPATIAL_TILE_CACHE_DIR+"/"+cache_folder+"/"+first_dir+"/"+second_dir+"/"
-    file_path=hashkey+".json"
+    file_path=hashkey+"-meta.json"
     if os.path.exists(folder_path+file_path):
         
         return read_json_file(folder_path+file_path)        
@@ -186,3 +192,9 @@ def file_iterator(file_name, chunk_size=8192):
             if not chunk:
                 break
             yield chunk
+
+def file_iterator_plain(file_name):
+    with open(file_name, "r", encoding="utf-8") as f:
+        for line in f:
+            yield line
+     

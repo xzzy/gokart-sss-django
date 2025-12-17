@@ -53,7 +53,7 @@ if len(GIT_COMMIT_HASH) == 0:
     if len(GIT_COMMIT_HASH) == 0:
        print ("ERROR: No git hash provided")
 
-VERSION_NO = "2.00"
+VERSION_NO = "2.01"
 
 # Application definition
 
@@ -252,7 +252,7 @@ BOM_SYNC_FOLDER = decouple.config("BOM_FTP_DIRECTORY", default="/tmp/sss_bom_syn
 TEMP_DIR = decouple.config("TEMP_DIR", default="tmp")
 
 PERTH_TIMEZONE = datetime.datetime.now(pytz.timezone('Australia/Perth')).tzinfo
-SPATIAL_TILE_CACHE_DIR = decouple.config("SPATIAL_TILE_CACHE_DIR", default="./spatial_title_cache")
+SPATIAL_TILE_CACHE_DIR = decouple.config("SPATIAL_TILE_CACHE_DIR", default="./spatial_tile_cache")
 
 # Django Timezone
 TIME_ZONE = 'Australia/Perth'
@@ -264,7 +264,7 @@ CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': os.path.join(BASE_DIR, 'sss', 'cache'),
-        "OPTIONS": {"MAX_ENTRIES": 500000,
+        "OPTIONS": {"MAX_ENTRIES": 50000,
                    'CULL_FREQUENCY': 3
                    },
     }

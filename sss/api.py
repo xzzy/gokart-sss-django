@@ -148,6 +148,9 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
     get_layers_lc = request.GET.get("layers", None)
     get_layer_lc = request.GET.get("layer", None)   
     get_layers_uc = request.GET.get("LAYERS", None) 
+    get_typename_lc = request.GET.get("typename", None) 
+
+
 
     spatial_tile_folder = "other"
     if get_layers_lc:
@@ -156,7 +159,8 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
         spatial_tile_folder=get_layer_lc        
     if get_layers_uc:
         spatial_tile_folder=get_layers_uc
-
+    if get_typename_lc:
+        spatial_tile_folder=get_typename_lc
     
     query_string_remote_url=remoteurl+'?'+queryString
 
@@ -203,17 +207,17 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
         base64_json = spatial_tile_cache.get_meta_data(spatial_tile_folder, query_string_remote_url)
         BROWSER_CACHE_EXPIRY = base64_json.get("browser_cache_expiry", BROWSER_CACHE_EXPIRY)
     
-    if proxy_cache[-3:] == 'png' or proxy_cache[-3:] == 'jpg' :
+    if proxy_cache[-3:] == 'png' or proxy_cache[-3:] == 'jpg':
         http_response =   StreamingHttpResponse(spatial_tile_cache.file_iterator(proxy_cache), content_type=base64_json['content_type'], status=base64_json['status_code'])        
     else:
-        http_response =   HttpResponse(spatial_tile_cache.read_data_file(proxy_cache), content_type=base64_json['content_type'], status=base64_json['status_code'])        
+        http_response =   StreamingHttpResponse(spatial_tile_cache.file_iterator_plain(proxy_cache), content_type=base64_json['content_type'], status=base64_json['status_code'])        
 
     http_response.headers['Django-Cache-Expiry'] = str(base64_json['cache_expiry']) + " seconds"
     http_response.headers['Django-Cache-Status'] = CACHE_STATUS
     http_response.headers['Django-Cache-File'] = proxy_cache
     if "current_date_time" in base64_json:
         http_response.headers['Django-Cache-Datetime'] = base64_json["current_date_time"]
-    http_response.headers['Cache-Control'] = 'public, max-age=' + str(BROWSER_CACHE_EXPIRY)+', must-revalidate'
+    http_response.headers['Cache-Control'] = 'private, max-age=' + str(BROWSER_CACHE_EXPIRY)+', must-revalidate'
     return http_response
 
 
