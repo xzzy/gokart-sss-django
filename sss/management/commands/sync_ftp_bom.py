@@ -129,16 +129,9 @@ class Command(BaseCommand):
                                 pass
                             continue
                         
-                        # Atomic update for .nc.gz file
-                        tmp_local_file_path = local_file_path + ".tmp"
-                        shutil.copy2(temp_file_path, tmp_local_file_path)
-                        os.rename(tmp_local_file_path, local_file_path)
-
-                        # Atomic update for .nc file
-                        dest_path = os.path.join(BOM_HOME_LOCAL, bom_ftp_directory, os.path.basename(unzipped_file_path))
-                        tmp_dest_path = dest_path + ".tmp"
-                        shutil.copy2(unzipped_file_path, tmp_dest_path)
-                        os.rename(tmp_dest_path, dest_path)
+                        
+                        shutil.copyfile(temp_file_path, local_file_path)
+                        shutil.copyfile(unzipped_file_path, os.path.join(BOM_HOME_LOCAL, bom_ftp_directory, os.path.basename(unzipped_file_path)))
 
                         os.remove(temp_file_path)
                         os.remove(unzipped_file_path)
@@ -163,12 +156,7 @@ class Command(BaseCommand):
                                 pass
                             continue
 
-                        # Atomic update for .nc file
-                        tmp_local_file_path = local_file_path + ".tmp"
-                        shutil.copy2(temp_file_path, tmp_local_file_path)
-                        os.rename(tmp_local_file_path, local_file_path)
-
-                        os.remove(temp_file_path)
+                        shutil.copyfile(temp_file_path, local_file_path)
                     except Exception:
                         logger.error(f"File copy/delete failed for {temp_file_name}")
                         return
