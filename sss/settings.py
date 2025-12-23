@@ -275,6 +275,12 @@ FILE_UPLOAD_PERMISSIONS = None
 SESSION_ENGINE = 'django.contrib.sessions.backends.file'
 SESSION_FILE_PATH = decouple.config('SESSION_FILE_PATH', default='/app/session_store/')
 
+PATH_TO_LOGS = os.path.join(BASE_DIR, 'logs')
+if not os.path.exists(PATH_TO_LOGS):
+    os.mkdir(PATH_TO_LOGS)
+LOG_FILE_NAME = 'kaartdijin_boodja.log'
+LOG_FILE_PATH = os.path.join(BASE_DIR, 'logs', LOG_FILE_NAME)
+
 # Logging Configuration
 LOGGING = {
     "version": 1,
