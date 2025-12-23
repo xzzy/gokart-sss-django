@@ -112,20 +112,20 @@ class Command(BaseCommand):
                         subprocess.check_call(["gzip", "-k", "-f", "-q", "-d", temp_file_path])
                         unzipped_file_path = temp_file_path[:-3]
 
-                        try:
-                            #Checking if the unzipped file can be opened by GDAL
-                            gdal.Open(unzipped_file_path)
-                        except Exception:
-                            try:
-                                if os.path.exists(unzipped_file_path):
-                                    os.remove(unzipped_file_path)
-                                    logger.error("file could not be opened, REMOVING FILE: %s", unzipped_file_path)
-                                if os.path.exists(temp_file_path):
-                                    logger.error("file could not be opened, REMOVING FILE: %s", temp_file_path)
-                                    os.remove(temp_file_path)
-                            except Exception:
-                                pass
-                            continue
+                        # try:
+                        #     #Checking if the unzipped file can be opened by GDAL
+                        #     gdal.Open(unzipped_file_path)
+                        # except Exception:
+                        #     try:
+                        #         if os.path.exists(unzipped_file_path):
+                        #             os.remove(unzipped_file_path)
+                        #             logger.error("file could not be opened, REMOVING FILE: %s", unzipped_file_path)
+                        #         if os.path.exists(temp_file_path):
+                        #             logger.error("file could not be opened, REMOVING FILE: %s", temp_file_path)
+                        #             os.remove(temp_file_path)
+                        #     except Exception:
+                        #         pass
+                        #     continue
                         
                         # Atomic update for .nc.gz file
                         tmp_local_file_path = local_file_path + ".tmp"
@@ -147,17 +147,17 @@ class Command(BaseCommand):
                 
                 elif temp_file_name.endswith('.nc'):
                     try:
-                        try:
-                            #Checking if the file can be opened by GDAL
-                            gdal.Open(temp_file_path)
-                        except Exception:
-                            try:
-                                if os.path.exists(temp_file_path):
-                                    logger.error("file could not be opened, REMOVING FILE: %s", temp_file_path)
-                                    os.remove(temp_file_path)
-                            except Exception:
-                                pass
-                            continue
+                        # try:
+                        #     #Checking if the file can be opened by GDAL
+                        #     gdal.Open(temp_file_path)
+                        # except Exception:
+                        #     try:
+                        #         if os.path.exists(temp_file_path):
+                        #             logger.error("file could not be opened, REMOVING FILE: %s", temp_file_path)
+                        #             os.remove(temp_file_path)
+                        #     except Exception:
+                        #         pass
+                        #     continue
 
                         # Atomic update for .nc file
                         tmp_local_file_path = local_file_path + ".tmp"
