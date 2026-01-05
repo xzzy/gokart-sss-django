@@ -208,6 +208,10 @@ def loadDatasource(datasource):
         if len(datasource["bands"]) > ds.RasterCount:
             del datasource["bands"][ds.RasterCount:]
 
+        if datasource["file"]:
+            epoch_sync_time = sync_time(datasource["file"])
+            sync_date_time = convertEpochTimeToDatetime(epoch_sync_time)
+            datasource["metadata"]["sync_time"] = sync_date_time
         #load band metadata
         index = 1
         while index <= ds.RasterCount:
@@ -498,7 +502,17 @@ def getFireDangerRating(band,data):
     else:
         return fdr_index["name"]
 
-   
+
+
+def sync_time(path):
+    try:
+        # ds is the datasource dict; `file_key` usually is "file"
+        mtime = int(os.path.getmtime(path))  # seconds since epoch (float)
+        return str(mtime)               # normalize to int seconds
+    except Exception:
+        return None
+
+
 #raster_datasources={"bom":{}}
 raster_datasources={
     "bom":{
@@ -2522,6 +2536,9 @@ def weatheroutlook(request, fmt):
                 if "context" in datasource and datasource["context"].get("refresh_time"):
                     if "latest_refresh_time" not in  requestData or requestData["latest_refresh_time"] < datasource["context"]["refresh_time"]:
                         requestData["latest_refresh_time"] = datasource["context"]["refresh_time"]
+                if "context" in datasource and datasource["context"].get("sync_time"):
+                    if "latest_sync_time" not in  requestData or requestData["latest_sync_time"] < datasource["context"]["sync_time"]:
+                        requestData["latest_sync_time"] = datasource["context"]["sync_time"]
 
             for datasource in outlook.get("times_data",[]):
                 if datasource.get("group"):
@@ -2535,6 +2552,9 @@ def weatheroutlook(request, fmt):
                         if "context" in ds and ds["context"].get("refresh_time"):
                             if "latest_refresh_time" not in  requestData or requestData["latest_refresh_time"] < ds["context"]["refresh_time"]:
                                 requestData["latest_refresh_time"] = ds["context"]["refresh_time"]
+                        if "context" in ds and ds["context"].get("sync_time"):
+                            if "latest_sync_time" not in  requestData or requestData["latest_sync_time"] < ds["context"]["sync_time"]:
+                                requestData["latest_sync_time"] = ds["context"]["sync_time"]
                 else:
                     datasource.update(getRasterData({
                         "datasource":datasource,
@@ -2545,6 +2565,9 @@ def weatheroutlook(request, fmt):
                     if "context" in datasource and datasource["context"].get("refresh_time"):
                         if "latest_refresh_time" not in  requestData or requestData["latest_refresh_time"] < datasource["context"]["refresh_time"]:
                             requestData["latest_refresh_time"] = datasource["context"]["refresh_time"]
+                    if "context" in datasource and datasource["context"].get("sync_time"):
+                        if "latest_sync_time" not in  requestData or requestData["latest_sync_time"] < datasource["context"]["sync_time"]:
+                            requestData["latest_sync_time"] = datasource["context"]["sync_time"]
     
         result = requestData
         result["issued_time"] = datetime.datetime.now(settings.PERTH_TIMEZONE)
