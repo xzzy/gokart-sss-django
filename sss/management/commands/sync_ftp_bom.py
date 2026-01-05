@@ -114,7 +114,8 @@ class Command(BaseCommand):
 
                         try:
                             #Checking if the unzipped file can be opened by GDAL
-                            gdal.Open(unzipped_file_path)
+                            file = gdal.Open(unzipped_file_path)
+                            file.GetGeoTransform()
                         except Exception:
                             logger.error(traceback.format_exc())
                             try:
@@ -136,8 +137,9 @@ class Command(BaseCommand):
                         os.remove(temp_file_path)
                         os.remove(unzipped_file_path)
                         
-                    except subprocess.CalledProcessError:
+                    except Exception as e:
                         logger.error(f"Unzipping failed for {temp_file_name}")
+                        logger.error(f"{{e}}")
                         return
                 
                 elif temp_file_name.endswith('.nc'):
