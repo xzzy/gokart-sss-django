@@ -2645,50 +2645,50 @@
                         }
                     }
                 },
-                postenable:function(enable) {
-                    if (enable) {
-                        var overviewMapControl = this.controls
-                        var extentbox = $(".ol-custom-overviewmap").find(".ol-overlay-container")
-                        var overviewMap = $(".ol-custom-overviewmap").find(".ol-overviewmap-map")
-                        if (extentbox.length) {
-                            this._interact = interact(extentbox.get(0),{})
-                            .draggable({
-                                intertia:true,
-                                restrict:{
-                                    restriction:overviewMap.get(0),
-                                    endOnly:true,
-                                    elementRect:{top:0,left:0,bottom:1,right:1}
-                                },
-                                autoScroll:true,
-                                onmove: function(event){
-                                    // keep the dragged position in the data-x/data-y attributes
-                                    //console.log(extentbox.get(0).style.left + "\t" + extentbox.get(0).style.right + "\t" + extentbox.get(0).style.top + "\t" + extentbox.get(0).style.bottom)
-                                    //console.log("x0 = " + event.x0 +",y0= " + event.y0 + ",clientX0=" + event.clientX0 + ",clientY0=" + event.clientY0 + ",dx=" + event.dx + ",dy=" + event.dy)
-                                    if (extentbox.get(0).style.left) {
-                                        extentbox.get(0).style.left = (parseInt(extentbox.get(0).style.left) + event.dx) + "px"
-                                    }
-                                    if (extentbox.get(0).style.right) {
-                                        extentbox.get(0).style.right = (parseInt(extentbox.get(0).style.right) + event.dx) + "px"
-                                    }
-                                    if (extentbox.get(0).style.bottom) {
-                                        extentbox.get(0).style.bottom = (parseInt(extentbox.get(0).style.bottom) - event.dy) + "px"
-                                    }
-                                    if (extentbox.get(0).style.top) {
-                                        extentbox.get(0).style.top = (parseInt(extentbox.get(0).style.top) - event.dy) + "px"
-                                    }
-                                },
-                                onend:function(event) {
-                                    var centralPosition = [
-                                        (extentbox.get(0).style.left)?(parseInt(extentbox.get(0).style.left) + extentbox.width() / 2):(parseInt(extentbox.get(0).style.right) - extentbox.width() / 2) ,
-                                        (extentbox.get(0).style.bottom)?(overviewMap.height() - parseInt(extentbox.get(0).style.bottom) - extentbox.height() / 2):(overviewMap.height() - parseInt(extentbox.get(0).style.top) + extentbox.height() / 2)
-                                    ]
-                                    //console.log(extentbox.get(0).style.left + "\t" + extentbox.get(0).style.bottom + "\t" + extentbox.width() + "\t" + extentbox.height() + "\t" + centralPosition + "\t" + overviewMapControl.getOverviewMap().getCoordinateFromPixel(centralPosition))
-                                    overviewMapControl.getMap().getView().setCenter(overviewMapControl.getOverviewMap().getCoordinateFromPixel(centralPosition))
-                                }
-                            })
-                        }
-                    }
-                }
+                // postenable:function(enable) {
+                //     if (enable) {
+                //         var overviewMapControl = this.controls
+                //         var extentbox = $(".ol-custom-overviewmap").find(".ol-overlay-container")
+                //         var overviewMap = $(".ol-custom-overviewmap").find(".ol-overviewmap-map")
+                //         if (extentbox.length) {
+                //             this._interact = interact(extentbox.get(0),{})
+                //             .draggable({
+                //                 intertia:true,
+                //                 restrict:{
+                //                     restriction:overviewMap.get(0),
+                //                     endOnly:true,
+                //                     elementRect:{top:0,left:0,bottom:1,right:1}
+                //                 },
+                //                 autoScroll:true,
+                //                 onmove: function(event){
+                //                     // keep the dragged position in the data-x/data-y attributes
+                //                     //console.log(extentbox.get(0).style.left + "\t" + extentbox.get(0).style.right + "\t" + extentbox.get(0).style.top + "\t" + extentbox.get(0).style.bottom)
+                //                     //console.log("x0 = " + event.x0 +",y0= " + event.y0 + ",clientX0=" + event.clientX0 + ",clientY0=" + event.clientY0 + ",dx=" + event.dx + ",dy=" + event.dy)
+                //                     if (extentbox.get(0).style.left) {
+                //                         extentbox.get(0).style.left = (parseInt(extentbox.get(0).style.left) + event.dx) + "px"
+                //                     }
+                //                     if (extentbox.get(0).style.right) {
+                //                         extentbox.get(0).style.right = (parseInt(extentbox.get(0).style.right) + event.dx) + "px"
+                //                     }
+                //                     if (extentbox.get(0).style.bottom) {
+                //                         extentbox.get(0).style.bottom = (parseInt(extentbox.get(0).style.bottom) - event.dy) + "px"
+                //                     }
+                //                     if (extentbox.get(0).style.top) {
+                //                         extentbox.get(0).style.top = (parseInt(extentbox.get(0).style.top) - event.dy) + "px"
+                //                     }
+                //                 },
+                //                 onend:function(event) {
+                //                     var centralPosition = [
+                //                         (extentbox.get(0).style.left)?(parseInt(extentbox.get(0).style.left) + extentbox.width() / 2):(parseInt(extentbox.get(0).style.right) - extentbox.width() / 2) ,
+                //                         (extentbox.get(0).style.bottom)?(overviewMap.height() - parseInt(extentbox.get(0).style.bottom) - extentbox.height() / 2):(overviewMap.height() - parseInt(extentbox.get(0).style.top) + extentbox.height() / 2)
+                //                     ]
+                //                     //console.log(extentbox.get(0).style.left + "\t" + extentbox.get(0).style.bottom + "\t" + extentbox.width() + "\t" + extentbox.height() + "\t" + centralPosition + "\t" + overviewMapControl.getOverviewMap().getCoordinateFromPixel(centralPosition))
+                //                     overviewMapControl.getMap().getView().setCenter(overviewMapControl.getOverviewMap().getCoordinateFromPixel(centralPosition))
+                //                 }
+                //             })
+                //         }
+                //     }
+                // }
             },
             "scaleLine": {
                 enabled:false,

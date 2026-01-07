@@ -5,17 +5,27 @@ from django.core.cache import cache
 from sss import models
 import os, errno
 import time
-import datetime
+from django.utils import timezone
 import json
 import hashlib
 from django.utils import timezone
+import logging
 
-
+logger = logging.getLogger('cron_tasks')
 
 class Command(BaseCommand):
     help = 'Sync GIS catalogue data from CSW'
+    command_name = 'sync_catalogue_from_csw'
 
     def handle(self, *args, **kwargs):
+        start_time = timezone.now()
+        try:
+            log_entry, created = models.ManagementCommandStatus.objects.get_or_create(
+                command=self.command_name
+            )
+        except Exception as e:
+            logger.error(f"Failed to access database for command status: {e}")
+            return
         try:
             catalogue_url = conf.settings.CATALOGUE_URL + "/catalogue/api/records/?format=json&application__name=sss"
             auth_request = requests.auth.HTTPBasicAuth(conf.settings.AUTH2_BASIC_AUTH_USER, conf.settings.AUTH2_BASIC_AUTH_PASSWORD)
@@ -23,8 +33,8 @@ class Command(BaseCommand):
             catalogue_data = response.json()
             catalogue_ids = []
             for cd in catalogue_data:
-                print (cd['id'])
-                print (cd['identifier'])
+                logger.info(cd['id'])
+                logger.info(cd['identifier'])
                 catalogue_ids.append(cd['id'])
                 csw_catalogue = models.CatalogueSyncCSW.objects.filter(csw_id=cd['id'])
 
@@ -40,7 +50,7 @@ class Command(BaseCommand):
                         csw_obj.updated = timezone.now() 
                         csw_obj.removed_from_csw=False
                         csw_obj.save()
-                        print ("Updated: {} - {}".format(cd['id'], cd['identifier']))
+                        logger.info("Updated: {} - {}".format(cd['id'], cd['identifier']))
                         pass
                 else:
                     models.CatalogueSyncCSW.objects.create(csw_id=cd['id'],
@@ -49,25 +59,33 @@ class Command(BaseCommand):
                                                            active=True,
                                                            removed_from_csw=False
                                                            )
-                    print ("Creating: {} - {}".format(cd['id'], cd['identifier']))
+                    logger.info("Creating: {} - {}".format(cd['id'], cd['identifier']))
 
             for cs_csw in models.CatalogueSyncCSW.objects.all():
 
                 if cs_csw.csw_id in catalogue_ids:
                     if cs_csw.removed_from_csw is True:
-                        csw_obj.updated = timezone.now() 
-                        cs_csw.removed_from_csw=False  
-                        csw_obj.save()                      
+                        cs_csw.updated = timezone.now() 
+                        cs_csw.removed_from_csw=False 
+                        cs_csw.save()                   
                 else:
                     if cs_csw.removed_from_csw is False:
-                        csw_obj.updated = timezone.now() 
+                        cs_csw.updated = timezone.now() 
                         cs_csw.removed_from_csw=True
-                        csw_obj.save()
+                        cs_csw.save()
+                
 
+            # This block only runs on successful completion
+            end_time = timezone.now()
+            duration_seconds = int((end_time - start_time).total_seconds())
 
+            log_entry.completion_time = end_time
+            log_entry.duration = duration_seconds
+            log_entry.save()
+            
+            logger.info(f"CSW catalogue synced successfully in {duration_seconds} seconds.")
 
 #            print (data)
 
         except Exception as e:
-            self.stderr.write(self.style.ERROR(f"An error occurred: {str(e)}"))
-            print (e)
+            logger.error(f"An error occurred: {str(e)}")

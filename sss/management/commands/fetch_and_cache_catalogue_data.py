@@ -2,24 +2,27 @@ from django.core.management.base import BaseCommand
 import requests
 from django import conf
 from django.core.cache import cache
-import datetime
+from django.utils import timezone
 from sss import models
 import traceback
+import logging
+
+logger = logging.getLogger('cron_tasks')
 
 class Command(BaseCommand):
     help = 'Fetch and cache catalogue data'
     command_name = 'fetch_and_cache_catalogue_data'
 
     def handle(self, *args, **kwargs):
-        start_time = datetime.datetime.now()
-        self.stdout.write(f"{start_time} : Starting Catalogue Cache Sync")
+        start_time = timezone.now()
+        logger.info("Starting Catalogue Cache Sync")
 
         try:
             log_entry, created = models.ManagementCommandStatus.objects.get_or_create(
                 command=self.command_name
             )
         except Exception as e:
-            self.stderr.write(self.style.ERROR(f"Failed to access database for command status: {e}"))
+            logger.error(f"Failed to access database for command status: {e}")
             return
 
         try:
@@ -33,22 +36,22 @@ class Command(BaseCommand):
                 cache.delete('catalogue_cache_data')
                 cache.set('catalogue_cache_data', data, 86400)
                 
-                end_time = datetime.datetime.now()
+                end_time = timezone.now()
                 duration_seconds = int((end_time - start_time).total_seconds())
 
                 log_entry.completion_time = end_time
                 log_entry.duration = duration_seconds
                 log_entry.save()
                 
-                self.stdout.write(self.style.SUCCESS(f"Catalogue cache updated successfully in {duration_seconds} seconds."))
+                logger.info(f"Catalogue cache updated successfully in {duration_seconds} seconds.")
 
             else:
                 # HTTP Request failed
                 error_msg = f"Catalogue API returned status code {response.status_code}. Response: {data[:200]}"
-                self.stderr.write(self.style.ERROR(error_msg))
+                logger.error(error_msg)
                 return
 
         except Exception as e:
-            self.stderr.write(self.style.ERROR(f"FATAL ERROR running {self.command_name}: {e}"))
-            self.stderr.write(self.style.ERROR(traceback.format_exc()))
+            logger.error(f"FATAL ERROR running {self.command_name}: {e}")
+            logger.error(traceback.format_exc())
             return

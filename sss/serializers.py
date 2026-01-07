@@ -1,6 +1,29 @@
 from rest_framework import serializers
-from sss.models import UserProfile
+from sss.models import UserProfile, AccessGroup
 
+import re
+from typing import List
+
+
+def _compile_patterns(access_list_text: str) -> List[re.Pattern]:
+    """
+    Convert an access_list string into compiled regex patterns.
+    - Supports '*' as wildcard across the full email string.
+    - Ignores blank lines and lines starting with '#'.
+    """
+    patterns: List[re.Pattern] = []
+    text = access_list_text or ""
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+
+        # Escape regex special chars then convert '*' to '.*'
+        escaped = re.escape(line)
+        regex = "^" + escaped.replace(r"\*", ".*") + "$"
+        patterns.append(re.compile(regex, re.IGNORECASE))
+
+    return patterns
 
 class ProfileSerializer(serializers.ModelSerializer):
     district = serializers.SerializerMethodField()
@@ -41,7 +64,7 @@ class AccountDetailsSerializer(serializers.ModelSerializer):
     last_name = serializers.SerializerMethodField()
     full_name = serializers.SerializerMethodField()
     groups = serializers.SerializerMethodField()
-
+    is_internal_dbca = serializers.SerializerMethodField()
     class Meta:
         model = UserProfile
         fields = (  'authenticated',
@@ -50,7 +73,8 @@ class AccountDetailsSerializer(serializers.ModelSerializer):
                     'first_name',
                     'last_name',
                     'full_name',
-                    'groups'
+                    'groups',
+                    'is_internal_dbca',
                 )
 
     def get_authenticated(self,obj):
@@ -82,3 +106,22 @@ class AccountDetailsSerializer(serializers.ModelSerializer):
             group_names = ",".join(obj.user.groups.values_list('name', flat=True))
             return group_names
         
+    def get_is_internal_dbca(self,obj):
+        if obj.user:
+            group_name = "Internal DBCA"
+            has_access = False
+            try:
+                access_group = AccessGroup.objects.get(group_name=group_name,active=True)
+                if obj.user.email:
+                    for pattern in _compile_patterns(access_group.access_list):
+                        if pattern.fullmatch(obj.user.email):
+                            has_access = True
+                            break
+                    return has_access 
+
+            except AccessGroup.DoesNotExist:
+                return False   
+        return False
+    
+
+

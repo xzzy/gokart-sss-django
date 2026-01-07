@@ -264,7 +264,7 @@ CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': os.path.join(BASE_DIR, 'sss', 'cache'),
-        "OPTIONS": {"MAX_ENTRIES": 500000,
+        "OPTIONS": {"MAX_ENTRIES": 50000,
                    'CULL_FREQUENCY': 3
                    },
     }
@@ -274,3 +274,63 @@ ENABLE_AUTH2_GROUPS=True
 FILE_UPLOAD_PERMISSIONS = None
 SESSION_ENGINE = 'django.contrib.sessions.backends.file'
 SESSION_FILE_PATH = decouple.config('SESSION_FILE_PATH', default='/app/session_store/')
+
+PATH_TO_LOGS = os.path.join(BASE_DIR, 'logs')
+if not os.path.exists(PATH_TO_LOGS):
+    os.mkdir(PATH_TO_LOGS)
+LOG_FILE_NAME = 'kaartdijin_boodja.log'
+LOG_FILE_PATH = os.path.join(BASE_DIR, 'logs', LOG_FILE_NAME)
+
+# Logging Configuration
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "%(levelname)s %(asctime)s %(module)s %(message)s",
+        },
+    },
+    "handlers": {
+        "console": {
+            "level": decouple.config("LOG_CONSOLE_LEVEL", default="INFO"),
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+        "file": {
+            "level": "INFO",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": os.path.join(BASE_DIR, "logs", "sss.log"),
+            "formatter": "verbose",
+            "maxBytes": 5242880,
+        },
+        "file_cron_tasks": {
+            "level": "INFO",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": os.path.join(BASE_DIR, "logs", "cron_tasks.log"),
+            "formatter": "verbose",
+            "maxBytes": 5242880,
+        },
+    },
+    "loggers": {
+        "": {
+            "handlers": ["file", "console"],
+            "level": decouple.config("LOG_CONSOLE_LEVEL", default="WARNING"),
+            "propagate": True,
+        },
+        "django": {
+            "handlers": ["file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "log": {
+            "handlers": ["file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "cron_tasks": {
+            "handlers": ["file_cron_tasks", "console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+       },
+}

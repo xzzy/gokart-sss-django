@@ -11,6 +11,7 @@
   import { ol,$,utils} from 'src/vendor.js'
   export default {
     store: {
+      whoami: 'whoami',
     },
     data: function () {
       return {
@@ -35,7 +36,9 @@
         }
       },
       tools:function() {
-        return this.forecastTools
+        if(this.whoami['is_internal_dbca']){
+            return this.forecastTools
+        }      
       }
     },
     watch:{
@@ -98,60 +101,60 @@
     },
     ready: function () {
       var vm = this
-      this._weatherforecastStatus = vm.loading.register("weatherforecast","Weather Forecast Component")
+        this._weatherforecastStatus = vm.loading.register("weatherforecast","Weather Forecast Component")
 
-      this._weatherforecastStatus.phaseBegin("gk-init",80,"Listen 'gk-init' event",true,true)
-      var map = this.$root.map
+        this._weatherforecastStatus.phaseBegin("gk-init",80,"Listen 'gk-init' event",true,true)
+        var map = this.$root.map
 
-      this.$on('gk-init', function() {
-        vm._weatherforecastStatus.phaseEnd("gk-init")
+        this.$on('gk-init', function() {
+          vm._weatherforecastStatus.phaseEnd("gk-init")
 
-        vm._weatherforecastStatus.phaseBegin("initialize",20,"Initialize",true,false)
+          vm._weatherforecastStatus.phaseBegin("initialize",20,"Initialize",true,false)
 
-        vm._features = new ol.Collection()
-        vm._features.on("add",function(event){
-          vm.getWeatherForecast(event.element.getGeometry().getCoordinates())
+          vm._features = new ol.Collection()
+          vm._features.on("add",function(event){
+            vm.getWeatherForecast(event.element.getGeometry().getCoordinates())
+          })
+          vm._style =  new ol.style.Style({
+              image: new ol.style.Icon({
+                src: "/static/dist/static/images/pin.svg",
+                anchorOrigin:"bottom-left",
+                anchorXUnits:"pixels",
+                anchorYUnits:"pixels",
+                anchor:[8,0]
+              })
+          })
+          vm._source = new ol.source.Vector({
+              features:vm._features
+          })
+          vm._overlay = new ol.layer.Vector({
+              source: vm._source,
+              style: vm._style
+          })
+    
+          //initialize the overlay and interactions
+          var weatherforecastInter = new ol.interaction.Draw({
+              source: vm._source,
+              type: 'Point',
+              style: vm._style
+          });
+    
+          weatherforecastInter.on('drawend',function(){
+            vm._features.clear()
+          }, vm)
+    
+          vm._weatherforecastTool = {
+            name: 'WeatherForecast',
+            keepSelection:true,
+            interactions:[
+                weatherforecastInter
+            ]
+          }
+    
+          vm.annotations.tools.push(this._weatherforecastTool)
+
+          vm._weatherforecastStatus.phaseEnd("initialize")
         })
-        vm._style =  new ol.style.Style({
-            image: new ol.style.Icon({
-              src: "/static/dist/static/images/pin.svg",
-              anchorOrigin:"bottom-left",
-              anchorXUnits:"pixels",
-              anchorYUnits:"pixels",
-              anchor:[8,0]
-            })
-        })
-        vm._source = new ol.source.Vector({
-            features:vm._features
-        })
-        vm._overlay = new ol.layer.Vector({
-            source: vm._source,
-            style: vm._style
-        })
-  
-        //initialize the overlay and interactions
-        var weatherforecastInter = new ol.interaction.Draw({
-            source: vm._source,
-            type: 'Point',
-            style: vm._style
-        });
-  
-        weatherforecastInter.on('drawend',function(){
-          vm._features.clear()
-        }, vm)
-  
-        vm._weatherforecastTool = {
-          name: 'WeatherForecast',
-          keepSelection:true,
-          interactions:[
-              weatherforecastInter
-          ]
-        }
-  
-        vm.annotations.tools.push(this._weatherforecastTool)
-
-        vm._weatherforecastStatus.phaseEnd("initialize")
-      })
         
     }
   }

@@ -43,9 +43,9 @@
       <div class="columns">
         <div id="layers-catalogue-list">          
           <div v-for="l in catalogue.getArray()  | orderBy 'name'" class="row layer-row" @mouseover="preview(l)" v-if="l.name.toLowerCase().indexOf(search.toLowerCase()) !== -1  || l.id.toLowerCase().indexOf(search.toLowerCase()) !== -1 || containsTag(l.tags, search.toLowerCase())"  track-by="mapLayerId" @mouseleave="preview(false)" style="margin-left:0px;margin-right:0px">                        
-            <div class="small-10">
-              <a v-if="editable(l)" @click.stop.prevent="utils.editResource($event)" title="Edit catalogue entry" href="{{env.catalogueAdminService}}/admin/catalogue/record/{{l.systemid}}/change/" target="{{env.catalogueAdminService}}" class="button tiny secondary float-right short"><i class="fa fa-pencil"></i></a>
-              <div class="layer-title">{{ l.name || l.id }}</div>
+            <div class="small-10">         
+              <a v-if="editable(l)" @click.stop.prevent="utils.editResource($event)" title="Edit catalogue entry" :href="isKBLayer(l)? `/admin/sss/catalogue/${l.systemid}/change/` : `${env.catalogueAdminService}/admin/catalogue/record/${l.systemid}/change/`" target="{{env.catalogueAdminService}}" class="button tiny secondary float-right short"><i class="fa fa-pencil"></i></a>
+            <div class="layer-title">{{ l.name || l.id }}</div>
             </div>
             <div class="small-2">
               <div class="text-right">
@@ -289,7 +289,11 @@ div.ol-previewmap.ol-uncollapsible {
           active.removeLayer(map.getMapLayer(layer))
         }
         return true
-        },
+      },
+      isKBLayer(l) {
+        const id = (l.id || '').toLowerCase().trim();
+        return id.startsWith('kaartdijin-boodja');
+      },
 
       containsTag(tags, search) {
         for (let tag of tags) {
