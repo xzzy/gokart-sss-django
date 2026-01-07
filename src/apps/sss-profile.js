@@ -4,17 +4,17 @@ let gokartProfile=  {
     "distributionType":"release",
     "description":"Spatial Support System v3 (Django)",
     "repositoryBranch":"main",
-    "lastCommit":"ca7365e",
-    "commitDate":"Tue Dec 2 13:01:54 2025 +0800",
-    "commitMessage":"Adjust http to stream for plain text",
+    "lastCommit":"f91724e",
+    "commitDate":"Wed Dec 3 10:37:13 2025 +0800",
+    "commitMessage":"Force sss reset",
     "commitAuthor":"Jason Moore <jason.moore@dbca.wa.gov.au>",
     "build":{
-        "datetime":"2025-12-02 14:20:52 AWST(+0800)",
-        "date":"2025-12-02 AWST(+0800)",
-        "time":"14-20-52 AWST(+0800)",
+        "datetime":"2026-01-07 16:04:32 AWST(+0800)",
+        "date":"2026-01-07 AWST(+0800)",
+        "time":"16-04-32 AWST(+0800)",
         "platform":"Linux",
-        "host":"gokart-sss-django-userdev-6bd69d46bf-b5pkl",
-        "vendorMD5":"e3YdkBVCg4RbtUb3wQfb9w"
+        "host":"gokart-sss-django-userdev-6bd69d46bf-lmw8n",
+        "vendorMD5":"Gg1tYmuJxpIhnCX42KxDTg"
     }
 }
 export default gokartProfile
