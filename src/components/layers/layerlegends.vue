@@ -60,7 +60,7 @@
 }
 </style>
 <script>
-  import { saveAs, $, jsPDF,interact } from 'src/vendor.js'
+  import { saveAs, $, interact } from 'src/vendor.js'
   export default {
     store: [ 'dpmm'],
     data: function() {
@@ -276,7 +276,7 @@
                   }
                   return [width,height]
                 }
-                var doc = new jsPDF();
+                var doc = new jspdf.jsPDF();
                 doc.setFontSize(style.fontSize)
                 doc.setFont(style.font,style.fontType)
                 doc.setTextColor(style.textColor[0],style.textColor[1],style.textColor[2])
