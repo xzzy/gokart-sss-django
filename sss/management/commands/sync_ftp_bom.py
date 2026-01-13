@@ -148,6 +148,8 @@ class Command(BaseCommand):
                             #Checking if the file can be opened by GDAL
                             ds = gdal.Open(temp_file_path)
                             ds.GetGeoTransform()
+                            ds.RasterCount
+                            ds.GetProjection()
                         except Exception:
                             logger.error(traceback.format_exc())
                             try:
