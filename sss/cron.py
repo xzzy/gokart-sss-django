@@ -62,3 +62,17 @@ class SpatialDataCalculationJob(CronJobBase):
         log.info("CRON JOB: Calculating Spatial Data..")
 
         management.call_command("spatial_data_calculations")     
+
+
+
+class PurgeSpatialCache(CronJobBase):
+    RUN_AT_TIMES = ['08:00','15:00']
+
+    schedule = Schedule(run_at_times=RUN_AT_TIMES)
+    code = 'ledgergw.purgespatialcache'
+
+    def do(self):
+        print ("Running PurgeSpatialCache")
+        log.info("CRON JOB: Running PurgeSpatialCache")
+
+        management.call_command("purge_expired_spatial_cache")   
