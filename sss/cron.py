@@ -66,7 +66,7 @@ class SpatialDataCalculationJob(CronJobBase):
 
 
 class PurgeSpatialCache(CronJobBase):
-    RUN_AT_TIMES = ['08:00','15:00']
+    RUN_AT_TIMES = ['08:00']
 
     schedule = Schedule(run_at_times=RUN_AT_TIMES)
     code = 'ledgergw.purgespatialcache'
