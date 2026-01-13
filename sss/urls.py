@@ -32,7 +32,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("", views.HomePage.as_view(), name="home"),
     path("sss/", views.sss_redirect),
-    path("outlookmetadata", api.outlookmetadata, name='api_outlookmetadata'),
+    path("api/outlookmetadata", api.outlookmetadata, name='api_outlookmetadata'),
     path("api/environment_config.js", api.environment_config, name='environment_config'),
     path("dist/static/js/gokart.js", api.gokart_js, name='gokart_js'),
     path("client", api.gokart_client, name='gokart_client'),

@@ -1404,7 +1404,7 @@
         this._datasources = []
         $.ajax({
             // url: vm.env.gokartService + "/outlookmetadata" + (refresh?"?refresh=true":""),
-            url: "/outlookmetadata" + (refresh?"?refresh=true":""),
+            url: "/api/outlookmetadata" + (refresh?"?refresh=true":""),
             method:"GET",
             dataType:"json",
             success: function (response, stat, xhr) {
