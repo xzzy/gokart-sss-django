@@ -146,7 +146,8 @@ class Command(BaseCommand):
                     try:
                         try:
                             #Checking if the file can be opened by GDAL
-                            gdal.Open(temp_file_path)
+                            ds = gdal.Open(temp_file_path)
+                            ds.GetGeoTransform()
                         except Exception:
                             logger.error(traceback.format_exc())
                             try:
