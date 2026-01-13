@@ -86,6 +86,7 @@ MIDDLEWARE = [
 ]
 
 CRON_CLASSES = [
+    'sss.cron.PurgeSpatialCache',
     "sss.cron.FetchCatalogueDataCronJob",
     "sss.cron.FetchBfrsRegionDataCronJob",
     "sss.cron.SyncBOMDataCronJob",
