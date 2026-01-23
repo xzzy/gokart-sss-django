@@ -86,7 +86,13 @@
     "turf": "~3.0.14",
     "vue": "~1.0.28",
     "vue-stash": "~1.0.0",
-    "sass" : "1.97.3"
+    "sass" : "1.97.3",
+    "@parcel/watcher-linux-x64-glibc" :"2.5.4",
+    "@parcel/watcher": "2.5.4",
+    "detect-libc": "2.1.2",
+    "node-addon-api": "7.1.1",
+    "picomatch": "4.0.3",
+    "source-map-js": "1.2.1"
   },
   "devDependencies": {
     "babel-core": "^6.0.0",
