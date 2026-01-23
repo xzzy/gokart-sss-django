@@ -86,7 +86,7 @@
     "turf": "~3.0.14",
     "vue": "~1.0.28",
     "vue-stash": "~1.0.0",
-    "sass" : "1.97.2"
+    "sass" : "1.97.3"
   },
   "devDependencies": {
     "babel-core": "^6.0.0",
