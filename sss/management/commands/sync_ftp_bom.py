@@ -147,8 +147,7 @@ class Command(BaseCommand):
                         
                     except Exception as e:
                         logger.error(f"Unzipping failed for {temp_file_name}")
-                        logger.error(e)
-                        return
+                        logger.error(e)                        
                 
                 elif temp_file_name.endswith('.nc'):
                     try:
@@ -179,8 +178,7 @@ class Command(BaseCommand):
                         os.rename(local_file_path+".tmp.nc", local_file_path)
 
                     except Exception:
-                        logger.error(f"File copy/delete failed for {temp_file_name}")
-                        return
+                        logger.error(f"File copy/delete failed for {temp_file_name}")                        
             
             # This block only runs on successful completion
             end_time = timezone.now()
