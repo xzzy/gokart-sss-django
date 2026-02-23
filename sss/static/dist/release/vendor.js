@@ -143748,17 +143748,19 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-// jCanvas mod to canvas operations
+// Compatibility shim: $.isArray was removed in jQuery 3.x, required by foundation-datepicker
 
 // import './apps/ol-debug.css'
-require('jcanvas')(_jquery2.default, window);
-// Cross-browser support for saving blobs from a webpage
+if (!_jquery2.default.isArray) _jquery2.default.isArray = Array.isArray;
+// jCanvas mod to canvas operations
 
 
 // jQuery v2, the krazy glue of the internet
 // module for packaging up gokart's third-party dependencies
 
 // produce some terrifying CSS at runtime using browserify-css
+require('jcanvas')(_jquery2.default, window);
+// Cross-browser support for saving blobs from a webpage
 
 // Cross-browser polyfill for canvas.toBlob
 require('blueimp-canvas-to-blob');

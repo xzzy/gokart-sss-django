@@ -9,6 +9,8 @@ import 'dragula/dist/dragula.css'
 
 // jQuery v2, the krazy glue of the internet
 import $ from 'jquery'
+// Compatibility shim: $.isArray was removed in jQuery 3.x, required by foundation-datepicker
+if (!$.isArray) $.isArray = Array.isArray
 // jCanvas mod to canvas operations
 require('jcanvas')($, window)
 // Cross-browser support for saving blobs from a webpage
