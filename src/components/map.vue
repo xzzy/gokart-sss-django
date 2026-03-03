@@ -2629,7 +2629,7 @@
                 }),
                 preenable:function(enable){
                     if (enable) {
-                        if (vm._overviewLayer) {
+                        if (vm._overviewLayer && vm._overviewLayer.type) {
                           this.controls.getOverviewMap().addLayer(vm['create' + vm._overviewLayer.type](vm._overviewLayer))   
                           // new ol.Map().addLayer(vm['create' + vm._overviewLayer.type](vm._overviewLayer))                     
                           vm._overviewLayer.mapLayer.postAdd()

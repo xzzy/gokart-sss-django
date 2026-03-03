@@ -65,7 +65,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'sss',
+    'sss.apps.SssConfig',
     'rest_framework',
     'django_cron',
     'appmonitor_client'

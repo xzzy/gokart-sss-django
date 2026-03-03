@@ -9,6 +9,8 @@ node_modules/
 .pytest_cache/
 cache/
 data/
+session_store/
+spatial_tile_cache/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
