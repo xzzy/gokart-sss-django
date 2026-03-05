@@ -191,7 +191,7 @@ def loadDatasource(datasource):
             band.clear()
 
         #print "Begin to load raster datasource: ".format(datasource["datasource"])
-        ds = gdal.Open(datasource["datasource"])
+        ds = gdal.Open(datasource["datasource"], gdal.GA_ReadOnly)
 
         datasource["geotransform"] =  ds.GetGeoTransform()
 
@@ -385,7 +385,7 @@ def syncDatasource(datasource):
             return
 
         #datasource is prepared. 
-        ds = gdal.Open(datasource["datasource"])
+        ds = gdal.Open(datasource["datasource"], gdal.GA_ReadOnly)
         if datasource["loadstatus"].get('status') == 'loaded':
             if datasource["metadata_f"]["refresh_time"](ds)  != datasource["metadata"]["refresh_time"]:
                 datasource["loadstatus"]["status"]="outdated"
@@ -2204,7 +2204,7 @@ def getRasterData(options,debug=False):
                 #retrieve data failed, maybe be caused by ftp sync process; retrieved it again
                 if runtimes == 1:
                     ds = None
-                    ds = gdal.Open(datasource["datasource"])
+                    ds = gdal.Open(datasource["datasource"], gdal.GA_ReadOnly)
                 else:
                     raise
     except:
