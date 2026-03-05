@@ -292,7 +292,15 @@ def prepareDatasource(datasource):
                 datasource["datasource"] = datasource["file"]
         elif (datasource["file"].lower().endswith(".nc")):
             if "datasource" not in datasource:
-                datasource["datasource"] = datasource["file"]
+                # Some NetCDF files contain multiple variables (e.g. max_fbi and land_sea_mask).
+                # When a file has multiple variables, GDAL cannot determine which one to open
+                # and returns 0 bands if the plain file path is used.
+                # If "netcdf_variable" is specified in the datasource config, use the GDAL
+                # sub-dataset syntax 'NETCDF:"path":variable' to open the correct variable.
+                if datasource.get("netcdf_variable"):
+                    datasource["datasource"] = 'NETCDF:"{}":{}'.format(datasource["file"], datasource["netcdf_variable"])
+                else:
+                    datasource["datasource"] = datasource["file"]
         elif (datasource["file"].lower().endswith(".nc.gz")):
             fileinfo = os.stat(datasource["file"])
     
@@ -1941,6 +1949,9 @@ raster_datasources={
         },
         "IDZ10137_AUS_AFDRS_max_fbi_SFC":{
             "file":os.path.join(settings.BOM_HOME,"adfd","IDZ10137_AUS_AFDRS_max_fbi_SFC.nc"),
+            # This NetCDF file contains multiple variables (max_fbi and land_sea_mask).
+            # "netcdf_variable" tells prepareDatasource which variable to open via GDAL sub-dataset syntax.
+            "netcdf_variable":"max_fbi",
             "name":"FBI MAX",
             "sort_key":("fire","max"),
             "metadata_f":{
