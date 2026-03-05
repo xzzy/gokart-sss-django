@@ -110,4 +110,8 @@ npm locks
 git_history_recent
 
 *.csv
+
+# BoM data files (downloaded at runtime)
+bom_data/
+adfd/
 *.xls*
