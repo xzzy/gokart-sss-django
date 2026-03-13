@@ -352,7 +352,7 @@
 			if(this.showHotspotImages){
 				return this.revision && this._featurelist.getArray()
 			}
-			return this.revision && this._featurelist.getArray().reverse()
+			return this.revision && this._featurelist.getArray().slice().reverse()
         } catch (ex) {
             return [];
         }
