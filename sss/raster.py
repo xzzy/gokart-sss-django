@@ -160,6 +160,19 @@ def isInBandFunc(datasource,band,bandTime):
     except:
         return False
 
+def isInDailyBandByDateFunc(datasource,band,bandTime):
+    """
+    Band match function for daily datasets whose timestamps are stored at UTC midnight.
+    UTC midnight equals Perth 08:00 (UTC+8), so the standard isInBandFunc misses rows
+    at 00:00, 03:00, and 06:00 Perth time (their diff is negative).
+    This function instead compares the Perth calendar date of bandTime against the
+    Perth calendar date of band["start_time"], so all rows within the same local day match.
+    """
+    try:
+        return band["start_time"].date() == bandTime.date()
+    except:
+        return False
+
 def getEpsgSrs(srsid):
     srs = srsid.split(":")
     if len(srs) != 2 or srs[0] != "EPSG":
@@ -1964,7 +1977,9 @@ raster_datasources={
                 "start_time":getEpochTimeFunc("NETCDF_DIM_time"),
             },
             "band_f":{
-                "band_match":isInBandFunc,
+                # The max_fbi file stores timestamps at UTC midnight (= Perth 08:00).
+                # Use isInDailyBandByDateFunc to match all Perth rows on the same calendar date.
+                "band_match":isInDailyBandByDateFunc,
             },
             "options":{
                 "title":"FBI MAX",
