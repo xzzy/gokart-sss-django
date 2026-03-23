@@ -114,7 +114,7 @@ class Command(BaseCommand):
 
                         try:
                             #Checking if the unzipped file can be opened by GDAL
-                            file = gdal.Open(unzipped_file_path)
+                            file = gdal.Open(unzipped_file_path, gdal.GA_ReadOnly)
                             file.GetGeoTransform()
                         except Exception:
                             logger.error(traceback.format_exc())
@@ -154,7 +154,7 @@ class Command(BaseCommand):
                     try:
                         try:
                             #Checking if the file can be opened by GDAL
-                            ds = gdal.Open(temp_file_path)
+                            ds = gdal.Open(temp_file_path, gdal.GA_ReadOnly)
                             ds.GetGeoTransform()
                             ds.RasterCount
                             ds.GetProjection()
