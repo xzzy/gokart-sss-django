@@ -1078,7 +1078,7 @@
                 } else {
                     d = moment.tz("Australia/Perth")
                 }
-                var timddiff = 0
+                var timediff = 0
                 var timeIndex = null
                 $.each(layer.timeline,function(index,timelineLayer) {
                     timediff = d - moment.fromLocaleString(timelineLayer[0])
