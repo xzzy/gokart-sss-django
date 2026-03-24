@@ -765,13 +765,17 @@
       // force OL to approximate a fixed scale (1:1K increments)
       setScale: function (scale) {
         // while (Math.abs(this.getScale() - scale) > 0.001) {
-          this.olmap.getView().setResolution(this.olmap.getView().getResolution() * scale / this.getScale())
+          var currentScale = this.getScale()
+          if (currentScale === null) { return }
+          this.olmap.getView().setResolution(this.olmap.getView().getResolution() * scale / currentScale)
         // }
         this.scale = scale
       },
       // return the scale (1:1K increments)
+      // Returns null if the map size is not yet available (e.g. during viewport changes on mobile)
       getScale: function () {
-        var size = this.olmap.getSize()              
+        var size = this.olmap.getSize()
+        if (!size || size[0] === 0 || size[1] === 0) { return null }
         var center = this.getCenter()        
         var extent = this.olmap.getView().calculateExtent(size)        
       // var center_lat_lon = ol.proj.transform(this.getCenter(), 'EPSG:3857', 'EPSG:4326')        
@@ -779,8 +783,8 @@
 
         // var distance = this.$root.wgs84Sphere.haversineDistance([extent[0], center[1]], center) * 2
         var distance = ol.sphere.getDistance([extent[0], center[1]], center) * 2;
-        
-        return distance * this.dpmm / size[0] 
+        var scale = distance * this.dpmm / size[0]
+        return isFinite(scale) ? scale : null
       },
       // get the fixed scale (1:1K increments) closest to specified or the current scale
       getFixedScale: function (scale) {
@@ -795,6 +799,7 @@
       },
       // generate a human-readable scale string
       getScaleString: function (scale) {
+        if (scale === null || scale === undefined || !isFinite(scale)) { return '' }
         if (Math.round(scale * 100) / 100 < 10.0) {
           return '1:' + (Math.round(scale * 1000)).toLocaleString()
         } else if (Math.round(scale * 100) / 100 >= 1000.0) {
@@ -2445,7 +2450,8 @@
 
         // setup scale events
         this.olmap.on('postrender', function () {
-          vm.scale = vm.getScale()
+          var s = vm.getScale()
+          if (s !== null) { vm.scale = s }
         })
 
 
