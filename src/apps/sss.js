@@ -363,9 +363,12 @@ if (result) {
           // set title
           $('title').text(profile.description)
           // calculate screen res
-          $('body').append('<div id="dpi" style="width:1in;display:none"></div>')
+          // Use visibility:hidden + position:absolute instead of display:none,
+          // because some mobile browsers (e.g. iOS Safari) return 0 for .width()
+          // on display:none elements, which would make dpmm=0 and break getScale().
+          $('body').append('<div id="dpi" style="width:1in;visibility:hidden;position:absolute"></div>')
           self.dpi = parseFloat($('#dpi').width())
-          self.store.dpmm = self.dpi / self.store.mmPerInch
+          self.store.dpmm = (self.dpi && self.dpi > 0) ? self.dpi / self.store.mmPerInch : 96 / self.store.mmPerInch
           $('#dpi').remove();
           // get user info
           (function () {
