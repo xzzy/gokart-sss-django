@@ -370,9 +370,9 @@ if (result) {
           self.dpi = parseFloat($('#dpi').width())
           self.store.dpmm = (self.dpi && self.dpi > 0) ? self.dpi / self.store.mmPerInch : 96 / self.store.mmPerInch
           $('#dpi').remove();
-          // get user info
-          (function () {
-            $.ajax({
+          // get user info - store the deferred so gk-init can wait for it
+          self._whoamiDeferred = (function () {
+            return $.ajax({
                 url: self.env.authUrl || "/sso/auth",
                 method:"GET",
                 dataType:"json",
@@ -780,45 +780,56 @@ if (result) {
                     self.map.initLayers(self.fixedLayers, self.store.activeLayers)
                     self.loading.app.phaseEnd("init_map_layers")
     
-                    // tell other components map is ready
+                    // tell other components map is ready - wait for whoami to be
+                    // populated first so components that gate on is_internal_dbca
+                    // (e.g. the IWF weather forecast icon) are always visible when
+                    // the user is entitled, regardless of network timing.
                     self.loading.app.phaseBegin("gk-init", 15, "Broadcast 'go-init' event")
                     failed_phase = "gk-init"
-                    self.$broadcast('gk-init')
-                    self.loading.app.phaseEnd("gk-init")
-    
-                    // after catalogue load trigger a tour
-                    self.loading.app.phaseBegin("gk-postinit", 15, "Broadcast 'go-init' event")
-                    failed_phase = "gk-postinit"
-                    self.$broadcast('gk-postinit')
-                    self.loading.app.phaseEnd("gk-postinit")
-    
-                    self.loading.app.phaseBegin("post_init", 10, "Post initialization")
-                    failed_phase = "post-init"
-                    self.store.layout.screenHeight = $(window).height()
-                    self.store.layout.screenWidth = $(window).width()
-                    $(window).resize(debounce(function(){
-                        if ($(window).height() !== self.store.layout.screenHeight) {
-                            self.store.layout.screenHeight = $(window).height()
+                    $.when(self._whoamiDeferred).always(function () {
+                        try {
+                        self.$broadcast('gk-init')
+                        self.loading.app.phaseEnd("gk-init")
+
+                        // after catalogue load trigger a tour
+                        self.loading.app.phaseBegin("gk-postinit", 15, "Broadcast 'go-init' event")
+                        failed_phase = "gk-postinit"
+                        self.$broadcast('gk-postinit')
+                        self.loading.app.phaseEnd("gk-postinit")
+
+                        self.loading.app.phaseBegin("post_init", 10, "Post initialization")
+                        failed_phase = "post-init"
+                        self.store.layout.screenHeight = $(window).height()
+                        self.store.layout.screenWidth = $(window).width()
+                        $(window).resize(debounce(function(){
+                            if ($(window).height() !== self.store.layout.screenHeight) {
+                                self.store.layout.screenHeight = $(window).height()
+                            }
+                            if ($(window).width() !== self.store.layout.screenWidth) {
+                                self.store.layout.screenWidth = $(window).width()
+                            }
+                        }, 200))
+                        $("#menu-tab-layers-label").trigger("click")
+                        self.store.activeMenu = "layers"
+                        self.layers.setup()
+                        $("#layers-active-label").trigger("click")
+                        self.store.activeSubmenu = "active"
+                        self.active.setup()
+
+                        self.loading.app.phaseEnd("post_init")
+
+                        if (self.store.settings.tourVersion !== tour.version) {
+                          self.takeTour()
                         }
-                        if ($(window).width() !== self.store.layout.screenWidth) {
-                            self.store.layout.screenWidth = $(window).width()
+                        } catch(err) {
+                            self.loading.app.phaseFailed(failed_phase, err)
+                            throw err
                         }
-                    }, 200))
-                    $("#menu-tab-layers-label").trigger("click")
-                    self.store.activeMenu = "layers"
-                    self.layers.setup()
-                    $("#layers-active-label").trigger("click")
-                    self.store.activeSubmenu = "active"
-                    self.active.setup()
-    
-                    self.loading.app.phaseEnd("post_init")
+                    })
                 } catch(err) {
                     //some exception happens
                     self.loading.app.phaseFailed(failed_phase, err)
                     throw err
-                }
-                if (self.store.settings.tourVersion !== tour.version) {
-                  self.takeTour()
                 }
               },function(reason){
                 self.loading.app.phaseEnd("load_catalogue")
