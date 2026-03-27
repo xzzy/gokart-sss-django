@@ -280,6 +280,16 @@ if (result) {
                   this.takeTour()
                 }
             },
+          'store.view.center': function(newValue, oldValue) {
+            if (!Array.isArray(newValue) || newValue.length !== 2 || !Number.isFinite(newValue[0]) || !Number.isFinite(newValue[1])) {
+              this.store.view.center = persistentData.view.center.slice()
+            }
+          },
+          'store.view.scale': function(newValue, oldValue) {
+            if (!Number.isFinite(newValue) || newValue <= 0) {
+              this.store.view.scale = persistentData.view.scale
+            }
+          },
             hints:function(newValue, oldValue) {
                 var vm = this
                 this.$nextTick(function(){
