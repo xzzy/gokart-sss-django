@@ -192,13 +192,13 @@ if (result) {
       var storedData = utils.extend(JSON.parse(JSON.stringify(persistentData)), store || {}, volatileData)
       storedData['activeLayers'] = storedData['activeLayers'].filter(layer => !layer[0].includes("resource_tracking_history"));
 
-      // If view.center or view.scale are NaN (e.g. due to a mobile browser bug),
-      // fall back to the default values to prevent a crash on load.
-      if (!storedData.view.center || storedData.view.center.some(isNaN)) {
-        storedData.view.center = persistentData.view.center;
+      // If view values are invalid (e.g. due to a mobile browser bug),
+      // fall back to defaults to prevent a crash on load.
+      if (!Array.isArray(storedData.view.center) || storedData.view.center.length !== 2 || !Number.isFinite(storedData.view.center[0]) || !Number.isFinite(storedData.view.center[1])) {
+        storedData.view.center = persistentData.view.center.slice()
       }
-      if (isNaN(storedData.view.scale)) {
-        storedData.view.scale = persistentData.view.scale;
+      if (!Number.isFinite(storedData.view.scale) || storedData.view.scale <= 0) {
+        storedData.view.scale = persistentData.view.scale
       }
 
       global.gokart = new Vue({
