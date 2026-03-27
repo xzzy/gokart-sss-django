@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SSS Debug Storage</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-2: #1f2937;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --accent: #22d3ee;
+      --line: #374151;
+      --warn: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background: radial-gradient(circle at top right, #1e293b, var(--bg));
+      color: var(--text);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+
+    p {
+      margin: 0 0 16px;
+      color: var(--muted);
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      border-color: var(--accent);
+    }
+
+    .section {
+      background: color-mix(in oklab, var(--panel) 90%, black);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+
+    .section h2 {
+      margin: 0 0 10px;
+      font-size: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .count {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: normal;
+    }
+
+    .table-wrap {
+      max-height: 320px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th,
+    td {
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
+      padding: 8px;
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #111827;
+    }
+
+    .status {
+      margin-bottom: 12px;
+      color: var(--warn);
+      min-height: 20px;
+    }
+
+    .mono {
+      font-family: Consolas, Menlo, monospace;
+    }
+  </style>
+</head>
+<body>
+  <h1>SSS Debug Storage</h1>
+  <p>Hidden diagnostics page for browser-stored values used by this site.</p>
+
+  <div class="toolbar">
+    <button id="refreshBtn" type="button">Refresh</button>
+  </div>
+
+  <div id="status" class="status"></div>
+
+  <section class="section">
+    <h2>
+      LocalStorage
+      <span id="localStorageCount" class="count">0 items</span>
+    </h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 30%">Key</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody id="localStorageBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>
+      Cookies
+      <span id="cookieCount" class="count">0 items</span>
+    </h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 30%">Name</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody id="cookieBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>
+      SessionStorage
+      <span id="sessionStorageCount" class="count">0 items</span>
+    </h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 30%">Key</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody id="sessionStorageBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>
+      localforage / keyvaluepairs (IndexedDB)
+      <span id="lfCount" class="count">0 items</span>
+    </h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 30%">Key</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody id="lfBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Device / Navigator</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 30%">Property</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody id="deviceBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <script>
+    function safeStringify(value) {
+      var seen = new WeakSet();
+      return JSON.stringify(value, function(key, val) {
+        if (typeof val === "number") {
+          if (Number.isNaN(val)) return "NaN";
+          if (!Number.isFinite(val)) return String(val);
+          return val;
+        }
+        if (typeof val === "object" && val !== null) {
+          if (seen.has(val)) return "[Circular]";
+          seen.add(val);
+        }
+        return val;
+      }, 2);
+    }
+
+    function formatValue(value) {
+      if (value === undefined) return "undefined";
+      if (value === null) return "null";
+      if (typeof value === "string") return value;
+      if (typeof value === "number") {
+        if (Number.isNaN(value)) return "NaN";
+        if (!Number.isFinite(value)) return String(value);
+        return String(value);
+      }
+      if (typeof value === "boolean") return String(value);
+      try {
+        return safeStringify(value);
+      } catch (err) {
+        return "[Unserializable value: " + (err && err.message ? err.message : err) + "]";
+      }
+    }
+
+    function setStatus(message) {
+      document.getElementById("status").textContent = message || "";
+    }
+
+    function setCount(id, count) {
+      document.getElementById(id).textContent = count + " item" + (count === 1 ? "" : "s");
+    }
+
+    function appendRow(tbody, key, value) {
+      var tr = document.createElement("tr");
+
+      var tdKey = document.createElement("td");
+      tdKey.className = "mono";
+      tdKey.textContent = key;
+
+      var tdValue = document.createElement("td");
+      tdValue.className = "mono";
+      tdValue.textContent = formatValue(value);
+
+      tr.appendChild(tdKey);
+      tr.appendChild(tdValue);
+      tbody.appendChild(tr);
+    }
+
+    function clearBody(id) {
+      var tbody = document.getElementById(id);
+      while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+      return tbody;
+    }
+
+    function loadLocalStorage() {
+      var tbody = clearBody("localStorageBody");
+      var count = 0;
+
+      for (var i = 0; i < localStorage.length; i++) {
+        var key = localStorage.key(i);
+        appendRow(tbody, key, localStorage.getItem(key));
+        count += 1;
+      }
+
+      setCount("localStorageCount", count);
+    }
+
+    function loadSessionStorage() {
+      var tbody = clearBody("sessionStorageBody");
+      var count = 0;
+
+      for (var i = 0; i < sessionStorage.length; i++) {
+        var key = sessionStorage.key(i);
+        appendRow(tbody, key, sessionStorage.getItem(key));
+        count += 1;
+      }
+
+      setCount("sessionStorageCount", count);
+    }
+
+    function loadDeviceInfo() {
+      var tbody = clearBody("deviceBody");
+
+      var nav = navigator;
+      var conn = nav.connection || nav.mozConnection || nav.webkitConnection;
+
+      var entries = [
+        ["userAgent",              nav.userAgent],
+        ["language",               nav.language],
+        ["languages",              (nav.languages || []).join(", ")],
+        ["onLine",                 String(nav.onLine)],
+        ["cookieEnabled",          String(nav.cookieEnabled)],
+        ["platform",               nav.platform || "—"],
+        ["hardwareConcurrency",    nav.hardwareConcurrency != null ? String(nav.hardwareConcurrency) : "—"],
+        ["deviceMemory (GB)",      nav.deviceMemory != null ? String(nav.deviceMemory) : "—"],
+        ["maxTouchPoints",         nav.maxTouchPoints != null ? String(nav.maxTouchPoints) : "—"],
+        ["screen.width",           String(screen.width)],
+        ["screen.height",          String(screen.height)],
+        ["screen.colorDepth",      String(screen.colorDepth)],
+        ["devicePixelRatio",       String(window.devicePixelRatio)],
+        ["window.innerWidth",      String(window.innerWidth)],
+        ["window.innerHeight",     String(window.innerHeight)],
+      ];
+
+      if (conn) {
+        entries.push(["connection.effectiveType",  conn.effectiveType || "—"]);
+        entries.push(["connection.type",           conn.type         || "—"]);
+        entries.push(["connection.downlink (Mb/s)", conn.downlink != null ? String(conn.downlink) : "—"]);
+        entries.push(["connection.rtt (ms)",       conn.rtt      != null ? String(conn.rtt)      : "—"]);
+        entries.push(["connection.saveData",       conn.saveData != null ? String(conn.saveData) : "—"]);
+      }
+
+      entries.forEach(function(e) {
+        appendRow(tbody, e[0], e[1]);
+      });
+    }
+
+    function parseCookies() {
+      if (!document.cookie) return [];
+
+      return document.cookie.split(";").map(function(part) {
+        var idx = part.indexOf("=");
+        if (idx === -1) return { name: part.trim(), value: "" };
+        var name = part.slice(0, idx).trim();
+        var value = part.slice(idx + 1).trim();
+        try {
+          value = decodeURIComponent(value);
+        } catch (_) {}
+        return { name: name, value: value };
+      });
+    }
+
+    function loadCookies() {
+      var tbody = clearBody("cookieBody");
+      var cookies = parseCookies();
+      cookies.forEach(function(entry) {
+        appendRow(tbody, entry.name, entry.value);
+      });
+      setCount("cookieCount", cookies.length);
+    }
+
+    function openLocalforageDb() {
+      return new Promise(function(resolve, reject) {
+        var request = indexedDB.open("localforage");
+        request.onerror = function() {
+          reject(request.error || new Error("Failed to open IndexedDB localforage"));
+        };
+        request.onsuccess = function() {
+          resolve(request.result);
+        };
+      });
+    }
+
+    function loadLocalforageKeyvaluepairs() {
+      var tbody = clearBody("lfBody");
+      setCount("lfCount", 0);
+
+      return openLocalforageDb().then(function(db) {
+        return new Promise(function(resolve, reject) {
+          if (!db.objectStoreNames.contains("keyvaluepairs")) {
+            resolve([]);
+            return;
+          }
+
+          var tx = db.transaction("keyvaluepairs", "readonly");
+          var store = tx.objectStore("keyvaluepairs");
+          var cursorReq = store.openCursor();
+          var rows = [];
+
+          cursorReq.onerror = function() {
+            reject(cursorReq.error || new Error("Failed reading keyvaluepairs"));
+          };
+
+          cursorReq.onsuccess = function(event) {
+            var cursor = event.target.result;
+            if (cursor) {
+              rows.push({ key: cursor.key, value: cursor.value });
+              cursor.continue();
+            }
+          };
+
+          tx.oncomplete = function() {
+            resolve(rows);
+          };
+
+          tx.onerror = function() {
+            reject(tx.error || new Error("IndexedDB transaction failed"));
+          };
+        }).finally(function() {
+          db.close();
+        });
+      }).then(function(rows) {
+        rows.forEach(function(row) {
+          appendRow(tbody, row.key, row.value);
+        });
+        setCount("lfCount", rows.length);
+      });
+    }
+
+    function refreshAll() {
+      setStatus("Loading browser storage...");
+      try {
+        loadLocalStorage();
+        loadSessionStorage();
+        loadCookies();
+        loadDeviceInfo();
+      } catch (err) {
+        setStatus("Failed to read localStorage/cookies: " + (err && err.message ? err.message : err));
+        return;
+      }
+
+      loadLocalforageKeyvaluepairs().then(function() {
+        setStatus("Loaded.");
+      }).catch(function(err) {
+        setStatus("Loaded localStorage/cookies. IndexedDB error: " + (err && err.message ? err.message : err));
+      });
+    }
+
+    document.getElementById("refreshBtn").addEventListener("click", refreshAll);
+    refreshAll();
+  </script>
+</body>
+</html>

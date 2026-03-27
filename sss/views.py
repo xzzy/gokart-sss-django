@@ -37,4 +37,11 @@ def sss_redirect(request):
     return redirect('home')
 
 
+def debug_page(request):
+    context = {}
+    if request.user.is_authenticated:
+        return shortcuts.render(request, "sss/debug.html", context)
+    return shortcuts.render(request, "sss/error_message.html", context)
+
+
         
