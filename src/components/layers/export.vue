@@ -1166,8 +1166,15 @@
         if (vm.$root.touring) { return }
 
         // store attributes
-        store.view.center = vm.olmap.getView().getCenter()
-        store.view.scale = Math.round(vm.$root.map.getScale() * 1000)
+        var nextCenter = vm.olmap.getView().getCenter()
+        if (Array.isArray(nextCenter) && nextCenter.length === 2 && Number.isFinite(nextCenter[0]) && Number.isFinite(nextCenter[1])) {
+          store.view.center = nextCenter
+        }
+
+        var nextScale = vm.$root.map.getScale()
+        if (Number.isFinite(nextScale) && nextScale > 0) {
+          store.view.scale = Math.round(nextScale * 1000)
+        }
         var activeLayers = vm.$root.active.activeLayers()
         if (activeLayers === false) {
           return

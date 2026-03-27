@@ -22911,16 +22911,16 @@ var gokartProfile = {
     "distributionType": "dev",
     "description": "Spatial Support System v3 (Django)",
     "repositoryBranch": "working",
-    "lastCommit": "7cbc6ed",
-    "commitDate": "Mon Feb 23 12:02:39 2026 +0800",
-    "commitMessage": "Ensure justMyCode is set to false in launch configuration",
+    "lastCommit": "b48cb71",
+    "commitDate": "Thu Mar 26 15:08:35 2026 +0800",
+    "commitMessage": "Fix: wait for whoami before broadcasting gk-init to resolve intermittent IWF icon\\nThe IWF (Incident Weather Forecast) icon in the toolbox was intermittently missing on page load due to a race condition in the initialisation sequence.\\nTwo async operations were fired concurrently at startup:\\n1. $.ajax(\"/sso/auth\") \u2014 populates whoami.is_internal_dbca\\n2. loadRemoteCatalogue() \u2014 triggers the gk-init broadcast\\nThe toolbox reads each component's `tools` computed property exactly once during gk-init. In weatherforecast.vue, `tools` returns the IWF entry only when whoami.is_internal_dbca is truthy. If the catalogue finished before the auth response arrived, is_internal_dbca was still undefined at gk-init time and the IWF icon was never added to the toolbox for that session.\\nFix: store the whoami AJAX deferred (self._whoamiDeferred) and wrap the gk-init broadcast \u2014 along with the subsequent gk-postinit and post_init phases \u2014 inside $.when(self._whoamiDeferred).always(...), ensuring whoami is fully populated before any component reads it. .always() is used instead of .done() so that initialisation continues even if the auth request fails.",
     "commitAuthor": "Katsufumi Shibata <katsufumi.shibata@dbca.wa.gov.au>",
     "build": {
-        "datetime": "2026-02-23 13:02:02 AWST(+0800)",
-        "date": "2026-02-23 AWST(+0800)",
-        "time": "13-02-02 AWST(+0800)",
+        "datetime": "2026-03-27 11:20:52 AWST(+0800)",
+        "date": "2026-03-27 AWST(+0800)",
+        "time": "11-20-52 AWST(+0800)",
         "platform": "Linux",
-        "host": "gokart-sss-django-userdev-5d8cb9c4df-276d6",
+        "host": "gokart-sss-django-userdev-5d8cb9c4df-glhf4",
         "vendorMD5": "sv9yz-zFczmxMKJlzgSZtg"
     }
 };
@@ -23363,6 +23363,16 @@ if (result) {
         storedData['activeLayers'] = storedData['activeLayers'].filter(function (layer) {
             return !layer[0].includes("resource_tracking_history");
         });
+
+        // If view.center or view.scale are NaN (e.g. due to a mobile browser bug),
+        // fall back to the default values to prevent a crash on load.
+        if (!storedData.view.center || storedData.view.center.some(isNaN)) {
+            storedData.view.center = _persistentData.view.center;
+        }
+        if (isNaN(storedData.view.scale)) {
+            storedData.view.scale = _persistentData.view.scale;
+        }
+
         global.gokart = new _vendor.Vue({
             el: 'body',
             components: {
@@ -23599,13 +23609,16 @@ if (result) {
                 // set title
                 (0, _vendor.$)('title').text(_sssProfile2.default.description);
                 // calculate screen res
-                (0, _vendor.$)('body').append('<div id="dpi" style="width:1in;display:none"></div>');
+                // Use visibility:hidden + position:absolute instead of display:none,
+                // because some mobile browsers (e.g. iOS Safari) return 0 for .width()
+                // on display:none elements, which would make dpmm=0 and break getScale().
+                (0, _vendor.$)('body').append('<div id="dpi" style="width:1in;visibility:hidden;position:absolute"></div>');
                 self.dpi = parseFloat((0, _vendor.$)('#dpi').width());
-                self.store.dpmm = self.dpi / self.store.mmPerInch;
+                self.store.dpmm = self.dpi && self.dpi > 0 ? self.dpi / self.store.mmPerInch : 96 / self.store.mmPerInch;
                 (0, _vendor.$)('#dpi').remove();
-                // get user info
-                (function () {
-                    _vendor.$.ajax({
+                // get user info - store the deferred so gk-init can wait for it
+                self._whoamiDeferred = function () {
+                    return _vendor.$.ajax({
                         url: self.env.authUrl || "/sso/auth",
                         method: "GET",
                         dataType: "json",
@@ -23619,7 +23632,7 @@ if (result) {
                             withCredentials: true
                         }
                     });
-                })();
+                }();
                 // bind menu side-tabs to reveal the side pane
                 var offCanvasLeft = (0, _vendor.$)('#offCanvasLeft');
                 (0, _vendor.$)('#menu-tabs').on('change.zf.tabs', function (ev) {
@@ -23896,45 +23909,56 @@ if (result) {
                             self.map.initLayers(self.fixedLayers, self.store.activeLayers);
                             self.loading.app.phaseEnd("init_map_layers");
 
-                            // tell other components map is ready
+                            // tell other components map is ready - wait for whoami to be
+                            // populated first so components that gate on is_internal_dbca
+                            // (e.g. the IWF weather forecast icon) are always visible when
+                            // the user is entitled, regardless of network timing.
                             self.loading.app.phaseBegin("gk-init", 15, "Broadcast 'go-init' event");
                             failed_phase = "gk-init";
-                            self.$broadcast('gk-init');
-                            self.loading.app.phaseEnd("gk-init");
+                            _vendor.$.when(self._whoamiDeferred).always(function () {
+                                try {
+                                    self.$broadcast('gk-init');
+                                    self.loading.app.phaseEnd("gk-init");
 
-                            // after catalogue load trigger a tour
-                            self.loading.app.phaseBegin("gk-postinit", 15, "Broadcast 'go-init' event");
-                            failed_phase = "gk-postinit";
-                            self.$broadcast('gk-postinit');
-                            self.loading.app.phaseEnd("gk-postinit");
+                                    // after catalogue load trigger a tour
+                                    self.loading.app.phaseBegin("gk-postinit", 15, "Broadcast 'go-init' event");
+                                    failed_phase = "gk-postinit";
+                                    self.$broadcast('gk-postinit');
+                                    self.loading.app.phaseEnd("gk-postinit");
 
-                            self.loading.app.phaseBegin("post_init", 10, "Post initialization");
-                            failed_phase = "post-init";
-                            self.store.layout.screenHeight = (0, _vendor.$)(window).height();
-                            self.store.layout.screenWidth = (0, _vendor.$)(window).width();
-                            (0, _vendor.$)(window).resize(debounce(function () {
-                                if ((0, _vendor.$)(window).height() !== self.store.layout.screenHeight) {
+                                    self.loading.app.phaseBegin("post_init", 10, "Post initialization");
+                                    failed_phase = "post-init";
                                     self.store.layout.screenHeight = (0, _vendor.$)(window).height();
-                                }
-                                if ((0, _vendor.$)(window).width() !== self.store.layout.screenWidth) {
                                     self.store.layout.screenWidth = (0, _vendor.$)(window).width();
-                                }
-                            }, 200));
-                            (0, _vendor.$)("#menu-tab-layers-label").trigger("click");
-                            self.store.activeMenu = "layers";
-                            self.layers.setup();
-                            (0, _vendor.$)("#layers-active-label").trigger("click");
-                            self.store.activeSubmenu = "active";
-                            self.active.setup();
+                                    (0, _vendor.$)(window).resize(debounce(function () {
+                                        if ((0, _vendor.$)(window).height() !== self.store.layout.screenHeight) {
+                                            self.store.layout.screenHeight = (0, _vendor.$)(window).height();
+                                        }
+                                        if ((0, _vendor.$)(window).width() !== self.store.layout.screenWidth) {
+                                            self.store.layout.screenWidth = (0, _vendor.$)(window).width();
+                                        }
+                                    }, 200));
+                                    (0, _vendor.$)("#menu-tab-layers-label").trigger("click");
+                                    self.store.activeMenu = "layers";
+                                    self.layers.setup();
+                                    (0, _vendor.$)("#layers-active-label").trigger("click");
+                                    self.store.activeSubmenu = "active";
+                                    self.active.setup();
 
-                            self.loading.app.phaseEnd("post_init");
+                                    self.loading.app.phaseEnd("post_init");
+
+                                    if (self.store.settings.tourVersion !== _sssTour2.default.version) {
+                                        self.takeTour();
+                                    }
+                                } catch (err) {
+                                    self.loading.app.phaseFailed(failed_phase, err);
+                                    throw err;
+                                }
+                            });
                         } catch (err) {
                             //some exception happens
                             self.loading.app.phaseFailed(failed_phase, err);
                             throw err;
-                        }
-                        if (self.store.settings.tourVersion !== _sssTour2.default.version) {
-                            self.takeTour();
                         }
                     }, function (reason) {
                         self.loading.app.phaseEnd("load_catalogue");
@@ -30911,13 +30935,21 @@ exports.default = {
         // force OL to approximate a fixed scale (1:1K increments)
         setScale: function setScale(scale) {
             // while (Math.abs(this.getScale() - scale) > 0.001) {
-            this.olmap.getView().setResolution(this.olmap.getView().getResolution() * scale / this.getScale());
+            var currentScale = this.getScale();
+            if (currentScale === null) {
+                return;
+            }
+            this.olmap.getView().setResolution(this.olmap.getView().getResolution() * scale / currentScale);
             // }
             this.scale = scale;
         },
         // return the scale (1:1K increments)
+        // Returns null if the map size is not yet available (e.g. during viewport changes on mobile)
         getScale: function getScale() {
             var size = this.olmap.getSize();
+            if (!size || size[0] === 0 || size[1] === 0) {
+                return null;
+            }
             var center = this.getCenter();
             var extent = this.olmap.getView().calculateExtent(size);
             // var center_lat_lon = ol.proj.transform(this.getCenter(), 'EPSG:3857', 'EPSG:4326')        
@@ -30925,8 +30957,8 @@ exports.default = {
 
             // var distance = this.$root.wgs84Sphere.haversineDistance([extent[0], center[1]], center) * 2
             var distance = _vendor.ol.sphere.getDistance([extent[0], center[1]], center) * 2;
-
-            return distance * this.dpmm / size[0];
+            var scale = distance * this.dpmm / size[0];
+            return isFinite(scale) ? scale : null;
         },
         // get the fixed scale (1:1K increments) closest to specified or the current scale
         getFixedScale: function getFixedScale(scale) {
@@ -30941,6 +30973,9 @@ exports.default = {
         },
         // generate a human-readable scale string
         getScaleString: function getScaleString(scale) {
+            if (scale === null || scale === undefined || !isFinite(scale)) {
+                return '';
+            }
             if (Math.round(scale * 100) / 100 < 10.0) {
                 return '1:' + Math.round(scale * 1000).toLocaleString();
             } else if (Math.round(scale * 100) / 100 >= 1000.0) {
@@ -31215,7 +31250,7 @@ exports.default = {
                     } else {
                         d = _vendor.moment.tz("Australia/Perth");
                     }
-                    var timddiff = 0;
+                    var timediff = 0;
                     var timeIndex = null;
                     _vendor.$.each(layer.timeline, function (index, timelineLayer) {
                         timediff = d - _vendor.moment.fromLocaleString(timelineLayer[0]);
@@ -32617,7 +32652,10 @@ exports.default = {
 
             // setup scale events
             this.olmap.on('postrender', function () {
-                vm.scale = vm.getScale();
+                var s = vm.getScale();
+                if (s !== null) {
+                    vm.scale = s;
+                }
             });
 
             vm.olmap.getLayers().on("remove", function (ev) {
@@ -39584,7 +39622,7 @@ exports.default = {
 				if (this.showHotspotImages) {
 					return this.revision && this._featurelist.getArray();
 				}
-				return this.revision && this._featurelist.getArray().reverse();
+				return this.revision && this._featurelist.getArray().slice().reverse();
 			} catch (ex) {
 				return [];
 			}
@@ -40107,7 +40145,7 @@ exports.default = {
 					vm._featurelist.extend(list);
 
 					//get extent of filtered features and set extent of map to this
-					if (!this.showFlightFootprint) {
+					if (!vm.showFlightFootprint) {
 
 						var extent = list[0].getGeometry().getExtent(); //.slice(0)
 						list.forEach(function (feature) {
