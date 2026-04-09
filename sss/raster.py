@@ -402,6 +402,8 @@ def syncDatasource(datasource):
         if datasource["loadstatus"].get('status') == 'loaded':
             if datasource["metadata_f"]["refresh_time"](ds)  != datasource["metadata"]["refresh_time"]:
                 datasource["loadstatus"]["status"]="outdated"
+                # Discard the stale handle; a fresh one will be opened after reload below
+                ds = None
 
         #try to reload datasource if required
         while (datasource["loadstatus"].get('status') or "loadfailed") != "loaded":
@@ -414,6 +416,9 @@ def syncDatasource(datasource):
                 #loading by other threads, wait
                 time.sleep(0.1)
 
+        # If the datasource was reloaded, open a fresh handle so callers read up-to-date data
+        if ds is None:
+            ds = gdal.Open(datasource["datasource"], gdal.GA_ReadOnly)
         return ds
     finally:
         pass
