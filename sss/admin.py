@@ -84,6 +84,10 @@ class ProxyAdmin(admin.ModelAdmin):
 class SpatialDataCalculationAdmin(admin.ModelAdmin):
     list_display = ('id', 'bfrs', 'calculation_status', 'created', 'user')
     readonly_fields = ['updated', 'created', 'output', 'user', 'logs']
+    search_fields = ['id', 'bfrs', 'user__username']
+    list_filter = ['calculation_status', 'email_sent', 'created']
+    date_hierarchy = 'created'
+    ordering = ['-created']
     
 @admin.register(models.CRSSettings)
 class CRSSettingsAdmin(admin.ModelAdmin):
