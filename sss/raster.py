@@ -301,10 +301,15 @@ def prepareDatasource(datasource):
             return
     
         if datasource["file"].lower().endswith(".grb"):
-            if "datasource" not in datasource:
+            # Use get() to check both key existence and value: when a file was missing at
+            # startup, datasource["datasource"] is set to None (key exists, value is None).
+            # The old check `"datasource" not in datasource` would skip this block and leave
+            # the path as None even after the file becomes available later (e.g. after FTP sync).
+            if not datasource.get("datasource"):
                 datasource["datasource"] = datasource["file"]
         elif (datasource["file"].lower().endswith(".nc")):
-            if "datasource" not in datasource:
+            # Same reason as above: use get() so a previously-None value is re-evaluated.
+            if not datasource.get("datasource"):
                 # Some NetCDF files contain multiple variables (e.g. max_fbi and land_sea_mask).
                 # When a file has multiple variables, GDAL cannot determine which one to open
                 # and returns 0 bands if the plain file path is used.
@@ -373,7 +378,12 @@ def prepareDatasource(datasource):
             datasource["datasource"] = None
             return
     
-        if datasource["loadstatus"]["status"] not in ("loaded","notexist","notsupport"):
+        # "notexist" is intentionally excluded from this guard so that if the file was
+        # missing on a previous call (status="notexist") but is now present, the status
+        # gets reset to "inited" and the datasource is reloaded on the next syncDatasource
+        # call.  "notsupport" is kept excluded because a wrong file format will never fix
+        # itself and should not be retried.
+        if datasource["loadstatus"]["status"] not in ("loaded","notsupport"):
             datasource["loadstatus"]["status"] = "inited"
             if "message" in datasource["loadstatus"]:
                 del datasource["loadstatus"]["message"]
