@@ -693,7 +693,7 @@ def bfrs_calculation_queue(request):
         options = request.POST.get("options")
         user_email = request.user.email
         tasks = request.POST.get("tasks")
-        user = User.objects.get(email=user_email)
+        user = request.user
         current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_entry = "Added by {} on {}".format(user_email, current_time)
         caculation_queue_object = SpatialDataCalculation.objects.create(bfrs=bfrs, features=features, tasks=tasks, options=options, calculation_status=SpatialDataCalculation.CALCULATION_STATUS[0][0], user=user, logs=log_entry)
