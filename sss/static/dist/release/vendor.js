@@ -142632,9 +142632,6 @@ Utils.prototype.getFeatureTaskManager = function (changeCallback) {
 };
 
 Utils.prototype.checkPermission = function (url, method, callback) {
-    console.log("CHECK PERMISSIONS <-- need to link to local system DB");
-    console.log(url);
-
     url = "/";
     //return false
     method = method || "GET";
