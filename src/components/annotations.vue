@@ -2338,7 +2338,7 @@
 
       this.ui.defaultLine = {
         name: 'Custom Line',
-        icon: 'dist/static/images/iD-sprite.svg#icon-line',
+        icon: '/static/dist/static/images/iD-sprite.svg#icon-line',
         interactions: [this.linestringDrawFactory()],
         showName: true,
         scope:["annotation"],
