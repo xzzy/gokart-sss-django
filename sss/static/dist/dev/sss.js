@@ -22911,17 +22911,17 @@ var gokartProfile = {
     "distributionType": "dev",
     "description": "Spatial Support System v3 (Django)",
     "repositoryBranch": "working",
-    "lastCommit": "b48cb71",
-    "commitDate": "Thu Mar 26 15:08:35 2026 +0800",
-    "commitMessage": "Fix: wait for whoami before broadcasting gk-init to resolve intermittent IWF icon\\nThe IWF (Incident Weather Forecast) icon in the toolbox was intermittently missing on page load due to a race condition in the initialisation sequence.\\nTwo async operations were fired concurrently at startup:\\n1. $.ajax(\"/sso/auth\") \u2014 populates whoami.is_internal_dbca\\n2. loadRemoteCatalogue() \u2014 triggers the gk-init broadcast\\nThe toolbox reads each component's `tools` computed property exactly once during gk-init. In weatherforecast.vue, `tools` returns the IWF entry only when whoami.is_internal_dbca is truthy. If the catalogue finished before the auth response arrived, is_internal_dbca was still undefined at gk-init time and the IWF icon was never added to the toolbox for that session.\\nFix: store the whoami AJAX deferred (self._whoamiDeferred) and wrap the gk-init broadcast \u2014 along with the subsequent gk-postinit and post_init phases \u2014 inside $.when(self._whoamiDeferred).always(...), ensuring whoami is fully populated before any component reads it. .always() is used instead of .done() so that initialisation continues even if the auth request fails.",
+    "lastCommit": "466dac1",
+    "commitDate": "Thu May 14 10:08:37 2026 +0800",
+    "commitMessage": "Fix prepareDatasource not recovering from notexist state for .grb and .nc files\\nWhen a datasource file is missing at server startup, prepareDatasource sets\\ndatasource[\"datasource\"] = None and loadstatus[\"status\"] = \"notexist\".\\nAfter the file becomes available (e.g. after an FTP sync delivers the file),\\nsubsequent calls to prepareDatasource failed to recover due to two bugs:\\n1. The check `if \"datasource\" not in datasource` only tests for key existence,\\nnot the value. Since the key was already present (with value None), the\\nblock that sets the datasource path was skipped, leaving the path as None\\nindefinitely. Fixed by changing to `if not datasource.get(\"datasource\")`\\nso that a None value is correctly treated as \"not yet set\".\\n2. \"notexist\" was included in the exclusion list of the final status-reset\\nguard at the end of the function:\\n`if datasource[\"loadstatus\"][\"status\"] not in (\"loaded\",\"notexist\",\"notsupport\")`\\nThis prevented the status from being reset to \"inited\" when the file\\nbecame available, so syncDatasource would never attempt to reload it.\\nFixed by removing \"notexist\" from the exclusion list. \"notsupport\" is\\nintentionally kept excluded because an unsupported file format will never\\nfix itself and should not be retried. Note that all code paths that set\\nthe status to \"notexist\" end with an explicit return, so there is no risk\\nof this change incorrectly resetting a currently-missing file.\\nThese two bugs combined meant that any datasource whose file was absent at\\nstartup would remain permanently unavailable even after the file was later\\ndelivered, causing it to be excluded from the outlookmetadata API response\\nand not appear in the Available Columns list on the weather outlook UI.",
     "commitAuthor": "Katsufumi Shibata <katsufumi.shibata@dbca.wa.gov.au>",
     "build": {
-        "datetime": "2026-03-27 11:20:52 AWST(+0800)",
-        "date": "2026-03-27 AWST(+0800)",
-        "time": "11-20-52 AWST(+0800)",
+        "datetime": "2026-05-21 15:25:31 AWST(+0800)",
+        "date": "2026-05-21 AWST(+0800)",
+        "time": "15-25-31 AWST(+0800)",
         "platform": "Linux",
-        "host": "gokart-sss-django-userdev-5d8cb9c4df-glhf4",
-        "vendorMD5": "sv9yz-zFczmxMKJlzgSZtg"
+        "host": "gokart-sss-django-userdev-5d8cb9c4df-kd98m",
+        "vendorMD5": "hrobgUrJS97lIDA8I0PU7g"
     }
 };
 exports.default = gokartProfile;
@@ -23364,12 +23364,12 @@ if (result) {
             return !layer[0].includes("resource_tracking_history");
         });
 
-        // If view.center or view.scale are NaN (e.g. due to a mobile browser bug),
-        // fall back to the default values to prevent a crash on load.
-        if (!storedData.view.center || storedData.view.center.some(isNaN)) {
-            storedData.view.center = _persistentData.view.center;
+        // If view values are invalid (e.g. due to a mobile browser bug),
+        // fall back to defaults to prevent a crash on load.
+        if (!Array.isArray(storedData.view.center) || storedData.view.center.length !== 2 || !Number.isFinite(storedData.view.center[0]) || !Number.isFinite(storedData.view.center[1])) {
+            storedData.view.center = _persistentData.view.center.slice();
         }
-        if (isNaN(storedData.view.scale)) {
+        if (!Number.isFinite(storedData.view.scale) || storedData.view.scale <= 0) {
             storedData.view.scale = _persistentData.view.scale;
         }
 
@@ -23512,6 +23512,16 @@ if (result) {
                 tourVersion: function tourVersion(newValue, oldValue) {
                     if (newValue !== _sssTour2.default.version) {
                         this.takeTour();
+                    }
+                },
+                'store.view.center': function storeViewCenter(newValue, oldValue) {
+                    if (!Array.isArray(newValue) || newValue.length !== 2 || !Number.isFinite(newValue[0]) || !Number.isFinite(newValue[1])) {
+                        this.store.view.center = _persistentData.view.center.slice();
+                    }
+                },
+                'store.view.scale': function storeViewScale(newValue, oldValue) {
+                    if (!Number.isFinite(newValue) || newValue <= 0) {
+                        this.store.view.scale = _persistentData.view.scale;
                     }
                 },
                 hints: function hints(newValue, oldValue) {
@@ -29377,8 +29387,15 @@ exports.default = {
             }
 
             // store attributes
-            store.view.center = vm.olmap.getView().getCenter();
-            store.view.scale = Math.round(vm.$root.map.getScale() * 1000);
+            var nextCenter = vm.olmap.getView().getCenter();
+            if (Array.isArray(nextCenter) && nextCenter.length === 2 && Number.isFinite(nextCenter[0]) && Number.isFinite(nextCenter[1])) {
+                store.view.center = nextCenter;
+            }
+
+            var nextScale = vm.$root.map.getScale();
+            if (Number.isFinite(nextScale) && nextScale > 0) {
+                store.view.scale = Math.round(nextScale * 1000);
+            }
             var activeLayers = vm.$root.active.activeLayers();
             if (activeLayers === false) {
                 return;
@@ -35455,7 +35472,7 @@ exports.default = {
             }
         },
         isFireboundaryDrawable: function isFireboundaryDrawable(bushfire) {
-            return bushfire.get('status') === "new" || bushfire.get('report_status') === 1;
+            return bushfire.get('status') === "new" || bushfire.get('report_status') === 1 || bushfire.get('report_status') === 2;
         },
         isEditable: function isEditable(bushfire) {
             try {
@@ -35495,10 +35512,10 @@ exports.default = {
             return this.revision && bushfire.get('status') !== "new" && this.isEditable(bushfire) && bushfire.get('tint') !== "modified";
         },
         canUpload: function canUpload(bushfire) {
-            return this.revision && this.isModifiable(bushfire);
+            return this.revision && bushfire.get('status') !== "new" && this.isModifiable(bushfire);
         },
         canModify: function canModify(bushfire) {
-            return this.revision && this.isModifiable(bushfire);
+            return this.revision && bushfire.get('status') !== "new" && this.isModifiable(bushfire);
         },
         canReset: function canReset(bushfire) {
             return this.revision && bushfire.get('status') !== "new"; // && this.isEditable(bushfire) && bushfire.get('tint') === "modified"

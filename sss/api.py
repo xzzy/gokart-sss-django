@@ -15,6 +15,7 @@ import os
 import requests
 import base64
 import datetime
+import ast
 import json
 import pathlib
 import re
@@ -693,7 +694,7 @@ def bfrs_calculation_queue(request):
         options = request.POST.get("options")
         user_email = request.user.email
         tasks = request.POST.get("tasks")
-        user = User.objects.get(email=user_email)
+        user = request.user
         current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_entry = "Added by {} on {}".format(user_email, current_time)
         caculation_queue_object = SpatialDataCalculation.objects.create(bfrs=bfrs, features=features, tasks=tasks, options=options, calculation_status=SpatialDataCalculation.CALCULATION_STATUS[0][0], user=user, logs=log_entry)
@@ -722,7 +723,31 @@ def spatial_calculation_progress(request, *args, **kwargs):
         last_uploaded_date = calculation_object.created.astimezone(conf.settings.PERTH_TIMEZONE).strftime('%a %b %d %Y %H:%M:%S AWST')
         submitter = calculation_object.user.email
         if(calculation_object.output):
-            result = json.loads(calculation_object.output.replace("'", '"').replace("nan", "null"))
+            # calculation_object.output is stored as the Python repr() of a dict, which
+            # uses single-quoted strings (e.g. {'key': 'value'}).
+            #
+            # The previous approach of .replace("'", '"') was fragile:
+            #   - It broke whenever a string value contained an apostrophe
+            #     (e.g. layer names like 'cddp:legislated_lands_and_waters').
+            #   - Its companion .replace("nan", "null") had no word-boundary guard,
+            #     so it would corrupt any value containing "nan" as a substring
+            #     (e.g. a hypothetical property value "banana" would become "baNulla").
+            #
+            # ast.literal_eval() correctly parses Python literal syntax, including
+            # nested dicts/lists and single-quoted strings with apostrophes.
+            #
+            # One pre-processing step is required: bare `nan` tokens produced by
+            # float('nan') area calculations are not valid Python literals, so they
+            # are replaced with None via a word-boundary regex before parsing.
+            # The \bnan\b pattern avoids corrupting substrings like "banana".
+            # Note: if a string *value* happened to be exactly "nan" (very unlikely
+            # for WA spatial data), it would become the string "None" instead — an
+            # acceptable trade-off vs. the original approach which was more broken.
+            #
+            # Finally, json.dumps/loads round-trips the result to ensure the
+            # structure is fully JSON-serialisable (e.g. Python None → JSON null).
+            raw = ast.literal_eval(re.sub(r'\bnan\b', 'None', calculation_object.output))
+            result = json.loads(json.dumps(raw))
         else:
             result = ""
         output = {"status": calculation_object.calculation_status, "result": result, "last_uploaded_date":last_uploaded_date, "submitter":submitter, "feature": calculation_object.features, "spatial_data": calculation_object.spatial_data }
