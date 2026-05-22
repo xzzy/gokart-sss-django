@@ -143757,6 +143757,10 @@ if (!_jquery2.default.isArray) _jquery2.default.isArray = Array.isArray;
 
 // produce some terrifying CSS at runtime using browserify-css
 if (!_jquery2.default.fn.sort) _jquery2.default.fn.sort = [].sort;
+// Compatibility shim: $.isFunction was removed in jQuery 4.x, required by jcanvas
+if (!_jquery2.default.isFunction) _jquery2.default.isFunction = function (x) {
+    return typeof x === 'function';
+};
 // jCanvas mod to canvas operations
 require('jcanvas')(_jquery2.default, window);
 // Cross-browser support for saving blobs from a webpage
