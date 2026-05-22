@@ -143752,13 +143752,15 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 // import './apps/ol-debug.css'
 if (!_jquery2.default.isArray) _jquery2.default.isArray = Array.isArray;
-// jCanvas mod to canvas operations
+// Compatibility shim: $.fn.sort was removed in jQuery 4.x, required by foundation-sites
 
 
 // jQuery v2, the krazy glue of the internet
 // module for packaging up gokart's third-party dependencies
 
 // produce some terrifying CSS at runtime using browserify-css
+if (!_jquery2.default.fn.sort) _jquery2.default.fn.sort = [].sort;
+// jCanvas mod to canvas operations
 require('jcanvas')(_jquery2.default, window);
 // Cross-browser support for saving blobs from a webpage
 
