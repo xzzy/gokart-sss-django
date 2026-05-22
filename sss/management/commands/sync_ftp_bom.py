@@ -101,7 +101,7 @@ class Command(BaseCommand):
                 else:
                     logger.error(f"file does not exist on remote server : {file.file_name}")
                     continue
-
+                
             ftp_session.close()
 
             for temp_file_name in os.listdir(temp_dir):
@@ -129,18 +129,26 @@ class Command(BaseCommand):
                                 logger.error(traceback.format_exc())
                                 pass
                             continue
-                        
-                        
+                                                
+                        logger.info("Copying File "+temp_file_path)
+                        # Copy GZ File
                         shutil.copyfile(temp_file_path, local_file_path)
-                        shutil.copyfile(unzipped_file_path, os.path.join(BOM_HOME_LOCAL, bom_ftp_directory, os.path.basename(unzipped_file_path)))
+                        # Copy NC File
+
+                        # This check is important to confirm the file copy to shared storage and is not broken
+                        shutil.copyfile(unzipped_file_path, os.path.join(BOM_HOME_LOCAL, bom_ftp_directory, os.path.basename(unzipped_file_path+".tmp.nc")))            
+                        file = gdal.Open(os.path.join(BOM_HOME_LOCAL, bom_ftp_directory, os.path.basename(unzipped_file_path+".tmp.nc")))
+                        file.GetGeoTransform()
+                        if os.path.exists(os.path.join(BOM_HOME_LOCAL, bom_ftp_directory, os.path.basename(unzipped_file_path))):
+                            os.remove(os.path.join(BOM_HOME_LOCAL, bom_ftp_directory, os.path.basename(unzipped_file_path)))
+                        os.rename(os.path.join(BOM_HOME_LOCAL, bom_ftp_directory, os.path.basename(unzipped_file_path+".tmp.nc")), os.path.join(BOM_HOME_LOCAL, bom_ftp_directory, os.path.basename(unzipped_file_path)))
 
                         os.remove(temp_file_path)
-                        os.remove(unzipped_file_path)
+                        os.remove(unzipped_file_path)                    
                         
                     except Exception as e:
                         logger.error(f"Unzipping failed for {temp_file_name}")
-                        logger.error(f"{{e}}")
-                        return
+                        logger.error(e)                        
                 
                 elif temp_file_name.endswith('.nc'):
                     try:
@@ -160,11 +168,18 @@ class Command(BaseCommand):
                                 logger.error(traceback.format_exc())
                                 pass
                             continue
+                        
+                        logger.info("Copying File "+temp_file_path)
+                        # This check is important to confirm the file copy to shared storage and is not broken                                                                      
+                        shutil.copyfile(temp_file_path, local_file_path+".tmp.nc")
+                        file = gdal.Open(local_file_path+".tmp.nc")
+                        file.GetGeoTransform()
+                        shutil.copyfile(temp_file_path, os.path.join(BOM_HOME_LOCAL, bom_ftp_directory, os.path.basename(temp_file_path+".tmp.nc")))
+                        os.rename(os.path.join(BOM_HOME_LOCAL, bom_ftp_directory, os.path.basename(temp_file_path+".tmp.nc")), os.path.join(BOM_HOME_LOCAL, bom_ftp_directory, os.path.basename(temp_file_path)))
+                        os.remove(temp_file_path)                        
 
-                        shutil.copyfile(temp_file_path, local_file_path)
                     except Exception:
-                        logger.error(f"File copy/delete failed for {temp_file_name}")
-                        return
+                        logger.error(f"File copy/delete failed for {temp_file_name}")                        
             
             # This block only runs on successful completion
             end_time = timezone.now()
