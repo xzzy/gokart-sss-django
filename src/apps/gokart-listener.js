@@ -131,7 +131,17 @@ function receiveMessage(event) {
     if (event.origin != window.location.origin) {
         return
     }
-    var request = JSON.parse(event.data)
+    // Only accept string messages: the legitimate gokart parent always sends
+    // JSON.stringify'd requests. Non-string messages (structured-clone objects)
+    // and malformed strings (e.g. "[object Object]" from browser extensions)
+    // are silently ignored to prevent an uncaught SyntaxError.
+    var request
+    try {
+        if (typeof event.data !== 'string') return
+        request = JSON.parse(event.data)
+    } catch (e) {
+        return
+    }
     request["channel"] = "postMessage"
     gokartListener._processRequest(request,function(response){
         event.source.postMessage(response,window.location.origin)
