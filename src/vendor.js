@@ -13,6 +13,8 @@ import $ from 'jquery'
 if (!$.isArray) $.isArray = Array.isArray
 // Compatibility shim: $.fn.sort was removed in jQuery 4.x, required by foundation-sites
 if (!$.fn.sort) $.fn.sort = [].sort
+// Compatibility shim: $.isFunction was removed in jQuery 4.x, required by jcanvas
+if (!$.isFunction) $.isFunction = function(x) { return typeof x === 'function' }
 // jCanvas mod to canvas operations
 require('jcanvas')($, window)
 // Cross-browser support for saving blobs from a webpage
