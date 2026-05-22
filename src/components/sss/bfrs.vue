@@ -889,7 +889,7 @@
         }
       },
       isFireboundaryDrawable: function(bushfire) {
-        return bushfire.get('status') === "new" || (bushfire.get('report_status') === 1)
+        return bushfire.get('status') === "new" || (bushfire.get('report_status') === 1) || (bushfire.get('report_status') === 2)
       },
       isEditable: function(bushfire) {
         try{
@@ -929,10 +929,10 @@
         return this.revision && bushfire.get('status') !== "new" && this.isEditable(bushfire) && bushfire.get('tint') !== "modified"
       },
       canUpload: function(bushfire) {
-        return this.revision && this.isModifiable(bushfire)
+        return this.revision && bushfire.get('status') !== "new" && this.isModifiable(bushfire)
       },
       canModify: function(bushfire) {
-        return this.revision && this.isModifiable(bushfire)
+        return this.revision && bushfire.get('status') !== "new" && this.isModifiable(bushfire)
       },
       canReset: function(bushfire) {
         return this.revision && bushfire.get('status') !== "new" // && this.isEditable(bushfire) && bushfire.get('tint') === "modified"
@@ -2451,7 +2451,12 @@
                 if (!this.isFireboundaryDrawable(feature)) {
                     feature.set("fire_boundary", new ol.geom.Polygon(fire_boundary.coordinates).getExtent(), true)
                 } else {
-                    geometries.push(new ol.geom.MultiPolygon(fire_boundary.coordinates))
+                    var fbCoords = fire_boundary.coordinates
+                    geometries.push(
+                        fire_boundary.type === 'MultiPolygon'
+                            ? new ol.geom.MultiPolygon(fbCoords)
+                            : new ol.geom.MultiPolygon([fbCoords])
+                    )
                     feature.unset("fire_boundary", true)
                 }
             } else {
