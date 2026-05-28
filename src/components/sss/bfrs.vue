@@ -929,10 +929,10 @@
         return this.revision && bushfire.get('status') !== "new" && this.isEditable(bushfire) && bushfire.get('tint') !== "modified"
       },
       canUpload: function(bushfire) {
-        return this.revision && bushfire.get('status') !== "new" && this.isModifiable(bushfire)
+        return this.revision && bushfire.get('status') !== "new" && this.isFireboundaryDrawable(bushfire) && this.isModifiable(bushfire)
       },
       canModify: function(bushfire) {
-        return this.revision && bushfire.get('status') !== "new" && this.isModifiable(bushfire)
+        return this.revision && bushfire.get('status') !== "new" && this.isFireboundaryDrawable(bushfire) && this.isModifiable(bushfire)
       },
       canReset: function(bushfire) {
         return this.revision && bushfire.get('status') !== "new" // && this.isEditable(bushfire) && bushfire.get('tint') === "modified"
