@@ -22890,7 +22890,17 @@ function receiveMessage(event) {
     if (event.origin != window.location.origin) {
         return;
     }
-    var request = JSON.parse(event.data);
+    // Only accept string messages: the legitimate gokart parent always sends
+    // JSON.stringify'd requests. Non-string messages (structured-clone objects)
+    // and malformed strings (e.g. "[object Object]" from browser extensions)
+    // are silently ignored to prevent an uncaught SyntaxError.
+    var request;
+    try {
+        if (typeof event.data !== 'string') return;
+        request = JSON.parse(event.data);
+    } catch (e) {
+        return;
+    }
     request["channel"] = "postMessage";
     gokartListener._processRequest(request, function (response) {
         event.source.postMessage(response, window.location.origin);
@@ -22911,17 +22921,17 @@ var gokartProfile = {
     "distributionType": "dev",
     "description": "Spatial Support System v3 (Django)",
     "repositoryBranch": "working",
-    "lastCommit": "466dac1",
-    "commitDate": "Thu May 14 10:08:37 2026 +0800",
-    "commitMessage": "Fix prepareDatasource not recovering from notexist state for .grb and .nc files\\nWhen a datasource file is missing at server startup, prepareDatasource sets\\ndatasource[\"datasource\"] = None and loadstatus[\"status\"] = \"notexist\".\\nAfter the file becomes available (e.g. after an FTP sync delivers the file),\\nsubsequent calls to prepareDatasource failed to recover due to two bugs:\\n1. The check `if \"datasource\" not in datasource` only tests for key existence,\\nnot the value. Since the key was already present (with value None), the\\nblock that sets the datasource path was skipped, leaving the path as None\\nindefinitely. Fixed by changing to `if not datasource.get(\"datasource\")`\\nso that a None value is correctly treated as \"not yet set\".\\n2. \"notexist\" was included in the exclusion list of the final status-reset\\nguard at the end of the function:\\n`if datasource[\"loadstatus\"][\"status\"] not in (\"loaded\",\"notexist\",\"notsupport\")`\\nThis prevented the status from being reset to \"inited\" when the file\\nbecame available, so syncDatasource would never attempt to reload it.\\nFixed by removing \"notexist\" from the exclusion list. \"notsupport\" is\\nintentionally kept excluded because an unsupported file format will never\\nfix itself and should not be retried. Note that all code paths that set\\nthe status to \"notexist\" end with an explicit return, so there is no risk\\nof this change incorrectly resetting a currently-missing file.\\nThese two bugs combined meant that any datasource whose file was absent at\\nstartup would remain permanently unavailable even after the file was later\\ndelivered, causing it to be excluded from the outlookmetadata API response\\nand not appear in the Available Columns list on the weather outlook UI.",
+    "lastCommit": "c659f07",
+    "commitDate": "Fri May 22 11:49:09 2026 +0800",
+    "commitMessage": "Rebuild release bundle with jQuery 3.7.1",
     "commitAuthor": "Katsufumi Shibata <katsufumi.shibata@dbca.wa.gov.au>",
     "build": {
-        "datetime": "2026-05-21 15:25:31 AWST(+0800)",
-        "date": "2026-05-21 AWST(+0800)",
-        "time": "15-25-31 AWST(+0800)",
+        "datetime": "2026-05-28 13:53:12 AWST(+0800)",
+        "date": "2026-05-28 AWST(+0800)",
+        "time": "13-53-12 AWST(+0800)",
         "platform": "Linux",
-        "host": "gokart-sss-django-userdev-5d8cb9c4df-kd98m",
-        "vendorMD5": "hrobgUrJS97lIDA8I0PU7g"
+        "host": "gokart-sss-django-userdev-5d8cb9c4df-wtjmp",
+        "vendorMD5": "GAZpW8wJbRC1eg72WOKCRA"
     }
 };
 exports.default = gokartProfile;
@@ -26249,7 +26259,7 @@ exports.default = {
 
         this.ui.defaultLine = {
             name: 'Custom Line',
-            icon: 'dist/static/images/iD-sprite.svg#icon-line',
+            icon: '/static/dist/static/images/iD-sprite.svg#icon-line',
             interactions: [this.linestringDrawFactory()],
             showName: true,
             scope: ["annotation"],
@@ -35512,10 +35522,10 @@ exports.default = {
             return this.revision && bushfire.get('status') !== "new" && this.isEditable(bushfire) && bushfire.get('tint') !== "modified";
         },
         canUpload: function canUpload(bushfire) {
-            return this.revision && bushfire.get('status') !== "new" && this.isModifiable(bushfire);
+            return this.revision && bushfire.get('status') !== "new" && this.isFireboundaryDrawable(bushfire) && this.isModifiable(bushfire);
         },
         canModify: function canModify(bushfire) {
-            return this.revision && bushfire.get('status') !== "new" && this.isModifiable(bushfire);
+            return this.revision && bushfire.get('status') !== "new" && this.isFireboundaryDrawable(bushfire) && this.isModifiable(bushfire);
         },
         canReset: function canReset(bushfire) {
             return this.revision && bushfire.get('status') !== "new"; // && this.isEditable(bushfire) && bushfire.get('tint') === "modified"
@@ -37023,7 +37033,8 @@ exports.default = {
                     if (!this.isFireboundaryDrawable(feature)) {
                         feature.set("fire_boundary", new _vendor.ol.geom.Polygon(fire_boundary.coordinates).getExtent(), true);
                     } else {
-                        geometries.push(new _vendor.ol.geom.MultiPolygon(fire_boundary.coordinates));
+                        var fbCoords = fire_boundary.coordinates;
+                        geometries.push(fire_boundary.type === 'MultiPolygon' ? new _vendor.ol.geom.MultiPolygon(fbCoords) : new _vendor.ol.geom.MultiPolygon([fbCoords]));
                         feature.unset("fire_boundary", true);
                     }
                 } else {
@@ -41103,7 +41114,7 @@ exports.default = {
             }
             var filter = "";
             if (this.showDBCAResource) {
-                filter += "'fleetcare','iriditrak','dplus','spot','other','netstar'";
+                filter += "'fleetcare','iriditrak','dplus','spot','other','netstar','mp70'";
             }
             if (this.showDFESResource) {
                 if (filter !== "") filter += ",";
