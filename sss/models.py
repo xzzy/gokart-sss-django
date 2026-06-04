@@ -3,8 +3,22 @@ from django.db import models
 from django.core.cache import cache
 from django.utils import timezone
 from django.contrib.auth.models import User
+from django.core.files.storage import FileSystemStorage
+from django.conf import settings
+import os
 
 UserModel = auth.get_user_model()
+
+private_storage = FileSystemStorage(
+    location=settings.PRIVATE_MEDIA_STORAGE_LOCATION,
+    base_url=settings.PRIVATE_MEDIA_BASE_URL,
+)
+
+
+def legend_upload_path(instance, filename):
+    return os.path.join("legend_files", filename)
+
+
 
 DISTRICT_CHOICES = (
     ('PHS', "Perth Hills"),
@@ -179,7 +193,7 @@ class Catalogue(models.Model):
         crs = models.CharField(max_length=255, null=True, blank=True, help_text='Maps to pycsw:CRS')
         service_type = models.CharField(max_length=10, null=True, blank=True, default='WMS')
         service_type_version = models.CharField(max_length=10, null=True, blank=True, default='1.1.1')
-        legend = models.CharField(max_length=500, null=True, blank=True)
+        legend = models.FileField(storage=private_storage, upload_to=legend_upload_path, null=True, blank=True)
         active = models.BooleanField(default=True)
         updated = models.DateTimeField(auto_now_add=True)
         created = models.DateTimeField(default=timezone.now)
