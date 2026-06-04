@@ -23,6 +23,8 @@ from io import BytesIO
 from sss.models import UserProfile, Proxy, MapServer, SpatialDataCalculation
 from sss import models as sss_models
 from sss.serializers import ProfileSerializer, AccountDetailsSerializer
+from django.http import FileResponse, Http404, HttpResponseForbidden
+import mimetypes
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from sss import utils_cache
@@ -320,7 +322,10 @@ def cataloguev2(request):
             catalogue_row['crs'] = c.crs
             catalogue_row['service_type'] = c.service_type
             catalogue_row['service_type_version'] = c.service_type_version
-            catalogue_row['legend'] = c.legend
+            if c.legend:
+                catalogue_row['legend'] = c.legend.url
+            else:
+                catalogue_row['legend'] = None
             catalogue_row['active'] = c.active
             catalogue_row['updated'] = c.updated.strftime("%d/%m/%Y %H:%M:%S")
             catalogue_row['created'] = c.created.strftime("%d/%m/%Y %H:%M:%S")
@@ -364,6 +369,27 @@ def gokart_client(request):
     context = {'settings': conf.settings}
     response = render(request, 'sss/client.html', context)
     response.headers["X-FRAME-OPTIONS"] = "ALLOWALL"
+    return response
+
+
+def getPrivateFile(request, file_path):
+    if not request.user.is_authenticated:
+        return HttpResponseForbidden("User is not authenticated")
+
+    private_media_root = settings.PRIVATE_MEDIA_STORAGE_LOCATION
+    full_file_path = os.path.join(private_media_root, file_path)
+
+    if not os.path.exists(full_file_path):
+        raise Http404("File not found")
+
+    content_type, _ = mimetypes.guess_type(full_file_path)
+    if not content_type:
+        content_type = "application/octet-stream"
+    extension = full_file_path.split(".")[-1].lower()
+    if extension in ["msg", "eml"]:
+        content_type = "application/vnd.ms-outlook"
+    response = FileResponse(open(full_file_path, 'rb'), content_type=content_type)
+    response['Content-Disposition'] = f'attachment; filename="{os.path.basename(full_file_path)}"'
     return response
 
 def sso_profile(request):

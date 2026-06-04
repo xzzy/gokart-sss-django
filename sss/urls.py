@@ -55,4 +55,5 @@ urlpatterns = [
     re_path('download/(?P<fmt>.*)', api.gdal_download),
     path("sso/profile", api.sso_profile),
     re_path('hi8/(?P<target>.*)',api.himawari8),
+    path('private-media/<path:file_path>', api.getPrivateFile),
 ]

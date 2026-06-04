@@ -254,7 +254,9 @@ TEMP_DIR = decouple.config("TEMP_DIR", default="tmp")
 
 PERTH_TIMEZONE = datetime.datetime.now(pytz.timezone('Australia/Perth')).tzinfo
 SPATIAL_TILE_CACHE_DIR = decouple.config("SPATIAL_TILE_CACHE_DIR", default="./spatial_tile_cache")
-
+PRIVATE_MEDIA_DIR_NAME = decouple.config('PRIVATE_MEDIA_DIR_NAME', 'private-media')
+PRIVATE_MEDIA_STORAGE_LOCATION = os.path.join(BASE_DIR, PRIVATE_MEDIA_DIR_NAME)
+PRIVATE_MEDIA_BASE_URL = f'/{PRIVATE_MEDIA_DIR_NAME}/'
 # Django Timezone
 TIME_ZONE = 'Australia/Perth'
 USE_TZ = True
